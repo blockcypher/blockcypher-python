@@ -70,16 +70,16 @@ def is_valid_bcy_block_representation(block_representation):
 
 def is_valid_block_representation(block_representation, coin_symbol):
     # TODO: make handling of each coin more unique
-    assert coin_symbol
+    assert is_valid_coin_symbol(coin_symbol)
 
     # defensive checks
     if coin_symbol in SHA_COINS:
         if coin_symbol == 'bcy':
             return is_valid_bcy_block_representation(block_representation)
         else:
-            assert is_valid_sha_block_representation(block_representation)
+            return is_valid_sha_block_representation(block_representation)
     elif coin_symbol in SCRYPT_COINS:
-        assert is_valid_scrypt_block_representation(block_representation)
+        return is_valid_scrypt_block_representation(block_representation)
 
 
 ### Coin Symbol ###
