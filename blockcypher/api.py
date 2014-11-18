@@ -241,6 +241,26 @@ def get_latest_block_height(coin_symbol='btc', api_key=None):
     return response_dict['height']
 
 
+def get_latest_block_hash(coin_symbol='btc', api_key=None):
+
+    assert is_valid_coin_symbol(coin_symbol)
+
+    url = get_blockchain_overview_url(coin_symbol=coin_symbol)
+
+    if DEBUG_MODE:
+        print(url)
+
+    params = {}
+    if api_key:
+        params['token'] = api_key
+
+    r = requests.get(url, params=params, verify=True)
+
+    response_dict = json.loads(r.text)
+
+    return response_dict['hash']
+
+
 def get_websocket_url(coin_symbol):
 
     # TODO: add ability to include an api_key
