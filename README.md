@@ -7,7 +7,9 @@ Currently in beta, more features and support for more endpoints coming soon.
 
 Issues and pull requests much appreciated!
 
-Handles datetime conversions. Designed to be used without have to RTFM.
+Handles datetime conversions. Designed to be used without having to RTFM.
+
+*Should* support python 2.6+ and python3.x, but hasn't been thoroughly tested. Please file an issue if something isn't working.
 
 #### Installation (pypy coming soon):
 ```
