@@ -26,6 +26,7 @@ def uses_only_hash_chars(string):
 
 
 def is_valid_hash(string):
+    string = str(string)  # in case of being passed an int
     return len(string.strip()) == 64 and uses_only_hash_chars(string)
 
 
@@ -59,6 +60,7 @@ def is_valid_scrypt_block_representation(block_representation):
 
 
 def is_valid_bcy_block_representation(block_representation):
+    block_representation = str(block_representation)
     # TODO: more specific rules
     if is_valid_block_num(block_representation):
         return True
