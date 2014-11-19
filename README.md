@@ -11,10 +11,21 @@ Handles datetime conversions. Designed to be used without having to RTFM.
 
 *Should* support python 2.6+ and python3.x, but hasn't been thoroughly tested. Please file an issue if something isn't working.
 
-#### Installation (pypy coming soon):
+#### Installation
+
+Use pip with
+```
+$ pip3 install -e git+git://github.com/blockcypher/pyblockcypher.git@master#egg=pyblockcypher
+```
+(for those of you on python 2.x use `pip` instead of `pip3`)
+
+You can of course install it the old fashioned way like this:
 ```
 $ python setup.py install
 ```
+
+PyPI support coming soon.
+
 #### Get Started:
 
 ```
