@@ -98,7 +98,7 @@ Want to know about a specific transaction?
 
 Want more info about a block?
 ```
->>> api.get_block_overview(12345)  # BTC by default
+>>> api.get_block_overview(12345)  # BTC unless specified otherwise
 {'txids': ['fd1dc97a826eb93b485b6bada84a807ee81181f7ab2720cefb5fa96729363157'],
  'mrkl_root': 'fd1dc97a826eb93b485b6bada84a807ee81181f7ab2720cefb5fa96729363157',
  'height': 12345,
@@ -120,7 +120,7 @@ Want more info about a block?
 
 We can also get details on its transaction(s):
 ```
->>> api.get_block_details(12345)
+>>> api.get_block_details(12345)  # BTC unless specified otherwise
 {'txids': [{'confirmations': 318425,
    'lock_time': 0,
    'vout_sz': 1,
