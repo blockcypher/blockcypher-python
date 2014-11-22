@@ -29,23 +29,23 @@ PyPI support coming soon.
 #### Get Started:
 
 ```
->>> from blockcypher import api
+>>> import blockcypher
 ```
 
 Let's start with something simple, what's the current block height?
 ```
->>> api.get_latest_block_height()  # BTC unless specified otherwise
+>>> blockcypher.get_latest_block_height()  # BTC unless specified otherwise
 330545
 ```
 
 We could get that as a block hash if we prefer:
 ```
->>> api.get_latest_block_hash()  # BTC unless specified otherwise
+>>> blockcypher.get_latest_block_hash()  # BTC unless specified otherwise
 '0000000000000000126fc62619701b8c3da59424755e9de409053524620b114d'
 ```
 Want to know about an address?
 ```
->>> api.get_address_details('1PTUHs5ivGAN5aHTY7UQk5RcCE8a67mUT4')  # BTC unless specified otherwise
+>>> blockcypher.get_address_details('1PTUHs5ivGAN5aHTY7UQk5RcCE8a67mUT4')  # BTC unless specified otherwise
 {'unconfirmed_balance': 0,
  'final_balance': 6444,
  'address': '1PTUHs5ivGAN5aHTY7UQk5RcCE8a67mUT4',
@@ -67,7 +67,7 @@ Want to know about an address?
 ```
 Want to know about a specific transaction?
 ```
->>> api.get_transaction_details('fd1dc97a826eb93b485b6bada84a807ee81181f7ab2720cefb5fa96729363157')  # BTC unless specified otherwise
+>>> blockcypher.get_transaction_details('fd1dc97a826eb93b485b6bada84a807ee81181f7ab2720cefb5fa96729363157')  # BTC unless specified otherwise
 {'confirmations': 318425,
  'lock_time': 0,
  'vout_sz': 1,
@@ -98,7 +98,7 @@ Want to know about a specific transaction?
 
 Want more info about a block?
 ```
->>> api.get_block_overview(12345)  # BTC unless specified otherwise
+>>> blockcypher.get_block_overview(12345)  # BTC unless specified otherwise
 {'txids': ['fd1dc97a826eb93b485b6bada84a807ee81181f7ab2720cefb5fa96729363157'],
  'mrkl_root': 'fd1dc97a826eb93b485b6bada84a807ee81181f7ab2720cefb5fa96729363157',
  'height': 12345,
@@ -120,7 +120,7 @@ Want more info about a block?
 
 We can also get details on its transaction(s):
 ```
->>> api.get_block_details(12345)  # BTC unless specified otherwise
+>>> blockcypher.get_block_details(12345)  # BTC unless specified otherwise
 {'txids': [{'confirmations': 318425,
    'lock_time': 0,
    'vout_sz': 1,
