@@ -67,7 +67,6 @@ We can also convert between block hashes and block heights
 ```
 >>> blockcypher.get_block_height('0000000000000000126fc62619701b8c3da59424755e9de409053524620b114d')  # BTC unless specified otherwise
 330545
-
 ```
 Use `get-block_hash()` to convert back.
 
