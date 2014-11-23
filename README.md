@@ -1,15 +1,14 @@
 pyblockcypher
 =============
 
-Python library for the BlockCypher web services
-
-Currently in beta, more features and support for more endpoints coming soon.
-
-Issues and pull requests much appreciated!
+Official python library for BlockCypher web services.
 
 Handles datetime conversions. Designed to be used without having to RTFM.
 
-*Should* support python 2.6+ and python3.x, but hasn't been thoroughly tested. Please file an issue if something isn't working.
+Should support python 2.6+ and python3.x, but hasn't been thoroughly tested.
+
+Currently in beta, more features and support for more endpoints coming soon. Issues and pull requests much appreciated!
+
 
 #### Installation
 
@@ -48,8 +47,9 @@ Satoshis are a bit hard to inuit. What's that in BTC?
 How many transactions did it take to accumulate that much BTC?
 ```
 >>> blockcypher.get_total_num_transactions('1BTCorgHwCg6u2YSAWKgS17qUad6kHmtQW')  # BTC unless specified otherwise
+901
 ```
-(We could break that down with `get_num_confirmed_transactions()` and `get_num_unconfirmed_transactions()` if we wanted.
+We could break that down with `get_num_confirmed_transactions()` and `get_num_unconfirmed_transactions()` if we wanted.
 
 What's the current block height?
 ```
@@ -74,9 +74,10 @@ Use `get-block_hash()` to convert back.
 We can also find the previous block hash:
 ```
 >>> blockcypher.get_prev_block_hash('0000000000000000126fc62619701b8c3da59424755e9de409053524620b114d')  # BTC unless specified otherwise
-
 '000000000000000008573d8ac6eb85ea50fc164c2339dffeeb768423b72f5eeb'
 ```
+
+#### The Details
 
 Want to know about an address generally?
 ```
@@ -206,7 +207,7 @@ We can also get details on its transaction(s):
  'tx_url': 'https://api.blockcypher.com/v1/btc/main/txs/'}
 ```
 
-###### Coins Available
+#### Many More Coins Available
 ```
 >>> from blockcypher import constants
 >>> constants.COIN_SYMBOL_LIST
@@ -220,5 +221,3 @@ For example, here's the latest Litecoin block height.
 >>> blockcypher.get_latest_block_height(coin_symbol='ltc')
 678686
 ```
-
-#### More docs coming soon!
