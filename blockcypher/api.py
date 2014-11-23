@@ -47,7 +47,7 @@ def get_address_details(address, coin_symbol='btc', txn_limit=None,
     if api_key:
         params['token'] = api_key
 
-    r = requests.get(url, params=params, verify=True)
+    r = requests.get(url, params=params, verify=True, timeout=20)
 
     response_dict = json.loads(r.text)
 
@@ -66,7 +66,69 @@ def get_address_details(address, coin_symbol='btc', txn_limit=None,
     return response_dict
 
 
-def get_transaction_url(tx_hash, coin_symbol='btc'):
+def get_unconfirmed_transactions(address, coin_symbol='btc', api_key=None):
+    '''
+    Return all unconfirmed transactions (not in any blocks) for a given address
+
+    Limit is set to 100 transactions. If you have an address with > 100
+    unconfirmed transactions, please write your own logic.
+    '''
+    return get_address_details(address=address, coin_symbol=coin_symbol,
+            txn_limit=100)['final_balance']
+
+
+def get_total_balance(address, coin_symbol='btc', api_key=None):
+    '''
+    Balance including confirmed and unconfirmed transactions for this address,
+    in satoshi.
+    '''
+    return get_address_details(address=address,
+            coin_symbol=coin_symbol)['final_balance']
+
+
+def get_unconfirmed_balance(address, coin_symbol='btc', api_key=None):
+    '''
+    Balance including only unconfirmed (0 block) transactions for this address,
+    in satoshi.
+    '''
+    return get_address_details(address=address,
+            coin_symbol=coin_symbol)['unconfirmed_balance']
+
+
+def get_confirmed_balance(address, coin_symbol='btc', api_key=None):
+    '''
+    Balance including only confirmed (1+ block) transactions for this address,
+    in satoshi.
+    '''
+    return get_address_details(address=address,
+            coin_symbol=coin_symbol)['balance']
+
+
+def get_num_confirmed_transactions(address, coin_symbol='btc', api_key=None):
+    '''
+    Only transactions that have made it into a block (confirmations > 0)
+    '''
+    return get_address_details(address=address,
+            coin_symbol=coin_symbol)['n_tx']
+
+
+def get_num_unconfirmed_transactions(address, coin_symbol='btc', api_key=None):
+    '''
+    Only transactions that have note made it into a block (confirmations == 0)
+    '''
+    return get_address_details(address=address,
+            coin_symbol=coin_symbol)['unconfirmed_n_tx']
+
+
+def get_total_num_transactions(address, coin_symbol='btc', api_key=None):
+    '''
+    All transaction, regardless if they have made it into any blocks
+    '''
+    return get_address_details(address=address,
+            coin_symbol=coin_symbol)['final_n_tx']
+
+
+def get_transaction_url(tx_hash, coin_symbol='btc', api_key=None):
     '''
     Takes a tx_hash and coin_symbol and returns the blockcypher transaction URL
 
@@ -106,7 +168,7 @@ def get_transaction_details(tx_hash, coin_symbol='btc', limit=None,
     if limit:
         params['limit'] = limit
 
-    r = requests.get(url, params=params, verify=True)
+    r = requests.get(url, params=params, verify=True, timeout=20)
 
     response_dict = json.loads(r.text)
 
@@ -122,6 +184,41 @@ def get_transaction_details(tx_hash, coin_symbol='btc', limit=None,
         response_dict['received'] = parser.parse(response_dict['received'])
 
     return response_dict
+
+
+def get_num_confirmations(tx_hash, coin_symbol='btc', api_key=None):
+    '''
+    Given a tx_hash, return the number of confirmations that transactions has.
+
+    Answer is going to be from 0 - current_block_height.
+    '''
+    return get_transaction_details(tx_hash=tx_hash, coin_symbol=coin_symbol,
+            limit=1, api_key=api_key)['confirmations']
+
+
+def get_confidence(tx_hash, coin_symbol='btc', api_key=None):
+    return get_transaction_details(tx_hash=tx_hash, coin_symbol=coin_symbol,
+            limit=1, api_key=api_key).get('confidence', 1)
+
+
+def get_miner_preference(tx_hash, coin_symbol='btc', api_key=None):
+    return get_transaction_details(tx_hash=tx_hash, coin_symbol=coin_symbol,
+            limit=1, api_key=api_key).get('preference')
+
+
+def get_receive_count(tx_hash, coin_symbol='btc', api_key=None):
+    return get_transaction_details(tx_hash=tx_hash, coin_symbol=coin_symbol,
+            limit=1, api_key=api_key).get('receive_count')
+
+
+def get_satoshis_transacted(tx_hash, coin_symbol='btc', api_key=None):
+    return get_transaction_details(tx_hash=tx_hash, coin_symbol=coin_symbol,
+            limit=1, api_key=api_key)['total']
+
+
+def get_satoshis_in_fees(tx_hash, coin_symbol='btc', api_key=None):
+    return get_transaction_details(tx_hash=tx_hash, coin_symbol=coin_symbol,
+            limit=1, api_key=api_key)['fees']
 
 
 def get_block_overview_url(block_representation, coin_symbol='btc'):
@@ -168,7 +265,7 @@ def get_block_overview(block_representation, coin_symbol='btc', txn_limit=None,
     if txn_offset:
         params['txstart'] = txn_offset
 
-    r = requests.get(url, params=params, verify=True)
+    r = requests.get(url, params=params, verify=True, timeout=20)
 
     response_dict = json.loads(r.text)
 
@@ -176,6 +273,54 @@ def get_block_overview(block_representation, coin_symbol='btc', txn_limit=None,
     response_dict['time'] = parser.parse(response_dict['time'])
 
     return response_dict
+
+
+def get_merkle_root(block_representation, coin_symbol='btc', api_key=None):
+    '''
+    Takes a block_representation and returns the merkle root
+    '''
+    return get_block_overview(block_representation=block_representation,
+            coin_symbol=coin_symbol, txn_limit=1, api_key=api_key)['mrkl_root']
+
+
+def get_bits(block_representation, coin_symbol='btc', api_key=None):
+    '''
+    Takes a block_representation and returns the number of bits
+    '''
+    return get_block_overview(block_representation=block_representation,
+            coin_symbol=coin_symbol, txn_limit=1, api_key=api_key)['bits']
+
+
+def get_nonce(block_representation, coin_symbol='btc', api_key=None):
+    '''
+    Takes a block_representation and returns the number of bits
+    '''
+    return get_block_overview(block_representation=block_representation,
+            coin_symbol=coin_symbol, txn_limit=1, api_key=api_key)['bits']
+
+
+def get_prev_block_hash(block_representation, coin_symbol='btc', api_key=None):
+    '''
+    Takes a block_representation and returns the number of bits
+    '''
+    return get_block_overview(block_representation=block_representation,
+            coin_symbol=coin_symbol, txn_limit=1, api_key=api_key)['prev_block']
+
+
+def get_block_hash(block_height, coin_symbol='btc', api_key=None):
+    '''
+    Takes a block_height and returns the block_hash
+    '''
+    return get_block_overview(block_representation=block_height,
+            coin_symbol=coin_symbol, txn_limit=1, api_key=api_key)['hash']
+
+
+def get_block_height(block_hash, coin_symbol='btc', api_key=None):
+    '''
+    Takes a block_hash and returns the block_height
+    '''
+    return get_block_overview(block_representation=block_hash,
+            coin_symbol=coin_symbol, txn_limit=1, api_key=api_key)['height']
 
 
 def get_block_details(block_representation, coin_symbol='btc', txn_limit=None,
@@ -234,7 +379,7 @@ def get_latest_block_height(coin_symbol='btc', api_key=None):
     if api_key:
         params['token'] = api_key
 
-    r = requests.get(url, params=params, verify=True)
+    r = requests.get(url, params=params, verify=True, timeout=20)
 
     response_dict = json.loads(r.text)
 
@@ -254,7 +399,7 @@ def get_latest_block_hash(coin_symbol='btc', api_key=None):
     if api_key:
         params['token'] = api_key
 
-    r = requests.get(url, params=params, verify=True)
+    r = requests.get(url, params=params, verify=True, timeout=20)
 
     response_dict = json.loads(r.text)
 

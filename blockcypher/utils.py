@@ -11,10 +11,12 @@ SATOSHIS_PER_MILLIBITCOIN = 10**5
 HEX_CHARS_RE = re.compile('^[0-9a-f]*$')
 
 
-def satoshis_to_btc(satoshis, decimals=4):
+def satoshis_to_btc(satoshis):
+    return float(satoshis) / float(SATOSHIS_PER_BTC)
 
-    btc = float(satoshis) / float(SATOSHIS_PER_BTC)
 
+def satoshis_to_btc_rounded(satoshis, decimals=4):
+    btc = satoshis_to_btc(satoshis)
     if decimals:
         return round(btc, decimals)
     else:
