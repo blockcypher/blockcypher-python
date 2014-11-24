@@ -1,12 +1,10 @@
-__all__ = ['api', 'contstants', 'utils']
-
-# Main methods used
 # Not DRY, but best compromise for removing the learning curve for the library
 """
 >>> import blockcypher
 >>> blockcypher.get_latest_block_height()
 """
 
+# Main methods used
 from .api import get_address_details
 from .api import get_transaction_details
 from .api import get_block_overview
