@@ -12,7 +12,7 @@ More features and support for more endpoints coming soon. Should support python 
 
 Use pip with
 ```
-$ pip3 install -e git+git://github.com/blockcypher/pyblockcypher.git@master#egg=pyblockcypher
+$ pip3 install -e git+git://github.com/blockcypher/blockcypher-python.git@master#egg=blockcypher
 ```
 (for python 2.x use `pip` instead of `pip3`)
 
