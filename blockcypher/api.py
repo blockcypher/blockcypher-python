@@ -448,8 +448,6 @@ def get_latest_block_hash(coin_symbol='btc', api_key=None):
 
 def get_websocket_url(coin_symbol):
 
-    # TODO: add ability to include an api_key
-
     assert is_valid_coin_symbol(coin_symbol)
 
     return 'wss://socket.blockcypher.com/v1/%s/%s' % (
