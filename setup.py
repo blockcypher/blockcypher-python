@@ -5,11 +5,11 @@ except ImportError:
     from distutils.core import setup
 
 setup(name='blockcypher',
-      version='0.1.1',
+      version='0.1.2',
       description='Python BlockCypher Library',
       author='Michael Flaxman',
       author_email='mflaxman+blockcypher@gmail.com',
-      url='https://github.com/blockcypher/pyblockcypher',
+      url='https://github.com/blockcypher/blockcypher-python/',
       install_requires=[
           'requests==2.4.3',
           'python-dateutil==2.2',

@@ -1,13 +1,11 @@
-pyblockcypher
+blockypher-python
 =============
 
-Official python library for BlockCypher web services.
+Official python library for BlockCypher web services. Easily query the blockchain without writing any code. Fast, reliable, and packed with powerful features you won't find in other block explorers. Currently supports bitcoin (including main and testnet), Litecoin, Dogecoin, URO and the blockcypher testnet.
 
-Handles datetime conversions. Designed to be used without having to RTFM.
+Designed to be used without having to RTFM.
 
-Should support python 2.6+ and python3.x, but hasn't been thoroughly tested.
-
-Currently in beta, more features and support for more endpoints coming soon. Issues and pull requests much appreciated!
+More features and support for more endpoints coming soon. Should support python 2.6+ and python3.x, but hasn't been thoroughly tested on 2.6+. Native support for datetime conversions. Issues and pull requests much appreciated!
 
 
 #### Installation
@@ -31,13 +29,13 @@ PyPI support coming soon.
 >>> import blockcypher
 ```
 
-How much bitcoin is currently sitting in the Bitcoin Foundation Address:
+How much bitcoin (in satoshis) is currently sitting in the Bitcoin Foundation Address:
 ```
 >>> blockcypher.get_total_balance('1BTCorgHwCg6u2YSAWKgS17qUad6kHmtQW')  # BTC unless specified otherwise
 5850576658
 ```
 
-Satoshis are a bit hard to inuit. What's that in BTC?
+Satoshis are a bit hard to inuit. How much is that in BTC?
 ```
 >>> blockcypher.satoshis_to_btc_rounded(5850576658)
 58.5058
