@@ -31,8 +31,10 @@ from .api import get_nonce
 from .api import get_prev_block_hash
 from .api import get_block_hash
 from .api import get_block_height
+from .api import get_broadcast_transactions
+from .api import get_broadcast_transaction_hashes
 
 from .utils import satoshis_to_btc
 from .utils import satoshis_to_btc_rounded
-from .utils import is_valid_hash 
-from .utils import is_valid_address 
+from .utils import is_valid_hash
+from .utils import is_valid_address

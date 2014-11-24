@@ -221,6 +221,46 @@ def get_satoshis_in_fees(tx_hash, coin_symbol='btc', api_key=None):
             limit=1, api_key=api_key)['fees']
 
 
+def get_broadcast_transactions_url(coin_symbol='btc'):
+    return 'https://api.blockcypher.com/v1/btc/main/txs'
+
+
+def get_broadcast_transactions(coin_symbol='btc', api_key=None,
+        limit=10):
+    """
+    Get a list of broadcast but unconfirmed transactions
+    Similar to bitcoind's getrawmempool method
+    """
+
+    url = get_broadcast_transactions_url()
+
+    if DEBUG_MODE:
+        print(url)
+
+    params = {}
+    if api_key:
+        params['token'] = api_key
+    if limit:
+        params['limit'] = limit
+
+    r = requests.get(url, params=params, verify=True, timeout=20)
+
+    response_dict = json.loads(r.text)
+
+    unconfirmed_txs = []
+    for unconfirmed_tx in response_dict:
+        unconfirmed_tx['received'] = parser.parse(unconfirmed_tx['received'])
+        unconfirmed_txs.append(unconfirmed_tx)
+    return unconfirmed_txs
+
+
+def get_broadcast_transaction_hashes(coin_symbol='btc', api_key=None,
+        limit=10):
+    transactions = get_broadcast_transactions(coin_symbol=coin_symbol,
+            api_key=api_key, limit=limit)
+    return [tx['hash'] for tx in transactions]
+
+
 def get_block_overview_url(block_representation, coin_symbol='btc'):
     '''
     Takse a block_representation and coin_symbol and returns the block

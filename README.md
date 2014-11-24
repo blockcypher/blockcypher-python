@@ -135,6 +135,17 @@ Some great transaction methods that take a transaction hash and return exactly w
 - ```get_satoshis_in_fees()```
 - ```get_confidence()```, ```get_miner_preference()``` and ```get_receive_count()``` are powerful methods that use blockcypher's unique transaction confirmation prediction abilities.
 
+You can also get a list of broadcast transactions that haven't made it into a block yet:
+```
+>>> blockcypher.get_broadcast_transaction_hashes(limit=5)
+['4d6e75ed639fc7fe63f57b5578fd01e6712d22f1f307dc1bf720fddc59b4d586',
+ 'daae0f0849148b512fb909d57444a9f41300f188c9583ff93e71c8b97546ebd6',
+ '899d1e1dd41baacf7b766fc643156e40d2438d780dd00ec651c9312693e3fe16',
+ '313dfba9bd69d406176e5b305146a3136f40eda4589f06e1d770d6bfacaf5b52',
+ 'c3e0a3a702a4b8cd6f72618fd13e87b7f2b55a215fd78c35ca13a2d2bbd89088']
+```
+For more details on those transactions, use `blockcypher.api.get_broadcast_transactions()`
+
 Want more info about a block?
 ```
 >>> blockcypher.get_block_overview(12345)  # BTC unless specified otherwise
