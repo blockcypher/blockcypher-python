@@ -225,8 +225,7 @@ def get_broadcast_transactions_url(coin_symbol='btc'):
     return 'https://api.blockcypher.com/v1/btc/main/txs'
 
 
-def get_broadcast_transactions(coin_symbol='btc', api_key=None,
-        limit=10):
+def get_broadcast_transactions(coin_symbol='btc', limit=10, api_key=None):
     """
     Get a list of broadcast but unconfirmed transactions
     Similar to bitcoind's getrawmempool method
@@ -391,6 +390,7 @@ def get_block_details(block_representation, coin_symbol='btc', txn_limit=None,
                 tx_hash=txid,
                 coin_symbol=coin_symbol,
                 limit=100,  # arbitrary, but a pretty large number
+                api_key=api_key,
                 )
         txs_full.append(tx_details)
     block_overview['txids'] = txs_full
