@@ -222,7 +222,10 @@ def get_satoshis_in_fees(tx_hash, coin_symbol='btc', api_key=None):
 
 
 def get_broadcast_transactions_url(coin_symbol='btc'):
-    return 'https://api.blockcypher.com/v1/btc/main/txs'
+    return 'https://api.blockcypher.com/v1/%s/%s/txs/' % (
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
+            )
 
 
 def get_broadcast_transactions(coin_symbol='btc', limit=10, api_key=None):
@@ -231,7 +234,7 @@ def get_broadcast_transactions(coin_symbol='btc', limit=10, api_key=None):
     Similar to bitcoind's getrawmempool method
     """
 
-    url = get_broadcast_transactions_url()
+    url = get_broadcast_transactions_url(coin_symbol=coin_symbol)
 
     if DEBUG_MODE:
         print(url)
