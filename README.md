@@ -74,6 +74,36 @@ We can also find the previous block hash:
 '000000000000000008573d8ac6eb85ea50fc164c2339dffeeb768423b72f5eeb'
 ```
 
+#### Something Cool
+
+Payment forwarding is really hard to setup yourself and trivial with blockcypher.
+
+```
+>>> blockcypher.get_forwarding_address('16uKw7GsQSzfMaVTcT7tpFQkd7Rh9qcXWX', api_key='your key here')  # BTC unless specified otherwise
+'1Am4RUsCoiC3LfVC53kxVyfPkB4gEdRtkg'
+```
+
+Now any funds sent to `1Am4RUsCoiC3LfVC53kxVyfPkB4gEdRtkg` will instantly forward to `16uKw7GsQSzfMaVTcT7tpFQkd7Rh9qcXWX`.
+
+You can check on your payments like this:
+```
+>>> blockcypher.list_forwarding_addresses(api_key='5ceb4450-e15c-11e3-8b68-0800200c9a66', coin_symbol='btc')
+[{'token': '8d99...',
+  'id': '60ad7de3-ce81-40a2-ac92-6c74ab85bb72',
+  'txs': ['f7750e98af49d12b2c63835399d4a96e1b5fd76f897d020f6c6bf8a7c13cdae1'],
+  'input_address': '162r...',
+  'callback_url': 'http://requestb.in/...',
+  'destination': '1BaJ...'},
+...
+]
+```
+
+And you can delete one like this:
+```
+>>> blockcypher.delete_forwarding_address(payment_id='60ad7de3-ce81-40a2-ac92-6c74ab85bb72')  # BTC unless specified otherwise
+
+```
+
 #### The Details
 
 Want to know about an address generally?

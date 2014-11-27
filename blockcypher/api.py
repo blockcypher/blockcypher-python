@@ -449,6 +449,80 @@ def get_latest_block_hash(coin_symbol='btc', api_key=None):
     return response_dict['hash']
 
 
+def get_payments_url(coin_symbol='btc'):
+    """
+    Used for creating, listing and deleting payments
+    """
+    assert is_valid_coin_symbol(coin_symbol)
+    return 'https://api.blockcypher.com/v1/%s/%s/payments' % (
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
+            )
+
+
+def get_forwarding_address(destination_address, api_key=None,
+        callback_url=None, coin_symbol='btc'):
+    """
+    Give a destination address and return an input address that will
+    automatically forward to the destination address
+
+    Note: a blockcypher api_key is required for this method
+    """
+
+    assert is_valid_coin_symbol(coin_symbol)
+    assert api_key
+
+    url = get_payments_url(coin_symbol=coin_symbol)
+
+    if DEBUG_MODE:
+        print(url)
+
+    params = {
+            'destination': destination_address,
+            'token': api_key,
+            }
+
+    if callback_url:
+        params['callback_url'] = callback_url
+
+    r = requests.post(url, data=json.dumps(params), verify=True, timeout=20)
+
+    response_dict = json.loads(r.text)
+
+    return response_dict['input_address']
+
+
+def list_forwarding_addresses(api_key, coin_symbol='btc'):
+    assert is_valid_coin_symbol(coin_symbol)
+    assert api_key
+
+    url = get_payments_url(coin_symbol=coin_symbol)
+
+    if DEBUG_MODE:
+        print(url)
+
+    params = {'token': api_key}
+
+    r = requests.get(url, params=params, verify=True, timeout=20)
+
+    return json.loads(r.text)
+
+
+def delete_forwarding_address(payment_id, coin_symbol='btc'):
+    assert payment_id
+    assert is_valid_coin_symbol(coin_symbol)
+
+    url = '%s/%s' % (get_payments_url(coin_symbol=coin_symbol), payment_id)
+
+    if DEBUG_MODE:
+        print(url)
+
+    r = requests.delete(url, verify=True, timeout=20)
+
+    # TODO: update this to JSON once API is returning JSON
+    return r.text
+
+
 def get_websocket_url(coin_symbol):
 
     assert is_valid_coin_symbol(coin_symbol)

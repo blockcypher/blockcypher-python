@@ -31,6 +31,9 @@ from .api import get_block_hash
 from .api import get_block_height
 from .api import get_broadcast_transactions
 from .api import get_broadcast_transaction_hashes
+from .api import get_forwarding_address
+from .api import list_forwarding_addresses
+from .api import delete_forwarding_address
 
 from .utils import satoshis_to_btc
 from .utils import satoshis_to_btc_rounded
