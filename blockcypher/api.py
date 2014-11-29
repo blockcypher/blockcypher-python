@@ -9,7 +9,7 @@ import requests
 import json
 
 
-def get_address_url(address, coin_symbol='btc'):
+def get_address_details_url(address, coin_symbol='btc'):
     '''
     Takes an address and coin_symbol and returns the blockcypher address URL
 
@@ -36,7 +36,7 @@ def get_address_details(address, coin_symbol='btc', txn_limit=None,
     assert is_valid_address(address)
     assert is_valid_coin_symbol(coin_symbol)
 
-    url = get_address_url(address=address, coin_symbol=coin_symbol)
+    url = get_address_details_url(address=address, coin_symbol=coin_symbol)
 
     if DEBUG_MODE:
         print(url)
@@ -66,15 +66,43 @@ def get_address_details(address, coin_symbol='btc', txn_limit=None,
     return response_dict
 
 
-def get_unconfirmed_transactions(address, coin_symbol='btc', api_key=None):
+def get_address_overview_url(address, coin_symbol='btc'):
     '''
-    Return all unconfirmed transactions (not in any blocks) for a given address
+    Takes an address and coin_symbol and returns the blockcypher address URL
 
-    Limit is set to 100 transactions. If you have an address with > 100
-    unconfirmed transactions, please write your own logic.
+    Basic URL, more advanced URLs are possible
     '''
-    return get_address_details(address=address, coin_symbol=coin_symbol,
-            txn_limit=100)['final_balance']
+    assert(coin_symbol)
+    assert(address)
+
+    return 'https://api.blockcypher.com/v1/%s/%s/addrs/%s/balance' % (
+        COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
+        COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
+        address)
+
+
+def get_address_overview(address, coin_symbol='btc', api_key=None):
+    '''
+    Takes an address and coin_symbol and return the address details
+    '''
+
+    # This check appears to work for other blockchains
+    # TODO: verify and/or improve
+    assert is_valid_address(address)
+    assert is_valid_coin_symbol(coin_symbol)
+
+    url = get_address_overview_url(address=address, coin_symbol=coin_symbol)
+
+    if DEBUG_MODE:
+        print(url)
+
+    params = {}
+    if api_key:
+        params['token'] = api_key
+
+    r = requests.get(url, params=params, verify=True, timeout=20)
+
+    return json.loads(r.text)
 
 
 def get_total_balance(address, coin_symbol='btc', api_key=None):
@@ -82,7 +110,7 @@ def get_total_balance(address, coin_symbol='btc', api_key=None):
     Balance including confirmed and unconfirmed transactions for this address,
     in satoshi.
     '''
-    return get_address_details(address=address,
+    return get_address_overview(address=address,
             coin_symbol=coin_symbol)['final_balance']
 
 
@@ -91,7 +119,7 @@ def get_unconfirmed_balance(address, coin_symbol='btc', api_key=None):
     Balance including only unconfirmed (0 block) transactions for this address,
     in satoshi.
     '''
-    return get_address_details(address=address,
+    return get_address_overview(address=address,
             coin_symbol=coin_symbol)['unconfirmed_balance']
 
 
@@ -100,7 +128,7 @@ def get_confirmed_balance(address, coin_symbol='btc', api_key=None):
     Balance including only confirmed (1+ block) transactions for this address,
     in satoshi.
     '''
-    return get_address_details(address=address,
+    return get_address_overview(address=address,
             coin_symbol=coin_symbol)['balance']
 
 
@@ -108,7 +136,7 @@ def get_num_confirmed_transactions(address, coin_symbol='btc', api_key=None):
     '''
     Only transactions that have made it into a block (confirmations > 0)
     '''
-    return get_address_details(address=address,
+    return get_address_overview(address=address,
             coin_symbol=coin_symbol)['n_tx']
 
 
@@ -116,7 +144,7 @@ def get_num_unconfirmed_transactions(address, coin_symbol='btc', api_key=None):
     '''
     Only transactions that have note made it into a block (confirmations == 0)
     '''
-    return get_address_details(address=address,
+    return get_address_overview(address=address,
             coin_symbol=coin_symbol)['unconfirmed_n_tx']
 
 
@@ -124,7 +152,7 @@ def get_total_num_transactions(address, coin_symbol='btc', api_key=None):
     '''
     All transaction, regardless if they have made it into any blocks
     '''
-    return get_address_details(address=address,
+    return get_address_overview(address=address,
             coin_symbol=coin_symbol)['final_n_tx']
 
 
