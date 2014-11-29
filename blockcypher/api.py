@@ -156,6 +156,45 @@ def get_total_num_transactions(address, coin_symbol='btc', api_key=None):
             coin_symbol=coin_symbol)['final_n_tx']
 
 
+def get_address_generation_url(coin_symbol='btc'):
+    '''
+    Takes a coin_symbol and returns the blockcypher address generation URL
+    '''
+    assert(coin_symbol)
+
+    return 'https://api.blockcypher.com/v1/%s/%s/addrs' % (
+        COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
+        COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
+        )
+
+
+def generate_new_address(coin_symbol='btc', api_key=None):
+    '''
+    Takes a coin_symbol and returns a new address with it's public and private keys
+
+    This method will create the address server side. If you want to create a secure
+    address client-side using python, please check out the new_random_wallet()
+    method in https://github.com/sbuss/bitmerchant
+    '''
+
+    # This check appears to work for other blockchains
+    # TODO: verify and/or improve
+    assert is_valid_coin_symbol(coin_symbol)
+
+    url = get_address_generation_url(coin_symbol=coin_symbol)
+
+    if DEBUG_MODE:
+        print(url)
+
+    params = {}
+    if api_key:
+        params['token'] = api_key
+
+    r = requests.post(url, data=json.dumps(params), verify=True, timeout=20)
+
+    return json.loads(r.text)
+
+
 def get_transaction_url(tx_hash, coin_symbol='btc', api_key=None):
     '''
     Takes a tx_hash and coin_symbol and returns the blockcypher transaction URL

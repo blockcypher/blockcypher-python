@@ -245,6 +245,15 @@ We can also get details on its transaction(s):
  'tx_url': 'https://api.blockcypher.com/v1/btc/main/txs/'}
 ```
 
+Another cool feature is that we can generate a new address keypair server-side:
+```
+>>> blockcypher.generate_new_address()
+{'public': '03c87d1bba027204670c975d01e813d4a20ba4f79500802ba0d51ce3393fb86c1f',
+ 'private': '6a16a2b20e56b7ab8fa366023787730ded6ee9cbd6d37d3e3af5a6bed551b721',
+ 'address': '12TiM15S5MFgYLfphaou2VZkmgyMDrfH8V'}
+```
+(If you use this exact bitcoin address, expect to lose your money instantly!)
+
 #### Many More Coins Available
 ```
 >>> from blockcypher import constants
@@ -252,7 +261,7 @@ We can also get details on its transaction(s):
 ['btc', 'btc-testnet', 'ltc', 'doge', 'uro', 'bcy']
 ```
 
-`btc` will always be assumed if nothing else is specified, but all methods support swapping in any of the previous `coin_symbol` entries.
+`btc` will always be assumed if nothing else is specified, but all methods support swapping in any of the previous `coin_symbol` entries. Just pass `coin_symbol='foo'` as a keyword argument to the function.
 
 For example, here's the latest Litecoin block height.
 ```

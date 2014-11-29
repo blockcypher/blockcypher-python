@@ -5,7 +5,7 @@ except ImportError:
     from distutils.core import setup
 
 setup(name='blockcypher',
-      version='0.1.5',
+      version='0.1.6',
       description='Python BlockCypher Library',
       author='Michael Flaxman',
       author_email='mflaxman+blockcypher@gmail.com',

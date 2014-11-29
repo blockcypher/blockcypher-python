@@ -17,6 +17,7 @@ from .api import get_confirmed_balance
 from .api import get_num_confirmed_transactions
 from .api import get_num_unconfirmed_transactions
 from .api import get_total_num_transactions
+from .api import generate_new_address
 from .api import get_num_confirmations
 from .api import get_confidence
 from .api import get_miner_preference
