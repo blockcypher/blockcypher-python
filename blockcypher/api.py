@@ -527,8 +527,8 @@ def get_payments_url(coin_symbol='btc'):
             )
 
 
-def get_forwarding_address(destination_address, api_key=None,
-        callback_url=None, coin_symbol='btc'):
+def get_forwarding_address(destination_address, api_key, callback_url=None,
+        coin_symbol='btc'):
     """
     Give a destination address and return an input address that will
     automatically forward to the destination address
