@@ -323,8 +323,7 @@ def get_broadcast_transactions(coin_symbol='btc', limit=10, api_key=None):
     return unconfirmed_txs
 
 
-def get_broadcast_transaction_hashes(coin_symbol='btc', api_key=None,
-        limit=10):
+def get_broadcast_transaction_hashes(coin_symbol='btc', api_key=None, limit=10):
     transactions = get_broadcast_transactions(coin_symbol=coin_symbol,
             api_key=api_key, limit=limit)
     return [tx['hash'] for tx in transactions]
@@ -402,7 +401,7 @@ def get_bits(block_representation, coin_symbol='btc', api_key=None):
 
 def get_nonce(block_representation, coin_symbol='btc', api_key=None):
     '''
-    Takes a block_representation and returns the number of bits
+    Takes a block_representation and returns the nonce
     '''
     return get_block_overview(block_representation=block_representation,
             coin_symbol=coin_symbol, txn_limit=1, api_key=api_key)['bits']
@@ -410,7 +409,7 @@ def get_nonce(block_representation, coin_symbol='btc', api_key=None):
 
 def get_prev_block_hash(block_representation, coin_symbol='btc', api_key=None):
     '''
-    Takes a block_representation and returns the number of bits
+    Takes a block_representation and returns the previous block hash
     '''
     return get_block_overview(block_representation=block_representation,
             coin_symbol=coin_symbol, txn_limit=1, api_key=api_key)['prev_block']
@@ -477,6 +476,9 @@ def get_blockchain_overview_url(coin_symbol='btc'):
 
 
 def get_latest_block_height(coin_symbol='btc', api_key=None):
+    '''
+    Get the latest block height for a given coin
+    '''
 
     assert is_valid_coin_symbol(coin_symbol)
 
@@ -497,6 +499,9 @@ def get_latest_block_height(coin_symbol='btc', api_key=None):
 
 
 def get_latest_block_hash(coin_symbol='btc', api_key=None):
+    '''
+    Get the latest block hash for a given coin
+    '''
 
     assert is_valid_coin_symbol(coin_symbol)
 
@@ -560,6 +565,11 @@ def get_forwarding_address(destination_address, api_key, callback_url=None,
 
 
 def list_forwarding_addresses(api_key, coin_symbol='btc'):
+    '''
+    List the forwarding addresses for a certain api key
+    (and on a specific blockchain)
+    '''
+
     assert is_valid_coin_symbol(coin_symbol)
     assert api_key
 
@@ -576,6 +586,11 @@ def list_forwarding_addresses(api_key, coin_symbol='btc'):
 
 
 def delete_forwarding_address(payment_id, coin_symbol='btc'):
+    '''
+    Delete a forwarding address on a specific blockchain, using its
+    payment id
+    '''
+
     assert payment_id
     assert is_valid_coin_symbol(coin_symbol)
 
