@@ -190,7 +190,7 @@ def generate_new_address(coin_symbol='btc', api_key=None):
     if api_key:
         params['token'] = api_key
 
-    r = requests.post(url, data=json.dumps(params), verify=True, timeout=20)
+    r = requests.post(url, params=params, verify=True, timeout=20)
 
     return json.loads(r.text)
 
