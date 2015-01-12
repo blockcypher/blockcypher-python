@@ -12,7 +12,7 @@ HEX_CHARS_RE = re.compile('^[0-9a-f]*$')
 
 
 def btc_to_satoshis(btc):
-    return float(btc) * float(SATOSHIS_PER_BTC)
+    return int(float(btc) * SATOSHIS_PER_BTC)
 
 
 def satoshis_to_btc(satoshis):
