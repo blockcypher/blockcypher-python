@@ -1,5 +1,6 @@
 # Not DRY, but best compromise for removing the learning curve for the library
 """
+With this you can write code like the following:
 >>> import blockcypher
 >>> blockcypher.get_latest_block_height()
 """
@@ -36,6 +37,7 @@ from .api import pushtx
 from .api import get_forwarding_address
 from .api import list_forwarding_addresses
 from .api import delete_forwarding_address
+from .api import send_bcy_faucet
 
 from .utils import satoshis_to_btc
 from .utils import satoshis_to_btc_rounded

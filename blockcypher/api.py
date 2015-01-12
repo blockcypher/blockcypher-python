@@ -9,6 +9,9 @@ import requests
 import json
 
 
+TIMEOUT_IN_SECONDS = 20
+
+
 def get_address_details_url(address, coin_symbol='btc'):
     '''
     Takes an address and coin_symbol and returns the blockcypher address URL
@@ -47,7 +50,7 @@ def get_address_details(address, coin_symbol='btc', txn_limit=None,
     if api_key:
         params['token'] = api_key
 
-    r = requests.get(url, params=params, verify=True, timeout=20)
+    r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
     response_dict = json.loads(r.text)
 
@@ -100,7 +103,7 @@ def get_address_overview(address, coin_symbol='btc', api_key=None):
     if api_key:
         params['token'] = api_key
 
-    r = requests.get(url, params=params, verify=True, timeout=20)
+    r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
     return json.loads(r.text)
 
@@ -190,7 +193,7 @@ def generate_new_address(coin_symbol='btc', api_key=None):
     if api_key:
         params['token'] = api_key
 
-    r = requests.post(url, params=params, verify=True, timeout=20)
+    r = requests.post(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
     return json.loads(r.text)
 
@@ -235,7 +238,7 @@ def get_transaction_details(tx_hash, coin_symbol='btc', limit=None,
     if limit:
         params['limit'] = limit
 
-    r = requests.get(url, params=params, verify=True, timeout=20)
+    r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
     response_dict = json.loads(r.text)
 
@@ -312,7 +315,7 @@ def get_broadcast_transactions(coin_symbol='btc', limit=10, api_key=None):
     if limit:
         params['limit'] = limit
 
-    r = requests.get(url, params=params, verify=True, timeout=20)
+    r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
     response_dict = json.loads(r.text)
 
@@ -324,6 +327,9 @@ def get_broadcast_transactions(coin_symbol='btc', limit=10, api_key=None):
 
 
 def get_broadcast_transaction_hashes(coin_symbol='btc', api_key=None, limit=10):
+    '''
+    Warning, slow!
+    '''
     transactions = get_broadcast_transactions(coin_symbol=coin_symbol,
             api_key=api_key, limit=limit)
     return [tx['hash'] for tx in transactions]
@@ -373,7 +379,7 @@ def get_block_overview(block_representation, coin_symbol='btc', txn_limit=None,
     if txn_offset:
         params['txstart'] = txn_offset
 
-    r = requests.get(url, params=params, verify=True, timeout=20)
+    r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
     response_dict = json.loads(r.text)
 
@@ -491,7 +497,7 @@ def get_latest_block_height(coin_symbol='btc', api_key=None):
     if api_key:
         params['token'] = api_key
 
-    r = requests.get(url, params=params, verify=True, timeout=20)
+    r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
     response_dict = json.loads(r.text)
 
@@ -514,7 +520,7 @@ def get_latest_block_hash(coin_symbol='btc', api_key=None):
     if api_key:
         params['token'] = api_key
 
-    r = requests.get(url, params=params, verify=True, timeout=20)
+    r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
     response_dict = json.loads(r.text)
 
@@ -557,7 +563,7 @@ def get_forwarding_address(destination_address, api_key, callback_url=None,
     if callback_url:
         params['callback_url'] = callback_url
 
-    r = requests.post(url, data=json.dumps(params), verify=True, timeout=20)
+    r = requests.post(url, data=json.dumps(params), verify=True, timeout=TIMEOUT_IN_SECONDS)
 
     response_dict = json.loads(r.text)
 
@@ -580,7 +586,7 @@ def list_forwarding_addresses(api_key, coin_symbol='btc'):
 
     params = {'token': api_key}
 
-    r = requests.get(url, params=params, verify=True, timeout=20)
+    r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
     return json.loads(r.text)
 
@@ -599,7 +605,7 @@ def delete_forwarding_address(payment_id, coin_symbol='btc'):
     if DEBUG_MODE:
         print(url)
 
-    r = requests.delete(url, verify=True, timeout=20)
+    r = requests.delete(url, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
     # TODO: update this to JSON once API is returning JSON
     return r.text
@@ -634,9 +640,36 @@ def pushtx(tx_hex, coin_symbol='btc', api_key=None):
     if api_key:
         params['token'] = api_key
 
-    r = requests.post(url, data=json.dumps(params), verify=True, timeout=20)
+    r = requests.post(url, data=json.dumps(params), verify=True, timeout=TIMEOUT_IN_SECONDS)
 
     return json.loads(r.text)
+
+
+def send_bcy_faucet(address_to_fund, satoshis, api_key):
+    '''
+    Send yourself test coins on the blockcypher (not bitcoin) testnet
+
+    You can see your balance info at https://live.blockcypher.com/bcy/
+    '''
+    assert is_valid_address(address_to_fund)
+    assert satoshis > 0
+    assert api_key
+
+    url = 'http://api.blockcypher.com/v1/bcy/test/faucet'
+    if DEBUG_MODE:
+        print(url)
+
+    data = {
+            'address': address_to_fund,
+            'amount': satoshis,
+            }
+    params = {
+            'token': api_key,
+            }
+
+    r = requests.post(url, data=json.dumps(data), params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+
+    return json.loads(r.text)['tx_ref']
 
 
 def get_websocket_url(coin_symbol):
