@@ -2,7 +2,7 @@ import re
 
 from hashlib import sha256
 
-from .constants import SHA_COINS, SCRYPT_COINS, COIN_SYMBOL_LIST
+from .constants import SHA_COINS, SCRYPT_COINS, COIN_SYMBOL_LIST, COIN_SYMBOL_MAPPINGS
 
 
 SATOSHIS_PER_BTC = 10**8
@@ -109,14 +109,27 @@ def decode_base58(bc, length):
     return n.to_bytes(length, 'big')
 
 
-def btc_address_valid(bc):
+def crypto_address_valid(bc):
     bcbytes = decode_base58(bc, 25)
     return bcbytes[-4:] == sha256(sha256(bcbytes[:-4]).digest()).digest()[:4]
 
 
 def is_valid_address(b58_address):
     try:
-        return btc_address_valid(b58_address)
+        return crypto_address_valid(b58_address)
     except:
         # handle edge cases like an address too long to decode
         return False
+
+
+def is_valid_address_for_coinsymbol(b58_address, coin_symbol):
+    '''
+    Is an address both valid *and* start with the correct character
+    for its coin symbol (chain/network)
+    '''
+    assert is_valid_coin_symbol(coin_symbol)
+
+    if b58_address[0] in COIN_SYMBOL_MAPPINGS[coin_symbol]['address_first_char_list']:
+        if is_valid_address(b58_address):
+            return True
+    return False

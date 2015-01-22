@@ -11,6 +11,7 @@ COIN_SYMBOL_ODICT_LIST = [
             'currency_abbrev': 'BTC',
             'pow': 'sha',
             'example_address': '16Fg2yjwrbtC6fZp61EV9mNVKmwCzGasw5',
+            'address_first_char_list': ('1', '3'),
             },
         {
             'coin_symbol': 'btc-testnet',
@@ -21,6 +22,7 @@ COIN_SYMBOL_ODICT_LIST = [
             'currency_abbrev': 'BTC',
             'pow': 'sha',
             'example_address': '2N1rjhumXA3ephUQTDMfGhufxGQPZuZUTMk',
+            'address_first_char_list': ('m', 'n', '2'),
             },
         {
             'coin_symbol': 'ltc',
@@ -31,6 +33,7 @@ COIN_SYMBOL_ODICT_LIST = [
             'currency_abbrev': 'LTC',
             'pow': 'scrypt',
             'example_address': 'LcFFkbRUrr8j7TMi8oXUnfR4GPsgcXDepo',
+            'address_first_char_list': ('U', '3'),
             },
         {
             'coin_symbol': 'doge',
@@ -41,6 +44,7 @@ COIN_SYMBOL_ODICT_LIST = [
             'currency_abbrev': 'DOGE',
             'pow': 'scrypt',
             'example_address': 'D7Y55r6Yoc1G8EECxkQ6SuSjTgGJJ7M6yD',
+            'address_first_char_list': ('D', '9', 'A'),
             },
         {
             'coin_symbol': 'uro',
@@ -51,6 +55,7 @@ COIN_SYMBOL_ODICT_LIST = [
             'currency_abbrev': 'URO',
             'pow': 'sha',
             'example_address': 'Uhf1LGdgmWe33hB9VVtubyzq1GduUAtaAJ',
+            'address_first_char_list': ('U', ),  # TODO: more?
             },
         {
             'coin_symbol': 'bcy',
@@ -61,6 +66,7 @@ COIN_SYMBOL_ODICT_LIST = [
             'currency_abbrev': 'BCY',
             'pow': 'sha',
             'example_address': 'CFr99841LyMkyX5ZTGepY58rjXJhyNGXHf',
+            'address_first_char_list': ('B', 'C', 'D'),
             },
         ]
 
@@ -91,7 +97,7 @@ COIN_SYMBOL_LIST = [x['coin_symbol'] for x in COIN_SYMBOL_ODICT_LIST]
 SHA_COINS = [x['coin_symbol'] for x in COIN_SYMBOL_ODICT_LIST if x['pow'] == 'sha']
 SCRYPT_COINS = [x['coin_symbol'] for x in COIN_SYMBOL_ODICT_LIST if x['pow'] == 'scrypt']
 
-# For django-style lists
+# For django-style lists (with "best" order)
 COIN_CHOICES = []
 for coin_symbol_dict in COIN_SYMBOL_ODICT_LIST:
     COIN_CHOICES.append((coin_symbol_dict['coin_symbol'], coin_symbol_dict['display_name']))
