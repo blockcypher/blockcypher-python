@@ -668,8 +668,8 @@ def send_bcy_faucet(address_to_fund, satoshis, api_key):
             }
 
     r = requests.post(url, data=json.dumps(data), params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
-
-    return json.loads(r.text)['tx_ref']
+    response_dict = json.loads(r.text)
+    return response_dict['tx_ref']
 
 
 def get_websocket_url(coin_symbol):
