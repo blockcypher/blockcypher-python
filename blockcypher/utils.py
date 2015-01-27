@@ -49,7 +49,7 @@ def is_valid_block_num(block_num):
 
 
 def is_valid_sha_block_hash(block_hash):
-    return is_valid_hash(block_hash) and block_hash[:6] == '000000'
+    return is_valid_hash(block_hash) and block_hash[:5] == '00000'
 
 
 def is_valid_scrypt_block_hash(block_hash):
