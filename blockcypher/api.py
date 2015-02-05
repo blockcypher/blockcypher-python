@@ -538,11 +538,11 @@ def get_payments_url(coin_symbol='btc'):
             )
 
 
-def get_forwarding_address(destination_address, api_key, callback_url=None,
+def get_forwarding_address_details(destination_address, api_key, callback_url=None,
         coin_symbol='btc'):
     """
-    Give a destination address and return an input address that will
-    automatically forward to the destination address
+    Give a destination address and return the details of the input address
+    that will automatically forward to the destination address
 
     Note: a blockcypher api_key is required for this method
     """
@@ -565,10 +565,26 @@ def get_forwarding_address(destination_address, api_key, callback_url=None,
 
     r = requests.post(url, data=json.dumps(params), verify=True, timeout=TIMEOUT_IN_SECONDS)
 
-    response_dict = json.loads(r.text)
+    return json.loads(r.text)
 
-    return response_dict['input_address']
+def get_forwarding_address(destination_address, api_key, callback_url=None,
+        coin_symbol='btc'):
+    """
+    Give a destination address and return an input address that will
+    automatically forward to the destination address. See
+    get_forwarding_address_details if you also need the forwarding address ID.
 
+    Note: a blockcypher api_key is required for this method
+    """
+
+    resp_dict = get_forwarding_address_details(
+            destination_address,
+            api_key,
+            callback_url=callback_url,
+            coin_symbol=coin_symbol
+            )
+
+    return resp_dict['input_address']
 
 def list_forwarding_addresses(api_key, coin_symbol='btc'):
     '''
