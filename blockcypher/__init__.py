@@ -36,6 +36,7 @@ from .api import get_broadcast_transaction_hashes
 from .api import subscribe_to_address_webhook
 from .api import pushtx
 from .api import get_forwarding_address
+from .api import get_forwarding_address_details
 from .api import list_forwarding_addresses
 from .api import delete_forwarding_address
 from .api import send_bcy_faucet
