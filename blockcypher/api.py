@@ -1,5 +1,6 @@
 from .utils import (is_valid_address, is_valid_hash,
-        is_valid_block_representation, is_valid_coin_symbol)
+        is_valid_block_representation, is_valid_coin_symbol,
+        is_valid_address_for_coinsymbol)
 
 from .constants import COIN_SYMBOL_MAPPINGS, DEBUG_MODE
 
@@ -609,6 +610,47 @@ def delete_forwarding_address(payment_id, coin_symbol='btc'):
 
     # TODO: update this to JSON once API is returning JSON
     return r.text
+
+
+def get_webhook_url(coin_symbol='btc'):
+    """
+    Used for creating, listing and deleting payments
+    """
+    assert is_valid_coin_symbol(coin_symbol)
+    return 'https://api.blockcypher.com/v1/%s/%s/hooks' % (
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
+            )
+
+
+def subscribe_to_address_webhook(callback_url, subscription_address, coin_symbol='btc', api_key=None):
+    '''
+    Subscribe to transaction webhooks on a given address
+
+    Returns the blockcypher ID of the subscription
+    '''
+    assert is_valid_coin_symbol(coin_symbol)
+    assert is_valid_address_for_coinsymbol(subscription_address, coin_symbol)
+
+    url = get_webhook_url(coin_symbol=coin_symbol)
+
+    if DEBUG_MODE:
+        print(url)
+
+    params = {
+            'event': 'unconfirmed-tx',
+            'url': callback_url,
+            'address': subscription_address,
+            }
+
+    if api_key:
+        params['token'] = api_key
+
+    r = requests.post(url, data=json.dumps(params), verify=True, timeout=TIMEOUT_IN_SECONDS)
+
+    response_dict = json.loads(r.text)
+
+    return response_dict['id']
 
 
 def get_pushtx_url(coin_symbol='btc'):
