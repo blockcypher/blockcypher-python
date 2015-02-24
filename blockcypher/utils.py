@@ -9,6 +9,7 @@ SATOSHIS_PER_BTC = 10**8
 SATOSHIS_PER_MILLIBITCOIN = 10**5
 
 HEX_CHARS_RE = re.compile('^[0-9a-f]*$')
+WALLET_NAME_RE = re.compile('^([0-9a-z][0-9a-z\-]*\.)+[a-z]{2,}$')
 
 
 def btc_to_satoshis(btc):
@@ -133,3 +134,8 @@ def is_valid_address_for_coinsymbol(b58_address, coin_symbol):
         if is_valid_address(b58_address):
             return True
     return False
+
+## Wallet Names ###
+def is_valid_wallet_name(string):
+
+    return WALLET_NAME_RE.match(string)
