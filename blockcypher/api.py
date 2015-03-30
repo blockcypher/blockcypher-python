@@ -568,6 +568,7 @@ def get_forwarding_address_details(destination_address, api_key, callback_url=No
 
     return json.loads(r.text)
 
+
 def get_forwarding_address(destination_address, api_key, callback_url=None,
         coin_symbol='btc'):
     """
@@ -586,6 +587,7 @@ def get_forwarding_address(destination_address, api_key, callback_url=None,
             )
 
     return resp_dict['input_address']
+
 
 def list_forwarding_addresses(api_key, coin_symbol='btc'):
     '''
@@ -641,7 +643,8 @@ def get_webhook_url(coin_symbol='btc'):
 
 def subscribe_to_address_webhook(callback_url, subscription_address, coin_symbol='btc', api_key=None):
     '''
-    Subscribe to transaction webhooks on a given address
+    Subscribe to transaction webhooks on a given address.
+    Webhooks for transaction broadcast and each confirmation (up to 6).
 
     Returns the blockcypher ID of the subscription
     '''
@@ -654,7 +657,7 @@ def subscribe_to_address_webhook(callback_url, subscription_address, coin_symbol
         print(url)
 
     params = {
-            'event': 'unconfirmed-tx',
+            'event': 'tx-confirmation',
             'url': callback_url,
             'address': subscription_address,
             }
