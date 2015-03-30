@@ -33,7 +33,7 @@ COIN_SYMBOL_ODICT_LIST = [
             'currency_abbrev': 'LTC',
             'pow': 'scrypt',
             'example_address': 'LcFFkbRUrr8j7TMi8oXUnfR4GPsgcXDepo',
-            'address_first_char_list': ('U', '3'),
+            'address_first_char_list': ('L', 'U', '3'),  # TODO: confirm
             },
         {
             'coin_symbol': 'doge',
