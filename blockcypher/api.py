@@ -683,16 +683,49 @@ def get_pushtx_url(coin_symbol='btc'):
             )
 
 
+def get_decodetx_url(coin_symbol='btc'):
+    """
+    Used for decoding hexadecimal transactions without broadcasting them
+    """
+    assert is_valid_coin_symbol(coin_symbol)
+    return 'https://api.blockcypher.com/v1/%s/%s/txs/decode' % (
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
+            )
+
+
 def pushtx(tx_hex, coin_symbol='btc', api_key=None):
     '''
-    Takes a signed transaction hex (and coin_symbol) and broadcasts it to the bitcoin network.
+    Takes a signed transaction hex binary (and coin_symbol) and broadcasts it to the bitcoin network.
     '''
 
-    # This check appears to work for other blockchains
-    # TODO: verify and/or improve
     assert is_valid_coin_symbol(coin_symbol)
 
     url = get_pushtx_url(coin_symbol=coin_symbol)
+
+    if DEBUG_MODE:
+        print(url)
+
+    params = {'tx': tx_hex}
+    if api_key:
+        params['token'] = api_key
+
+    r = requests.post(url, data=json.dumps(params), verify=True, timeout=TIMEOUT_IN_SECONDS)
+
+    return json.loads(r.text)
+
+
+def decodetx(tx_hex, coin_symbol='btc', api_key=None):
+    '''
+    Takes a signed transaction hex binary (and coin_symbol) and decodes it to JSON.
+
+    Does NOT broadcast the transaction to the bitcoin network.
+    Especially useful for testing/debugging and sanity checking
+    '''
+
+    assert is_valid_coin_symbol(coin_symbol)
+
+    url = get_decodetx_url(coin_symbol=coin_symbol)
 
     if DEBUG_MODE:
         print(url)
