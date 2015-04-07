@@ -503,7 +503,7 @@ def get_block_overview(block_representation, coin_symbol='btc', txn_limit=None,
             block_representation=block_representation,
             coin_symbol=coin_symbol)
 
-    url = get_blocks_overview_url(
+    url = get_block_overview_url(
             block_representation=block_representation,
             coin_symbol=coin_symbol)
 
