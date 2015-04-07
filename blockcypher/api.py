@@ -28,6 +28,22 @@ def get_address_details_url(address, coin_symbol='btc'):
         address)
 
 
+def get_addresses_details_url(address_list, coin_symbol='btc'):
+    '''
+    Takes a list of addresses and coin_symbol and returns the blockcypher address URL
+
+    Basic URL, more advanced URLs are possible
+    '''
+    assert(coin_symbol)
+    assert(address_list)
+
+    return 'https://api.blockcypher.com/v1/%s/%s/addrs/%s' % (
+        COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
+        COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
+        ';'.join(address_list),
+        )
+
+
 def get_address_details(address, coin_symbol='btc', txn_limit=None,
         api_key=None):
     '''
@@ -70,6 +86,52 @@ def get_address_details(address, coin_symbol='btc', txn_limit=None,
     return response_dict
 
 
+def get_addresses_details(address_list, coin_symbol='btc', txn_limit=None,
+        api_key=None):
+    '''
+    Takes a list of addresses, coin_symbol and txn_limit (optional) and return the
+    address details
+    '''
+
+    for address in address_list:
+        assert is_valid_address_for_coinsymbol(
+                b58_address=address,
+                coin_symbol=coin_symbol)
+
+    url = get_addresses_details_url(address_list=address_list, coin_symbol=coin_symbol)
+
+    if DEBUG_MODE:
+        print(url)
+
+    params = {}
+    if txn_limit:
+        params['limit'] = txn_limit
+    if api_key:
+        params['token'] = api_key
+
+    r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+
+    response_dict_list = json.loads(r.text)
+    cleaned_dict_list = []
+
+    for response_dict in response_dict_list:
+        confirmed_txrefs = []
+        for confirmed_txref in response_dict.get('txrefs', []):
+            confirmed_txref['confirmed'] = parser.parse(confirmed_txref['confirmed'])
+            confirmed_txrefs.append(confirmed_txref)
+        response_dict['txrefs'] = confirmed_txrefs
+
+        unconfirmed_txrefs = []
+        for unconfirmed_txref in response_dict.get('unconfirmed_txrefs', []):
+            unconfirmed_txref['received'] = parser.parse(unconfirmed_txref['received'])
+            unconfirmed_txrefs.append(unconfirmed_txref)
+        response_dict['unconfirmed_txrefs'] = unconfirmed_txrefs
+
+        cleaned_dict_list.append(response_dict)
+
+    return cleaned_dict_list
+
+
 def get_address_overview_url(address, coin_symbol='btc'):
     '''
     Takes an address and coin_symbol and returns the blockcypher address URL
@@ -90,10 +152,8 @@ def get_address_overview(address, coin_symbol='btc', api_key=None):
     Takes an address and coin_symbol and return the address details
     '''
 
-    # This check appears to work for other blockchains
-    # TODO: verify and/or improve
-    assert is_valid_address(address)
-    assert is_valid_coin_symbol(coin_symbol)
+    assert is_valid_address_for_coinsymbol(b58_address=address,
+            coin_symbol=coin_symbol)
 
     url = get_address_overview_url(address=address, coin_symbol=coin_symbol)
 
@@ -216,6 +276,24 @@ def get_transaction_url(tx_hash, coin_symbol='btc', api_key=None):
             )
 
 
+def get_transactions_url(tx_hash_list, coin_symbol='btc', api_key=None):
+    '''
+    Takes a list of tx_hashes and a coin_symbol and returns the blockcypher transaction URL
+
+    Basic URL, more advanced URLs are possible
+    '''
+
+    for tx_hash in tx_hash_list:
+        assert is_valid_hash(tx_hash)
+    assert is_valid_coin_symbol(coin_symbol)
+
+    return 'https://api.blockcypher.com/v1/%s/%s/txs/%s' % (
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
+            ';'.join(tx_hash_list),
+            )
+
+
 def get_transaction_details(tx_hash, coin_symbol='btc', limit=None,
         api_key=None):
     """
@@ -255,6 +333,51 @@ def get_transaction_details(tx_hash, coin_symbol='btc', limit=None,
         response_dict['received'] = parser.parse(response_dict['received'])
 
     return response_dict
+
+
+def get_transactions_details(tx_hash_list, coin_symbol='btc', limit=None,
+        api_key=None):
+    """
+    Takes a list of tx_hashes, coin_symbol, and limit and returns the transaction details
+
+    Limit applies to both num inputs and num outputs.
+    TODO: add offsetting once supported
+    """
+
+    for tx_hash in tx_hash_list:
+        assert is_valid_hash(tx_hash)
+    assert is_valid_coin_symbol(coin_symbol)
+
+    url = get_transactions_url(tx_hash_list=tx_hash_list, coin_symbol=coin_symbol)
+
+    if DEBUG_MODE:
+        print(url)
+
+    params = {}
+    if api_key:
+        params['token'] = api_key
+    if limit:
+        params['limit'] = limit
+
+    r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+
+    response_dict_list = json.loads(r.text)
+    cleaned_dict_list = []
+
+    for response_dict in response_dict_list:
+        if not 'error' in response_dict:
+            if response_dict['block_height'] > 0:
+                response_dict['confirmed'] = parser.parse(response_dict['confirmed'])
+            else:
+                # Blockcypher reports fake times if it's not in a block
+                response_dict['confirmed'] = None
+                response_dict['block_height'] = None
+
+            # format this string as a datetime object
+            response_dict['received'] = parser.parse(response_dict['received'])
+        cleaned_dict_list.append(response_dict)
+
+    return cleaned_dict_list
 
 
 def get_num_confirmations(tx_hash, coin_symbol='btc', api_key=None):
@@ -351,6 +474,21 @@ def get_block_overview_url(block_representation, coin_symbol='btc'):
             )
 
 
+def get_blocks_overview_url(block_representation_list, coin_symbol='btc'):
+    '''
+    Takse a block_representation and coin_symbol and returns the block
+    overview URL
+    '''
+
+    assert is_valid_coin_symbol(coin_symbol)
+
+    return 'https://api.blockcypher.com/v1/%s/%s/blocks/%s' % (
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
+            ';'.join([str(x) for x in block_representation_list]),
+            )
+
+
 def get_block_overview(block_representation, coin_symbol='btc', txn_limit=None,
         txn_offset=None, api_key=None):
     """
@@ -365,7 +503,7 @@ def get_block_overview(block_representation, coin_symbol='btc', txn_limit=None,
             block_representation=block_representation,
             coin_symbol=coin_symbol)
 
-    url = get_block_overview_url(
+    url = get_blocks_overview_url(
             block_representation=block_representation,
             coin_symbol=coin_symbol)
 
@@ -388,6 +526,43 @@ def get_block_overview(block_representation, coin_symbol='btc', txn_limit=None,
     response_dict['time'] = parser.parse(response_dict['time'])
 
     return response_dict
+
+
+def get_blocks_overview(block_representation_list, coin_symbol='btc',
+        txn_limit=None, api_key=None):
+    '''
+    Batch request version of get_blocks_overview
+    '''
+    assert is_valid_coin_symbol(coin_symbol)
+    for block_representation in block_representation_list:
+        assert is_valid_block_representation(
+                block_representation=block_representation,
+                coin_symbol=coin_symbol)
+
+    url = get_blocks_overview_url(
+            block_representation_list=block_representation_list,
+            coin_symbol=coin_symbol)
+
+    if DEBUG_MODE:
+        print(url)
+
+    params = {}
+    if api_key:
+        params['token'] = api_key
+    if txn_limit:
+        params['limit'] = txn_limit
+
+    r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+
+    response_dict_list = json.loads(r.text)
+
+    cleaned_dict_list = []
+    for response_dict in response_dict_list:
+        response_dict['received_time'] = parser.parse(response_dict['received_time'])
+        response_dict['time'] = parser.parse(response_dict['time'])
+        cleaned_dict_list.append(response_dict)
+
+    return cleaned_dict_list
 
 
 def get_merkle_root(block_representation, coin_symbol='btc', api_key=None):
