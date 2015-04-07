@@ -635,16 +635,13 @@ def get_block_details(block_representation, coin_symbol='btc', txn_limit=None,
             api_key=api_key,
             )
 
-    txs_full = []
-    for txid in block_overview['txids']:
-        tx_details = get_transaction_details(
-                tx_hash=txid,
-                coin_symbol=coin_symbol,
-                limit=100,  # arbitrary, but a pretty large number
-                api_key=api_key,
-                )
-        txs_full.append(tx_details)
-    block_overview['txids'] = txs_full
+    tx_details = get_transactions_details(
+            tx_hash_list=block_overview['txids'],
+            coin_symbol=coin_symbol,
+            limit=100,  # arbitrary, but a pretty large number
+            api_key=api_key,
+            )
+    block_overview['txids'] = tx_details
 
     return block_overview
 
