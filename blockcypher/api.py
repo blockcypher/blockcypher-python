@@ -348,6 +348,14 @@ def get_transactions_details(tx_hash_list, coin_symbol='btc', limit=None,
         assert is_valid_hash(tx_hash)
     assert is_valid_coin_symbol(coin_symbol)
 
+    if len(tx_hash_list) == 1:
+        return [get_transaction_details(
+                tx_hash=tx_hash_list[0],
+                coin_symbol=coin_symbol,
+                limit=limit,
+                api_key=api_key
+                ), ]
+
     url = get_transactions_url(tx_hash_list=tx_hash_list, coin_symbol=coin_symbol)
 
     if DEBUG_MODE:
@@ -635,13 +643,13 @@ def get_block_details(block_representation, coin_symbol='btc', txn_limit=None,
             api_key=api_key,
             )
 
-    tx_details = get_transactions_details(
+    txs_details = get_transactions_details(
             tx_hash_list=block_overview['txids'],
             coin_symbol=coin_symbol,
             limit=100,  # arbitrary, but a pretty large number
             api_key=api_key,
             )
-    block_overview['txids'] = tx_details
+    block_overview['txids'] = txs_details
 
     return block_overview
 
