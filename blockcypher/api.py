@@ -643,13 +643,26 @@ def get_block_details(block_representation, coin_symbol='btc', txn_limit=None,
             api_key=api_key,
             )
 
+    txids_to_lookup = block_overview['txids']
+    print(txids_to_lookup)
+
     txs_details = get_transactions_details(
-            tx_hash_list=block_overview['txids'],
+            tx_hash_list=txids_to_lookup,
             coin_symbol=coin_symbol,
-            limit=100,  # arbitrary, but a pretty large number
+            limit=10,  # arbitrary, but a decently large number
             api_key=api_key,
             )
-    block_overview['txids'] = txs_details
+
+    # build comparator dict to use for fast sorting of batched results later
+    txids_comparator_dict = {}
+    for cnt, tx_id in enumerate(txids_to_lookup):
+        txids_comparator_dict[tx_id] = cnt
+
+    # sort results using comparator dict
+    block_overview['txids'] = sorted(
+            txs_details,
+            key=lambda k: txids_comparator_dict.get(k.get('hash'), 9999),  # anything that fails goes last
+            )
 
     return block_overview
 
