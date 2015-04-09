@@ -530,6 +530,9 @@ def get_block_overview(block_representation, coin_symbol='btc', txn_limit=None,
 
     response_dict = json.loads(r.text)
 
+    if 'error' in response_dict:
+        return response_dict
+
     response_dict['received_time'] = parser.parse(response_dict['received_time'])
     response_dict['time'] = parser.parse(response_dict['time'])
 
@@ -643,6 +646,9 @@ def get_block_details(block_representation, coin_symbol='btc', txn_limit=None,
             api_key=api_key,
             )
 
+    if 'error' in block_overview:
+        return block_overview
+
     txids_to_lookup = block_overview['txids']
 
     txs_details = get_transactions_details(
@@ -651,6 +657,9 @@ def get_block_details(block_representation, coin_symbol='btc', txn_limit=None,
             limit=10,  # arbitrary, but a decently large number
             api_key=api_key,
             )
+
+    if 'error' in txs_details:
+        return txs_details
 
     # build comparator dict to use for fast sorting of batched results later
     txids_comparator_dict = {}
