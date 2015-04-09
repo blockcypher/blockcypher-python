@@ -644,7 +644,6 @@ def get_block_details(block_representation, coin_symbol='btc', txn_limit=None,
             )
 
     txids_to_lookup = block_overview['txids']
-    print(txids_to_lookup)
 
     txs_details = get_transactions_details(
             tx_hash_list=txids_to_lookup,
