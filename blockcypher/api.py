@@ -51,8 +51,6 @@ def get_address_details(address, coin_symbol='btc', txn_limit=None,
     address details
     '''
 
-    # This check appears to work for other blockchains
-    # TODO: verify and/or improve
     assert is_valid_address(address)
     assert is_valid_coin_symbol(coin_symbol)
 
@@ -241,8 +239,6 @@ def generate_new_address(coin_symbol='btc', api_key=None):
     method in https://github.com/sbuss/bitmerchant
     '''
 
-    # This check appears to work for other blockchains
-    # TODO: verify and/or improve
     assert is_valid_coin_symbol(coin_symbol)
 
     url = get_address_generation_url(coin_symbol=coin_symbol)
