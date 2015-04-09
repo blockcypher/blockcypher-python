@@ -291,7 +291,7 @@ def get_transactions_url(tx_hash_list, coin_symbol='btc', api_key=None):
 
 
 def get_transaction_details(tx_hash, coin_symbol='btc', limit=None,
-        api_key=None):
+        api_key=None, include_hex=False):
     """
     Takes a tx_hash, coin_symbol, and limit and returns the transaction details
 
@@ -312,6 +312,8 @@ def get_transaction_details(tx_hash, coin_symbol='btc', limit=None,
         params['token'] = api_key
     if limit:
         params['limit'] = limit
+    if include_hex:
+        params['includeHex'] = 'true'  # boolean True (proper) won't work
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
