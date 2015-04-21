@@ -938,17 +938,27 @@ def decodetx(tx_hex, coin_symbol='btc', api_key=None):
     return json.loads(r.text)
 
 
-def send_bcy_faucet(address_to_fund, satoshis, api_key):
-    '''
-    Send yourself test coins on the blockcypher (not bitcoin) testnet
+def get_faucet_coins_url(coin_symbol):
+    return 'http://api.blockcypher.com/v1/%s/%s/faucet' % (
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
+            )
 
-    You can see your balance info at https://live.blockcypher.com/bcy/
+
+def send_faucet_coins(address_to_fund, satoshis, api_key, coin_symbol='bcy'):
     '''
-    assert is_valid_address(address_to_fund)
+    Send yourself test coins on the bitcoin or blockcypher testnet
+
+    You can see your balance info at:
+    - https://live.blockcypher.com/bcy/ for BCY
+    - https://live.blockcypher.com/btc-testnet/ for BTC Testnet
+    '''
+    assert coin_symbol in ('bcy', 'btc-testnet')
+    assert is_valid_address_for_coinsymbol(b58_address=address_to_fund, coin_symbol=coin_symbol)
     assert satoshis > 0
     assert api_key
 
-    url = 'http://api.blockcypher.com/v1/bcy/test/faucet'
+    url = get_faucet_coins_url(coin_symbol=coin_symbol)
     if DEBUG_MODE:
         print(url)
 
@@ -961,8 +971,7 @@ def send_bcy_faucet(address_to_fund, satoshis, api_key):
             }
 
     r = requests.post(url, data=json.dumps(data), params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
-    response_dict = json.loads(r.text)
-    return response_dict['tx_ref']
+    return json.loads(r.text)
 
 
 def get_websocket_url(coin_symbol):

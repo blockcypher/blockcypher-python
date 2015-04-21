@@ -43,7 +43,7 @@ from .api import get_forwarding_address
 from .api import get_forwarding_address_details
 from .api import list_forwarding_addresses
 from .api import delete_forwarding_address
-from .api import send_bcy_faucet
+from .api import send_faucet_coins
 
 from .utils import satoshis_to_btc
 from .utils import satoshis_to_btc_rounded
