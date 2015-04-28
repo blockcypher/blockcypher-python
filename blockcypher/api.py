@@ -871,73 +871,6 @@ def subscribe_to_address_webhook(callback_url, subscription_address, coin_symbol
     return response_dict['id']
 
 
-def get_pushtx_url(coin_symbol='btc'):
-    """
-    Used for pushing hexadecimal transactions to the network
-    """
-    assert is_valid_coin_symbol(coin_symbol)
-    return 'https://api.blockcypher.com/v1/%s/%s/txs/push' % (
-            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
-            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
-            )
-
-
-def get_decodetx_url(coin_symbol='btc'):
-    """
-    Used for decoding hexadecimal transactions without broadcasting them
-    """
-    assert is_valid_coin_symbol(coin_symbol)
-    return 'https://api.blockcypher.com/v1/%s/%s/txs/decode' % (
-            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
-            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
-            )
-
-
-def pushtx(tx_hex, coin_symbol='btc', api_key=None):
-    '''
-    Takes a signed transaction hex binary (and coin_symbol) and broadcasts it to the bitcoin network.
-    '''
-
-    assert is_valid_coin_symbol(coin_symbol)
-
-    url = get_pushtx_url(coin_symbol=coin_symbol)
-
-    if DEBUG_MODE:
-        print(url)
-
-    params = {'tx': tx_hex}
-    if api_key:
-        params['token'] = api_key
-
-    r = requests.post(url, data=json.dumps(params), verify=True, timeout=TIMEOUT_IN_SECONDS)
-
-    return json.loads(r.text)
-
-
-def decodetx(tx_hex, coin_symbol='btc', api_key=None):
-    '''
-    Takes a signed transaction hex binary (and coin_symbol) and decodes it to JSON.
-
-    Does NOT broadcast the transaction to the bitcoin network.
-    Especially useful for testing/debugging and sanity checking
-    '''
-
-    assert is_valid_coin_symbol(coin_symbol)
-
-    url = get_decodetx_url(coin_symbol=coin_symbol)
-
-    if DEBUG_MODE:
-        print(url)
-
-    params = {'tx': tx_hex}
-    if api_key:
-        params['token'] = api_key
-
-    r = requests.post(url, data=json.dumps(params), verify=True, timeout=TIMEOUT_IN_SECONDS)
-
-    return json.loads(r.text)
-
-
 def get_faucet_coins_url(coin_symbol):
     return 'http://api.blockcypher.com/v1/%s/%s/faucet' % (
             COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
@@ -982,3 +915,70 @@ def get_websocket_url(coin_symbol):
             COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
             COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
             )
+
+
+def get_pushtx_url(coin_symbol='btc'):
+    """
+    Used for pushing hexadecimal transactions to the network
+    """
+    assert is_valid_coin_symbol(coin_symbol)
+    return 'https://api.blockcypher.com/v1/%s/%s/txs/push' % (
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
+            )
+
+
+def pushtx(tx_hex, coin_symbol='btc', api_key=None):
+    '''
+    Takes a signed transaction hex binary (and coin_symbol) and broadcasts it to the bitcoin network.
+    '''
+
+    assert is_valid_coin_symbol(coin_symbol)
+
+    url = get_pushtx_url(coin_symbol=coin_symbol)
+
+    if DEBUG_MODE:
+        print(url)
+
+    params = {'tx': tx_hex}
+    if api_key:
+        params['token'] = api_key
+
+    r = requests.post(url, data=json.dumps(params), verify=True, timeout=TIMEOUT_IN_SECONDS)
+
+    return json.loads(r.text)
+
+
+def get_decodetx_url(coin_symbol='btc'):
+    """
+    Used for decoding hexadecimal transactions without broadcasting them
+    """
+    assert is_valid_coin_symbol(coin_symbol)
+    return 'https://api.blockcypher.com/v1/%s/%s/txs/decode' % (
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
+            )
+
+
+def decodetx(tx_hex, coin_symbol='btc', api_key=None):
+    '''
+    Takes a signed transaction hex binary (and coin_symbol) and decodes it to JSON.
+
+    Does NOT broadcast the transaction to the bitcoin network.
+    Especially useful for testing/debugging and sanity checking
+    '''
+
+    assert is_valid_coin_symbol(coin_symbol)
+
+    url = get_decodetx_url(coin_symbol=coin_symbol)
+
+    if DEBUG_MODE:
+        print(url)
+
+    params = {'tx': tx_hex}
+    if api_key:
+        params['token'] = api_key
+
+    r = requests.post(url, data=json.dumps(params), verify=True, timeout=TIMEOUT_IN_SECONDS)
+
+    return json.loads(r.text)
