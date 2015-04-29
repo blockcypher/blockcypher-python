@@ -44,6 +44,7 @@ from .api import get_forwarding_address_details
 from .api import list_forwarding_addresses
 from .api import delete_forwarding_address
 from .api import send_faucet_coins
+from .api import create_unsigned_tx
 
 from .utils import satoshis_to_btc
 from .utils import satoshis_to_btc_rounded

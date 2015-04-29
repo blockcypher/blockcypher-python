@@ -1,6 +1,5 @@
-from .utils import (is_valid_address, is_valid_hash,
-        is_valid_block_representation, is_valid_coin_symbol,
-        is_valid_address_for_coinsymbol)
+from .utils import (is_valid_hash, is_valid_block_representation,
+        is_valid_coin_symbol, is_valid_address_for_coinsymbol)
 
 from .constants import COIN_SYMBOL_MAPPINGS, DEBUG_MODE
 
@@ -13,37 +12,6 @@ import json
 TIMEOUT_IN_SECONDS = 20
 
 
-def get_address_details_url(address, coin_symbol='btc'):
-    '''
-    Takes an address and coin_symbol and returns the blockcypher address URL
-
-    Basic URL, more advanced URLs are possible
-    '''
-    assert(coin_symbol)
-    assert(address)
-
-    return 'https://api.blockcypher.com/v1/%s/%s/addrs/%s' % (
-        COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
-        COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
-        address)
-
-
-def get_addresses_details_url(address_list, coin_symbol='btc'):
-    '''
-    Takes a list of addresses and coin_symbol and returns the blockcypher address URL
-
-    Basic URL, more advanced URLs are possible
-    '''
-    assert(coin_symbol)
-    assert(address_list)
-
-    return 'https://api.blockcypher.com/v1/%s/%s/addrs/%s' % (
-        COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
-        COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
-        ';'.join(address_list),
-        )
-
-
 def get_address_details(address, coin_symbol='btc', txn_limit=None,
         api_key=None):
     '''
@@ -51,10 +19,13 @@ def get_address_details(address, coin_symbol='btc', txn_limit=None,
     address details
     '''
 
-    assert is_valid_address(address)
-    assert is_valid_coin_symbol(coin_symbol)
+    assert is_valid_address_for_coinsymbol(b58_address=address,
+            coin_symbol=coin_symbol)
 
-    url = get_address_details_url(address=address, coin_symbol=coin_symbol)
+    url = 'https://api.blockcypher.com/v1/%s/%s/addrs/%s' % (
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
+            address)
 
     if DEBUG_MODE:
         print(url)
@@ -96,7 +67,11 @@ def get_addresses_details(address_list, coin_symbol='btc', txn_limit=None,
                 b58_address=address,
                 coin_symbol=coin_symbol)
 
-    url = get_addresses_details_url(address_list=address_list, coin_symbol=coin_symbol)
+    url = 'https://api.blockcypher.com/v1/%s/%s/addrs/%s' % (
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
+            ';'.join(address_list),
+            )
 
     if DEBUG_MODE:
         print(url)
@@ -130,21 +105,6 @@ def get_addresses_details(address_list, coin_symbol='btc', txn_limit=None,
     return cleaned_dict_list
 
 
-def get_address_overview_url(address, coin_symbol='btc'):
-    '''
-    Takes an address and coin_symbol and returns the blockcypher address URL
-
-    Basic URL, more advanced URLs are possible
-    '''
-    assert(coin_symbol)
-    assert(address)
-
-    return 'https://api.blockcypher.com/v1/%s/%s/addrs/%s/balance' % (
-        COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
-        COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
-        address)
-
-
 def get_address_overview(address, coin_symbol='btc', api_key=None):
     '''
     Takes an address and coin_symbol and return the address details
@@ -153,7 +113,10 @@ def get_address_overview(address, coin_symbol='btc', api_key=None):
     assert is_valid_address_for_coinsymbol(b58_address=address,
             coin_symbol=coin_symbol)
 
-    url = get_address_overview_url(address=address, coin_symbol=coin_symbol)
+    url = 'https://api.blockcypher.com/v1/%s/%s/addrs/%s/balance' % (
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
+            address)
 
     if DEBUG_MODE:
         print(url)
@@ -218,18 +181,6 @@ def get_total_num_transactions(address, coin_symbol='btc', api_key=None):
             coin_symbol=coin_symbol)['final_n_tx']
 
 
-def get_address_generation_url(coin_symbol='btc'):
-    '''
-    Takes a coin_symbol and returns the blockcypher address generation URL
-    '''
-    assert(coin_symbol)
-
-    return 'https://api.blockcypher.com/v1/%s/%s/addrs' % (
-        COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
-        COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
-        )
-
-
 def generate_new_address(coin_symbol='btc', api_key=None):
     '''
     Takes a coin_symbol and returns a new address with it's public and private keys
@@ -241,7 +192,10 @@ def generate_new_address(coin_symbol='btc', api_key=None):
 
     assert is_valid_coin_symbol(coin_symbol)
 
-    url = get_address_generation_url(coin_symbol=coin_symbol)
+    url = 'https://api.blockcypher.com/v1/%s/%s/addrs' % (
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
+            )
 
     if DEBUG_MODE:
         print(url)
@@ -253,41 +207,6 @@ def generate_new_address(coin_symbol='btc', api_key=None):
     r = requests.post(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
     return json.loads(r.text)
-
-
-def get_transaction_url(tx_hash, coin_symbol='btc', api_key=None):
-    '''
-    Takes a tx_hash and coin_symbol and returns the blockcypher transaction URL
-
-    Basic URL, more advanced URLs are possible
-    '''
-
-    assert is_valid_hash(tx_hash)
-    assert is_valid_coin_symbol(coin_symbol)
-
-    return 'https://api.blockcypher.com/v1/%s/%s/txs/%s' % (
-            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
-            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
-            tx_hash,
-            )
-
-
-def get_transactions_url(tx_hash_list, coin_symbol='btc', api_key=None):
-    '''
-    Takes a list of tx_hashes and a coin_symbol and returns the blockcypher transaction URL
-
-    Basic URL, more advanced URLs are possible
-    '''
-
-    for tx_hash in tx_hash_list:
-        assert is_valid_hash(tx_hash)
-    assert is_valid_coin_symbol(coin_symbol)
-
-    return 'https://api.blockcypher.com/v1/%s/%s/txs/%s' % (
-            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
-            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
-            ';'.join(tx_hash_list),
-            )
 
 
 def get_transaction_details(tx_hash, coin_symbol='btc', limit=None,
@@ -302,7 +221,11 @@ def get_transaction_details(tx_hash, coin_symbol='btc', limit=None,
     assert is_valid_hash(tx_hash)
     assert is_valid_coin_symbol(coin_symbol)
 
-    url = get_transaction_url(tx_hash=tx_hash, coin_symbol=coin_symbol)
+    url = 'https://api.blockcypher.com/v1/%s/%s/txs/%s' % (
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
+            tx_hash,
+            )
 
     if DEBUG_MODE:
         print(url)
@@ -354,7 +277,11 @@ def get_transactions_details(tx_hash_list, coin_symbol='btc', limit=None,
                 api_key=api_key
                 ), ]
 
-    url = get_transactions_url(tx_hash_list=tx_hash_list, coin_symbol=coin_symbol)
+    url = 'https://api.blockcypher.com/v1/%s/%s/txs/%s' % (
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
+            ';'.join(tx_hash_list),
+            )
 
     if DEBUG_MODE:
         print(url)
@@ -421,20 +348,16 @@ def get_satoshis_in_fees(tx_hash, coin_symbol='btc', api_key=None):
             limit=1, api_key=api_key)['fees']
 
 
-def get_broadcast_transactions_url(coin_symbol='btc'):
-    return 'https://api.blockcypher.com/v1/%s/%s/txs/' % (
-            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
-            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
-            )
-
-
 def get_broadcast_transactions(coin_symbol='btc', limit=10, api_key=None):
     """
     Get a list of broadcast but unconfirmed transactions
     Similar to bitcoind's getrawmempool method
     """
 
-    url = get_broadcast_transactions_url(coin_symbol=coin_symbol)
+    url = 'https://api.blockcypher.com/v1/%s/%s/txs/' % (
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
+            )
 
     if DEBUG_MODE:
         print(url)
@@ -465,36 +388,6 @@ def get_broadcast_transaction_hashes(coin_symbol='btc', api_key=None, limit=10):
     return [tx['hash'] for tx in transactions]
 
 
-def get_block_overview_url(block_representation, coin_symbol='btc'):
-    '''
-    Takse a block_representation and coin_symbol and returns the block
-    overview URL
-    '''
-
-    assert is_valid_coin_symbol(coin_symbol)
-
-    return 'https://api.blockcypher.com/v1/%s/%s/blocks/%s' % (
-            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
-            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
-            block_representation,
-            )
-
-
-def get_blocks_overview_url(block_representation_list, coin_symbol='btc'):
-    '''
-    Takse a block_representation and coin_symbol and returns the block
-    overview URL
-    '''
-
-    assert is_valid_coin_symbol(coin_symbol)
-
-    return 'https://api.blockcypher.com/v1/%s/%s/blocks/%s' % (
-            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
-            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
-            ';'.join([str(x) for x in block_representation_list]),
-            )
-
-
 def get_block_overview(block_representation, coin_symbol='btc', txn_limit=None,
         txn_offset=None, api_key=None):
     """
@@ -509,9 +402,11 @@ def get_block_overview(block_representation, coin_symbol='btc', txn_limit=None,
             block_representation=block_representation,
             coin_symbol=coin_symbol)
 
-    url = get_block_overview_url(
-            block_representation=block_representation,
-            coin_symbol=coin_symbol)
+    url = 'https://api.blockcypher.com/v1/%s/%s/blocks/%s' % (
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
+            block_representation,
+            )
 
     if DEBUG_MODE:
         print(url)
@@ -548,9 +443,11 @@ def get_blocks_overview(block_representation_list, coin_symbol='btc',
                 block_representation=block_representation,
                 coin_symbol=coin_symbol)
 
-    url = get_blocks_overview_url(
-            block_representation_list=block_representation_list,
-            coin_symbol=coin_symbol)
+    url = 'https://api.blockcypher.com/v1/%s/%s/blocks/%s' % (
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
+            ';'.join([str(x) for x in block_representation_list]),
+            )
 
     if DEBUG_MODE:
         print(url)
@@ -829,17 +726,6 @@ def delete_forwarding_address(payment_id, coin_symbol='btc'):
     return r.text
 
 
-def get_webhook_url(coin_symbol='btc'):
-    """
-    Used for creating, listing and deleting payments
-    """
-    assert is_valid_coin_symbol(coin_symbol)
-    return 'https://api.blockcypher.com/v1/%s/%s/hooks' % (
-            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
-            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
-            )
-
-
 def subscribe_to_address_webhook(callback_url, subscription_address, coin_symbol='btc', api_key=None):
     '''
     Subscribe to transaction webhooks on a given address.
@@ -850,7 +736,10 @@ def subscribe_to_address_webhook(callback_url, subscription_address, coin_symbol
     assert is_valid_coin_symbol(coin_symbol)
     assert is_valid_address_for_coinsymbol(subscription_address, coin_symbol)
 
-    url = get_webhook_url(coin_symbol=coin_symbol)
+    url = 'https://api.blockcypher.com/v1/%s/%s/hooks' % (
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
+            )
 
     if DEBUG_MODE:
         print(url)
@@ -871,13 +760,6 @@ def subscribe_to_address_webhook(callback_url, subscription_address, coin_symbol
     return response_dict['id']
 
 
-def get_faucet_coins_url(coin_symbol):
-    return 'http://api.blockcypher.com/v1/%s/%s/faucet' % (
-            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
-            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
-            )
-
-
 def send_faucet_coins(address_to_fund, satoshis, api_key, coin_symbol='bcy'):
     '''
     Send yourself test coins on the bitcoin or blockcypher testnet
@@ -891,7 +773,11 @@ def send_faucet_coins(address_to_fund, satoshis, api_key, coin_symbol='bcy'):
     assert satoshis > 0
     assert api_key
 
-    url = get_faucet_coins_url(coin_symbol=coin_symbol)
+    url = 'http://api.blockcypher.com/v1/%s/%s/faucet' % (
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
+            )
+
     if DEBUG_MODE:
         print(url)
 
@@ -982,3 +868,91 @@ def decodetx(tx_hex, coin_symbol='btc', api_key=None):
     r = requests.post(url, data=json.dumps(params), verify=True, timeout=TIMEOUT_IN_SECONDS)
 
     return json.loads(r.text)
+
+
+def create_unsigned_tx(inputs, outputs, change_address=None, min_confirmations=0,
+        preference='high', coin_symbol='btc', api_key=None):
+    '''
+    Create a new transaction to sign. Doesn't ask for or involve private keys.
+    Behind the scenes, blockcypher will:
+    1) Fetch unspent outputs
+    2) Decide which make the most sense to consume for the given transaction
+    3) Return an unsigned transaction for you to sign
+
+    min_confirmations is the minimum number of confirmations an unspent output
+    must have in order to be included in a transaction
+
+    Details here: http://dev.blockcypher.com/#generic_transactions
+    '''
+
+    # Lots of defensive checks
+    assert type(inputs) is list, inputs
+    assert type(outputs) is list, outputs
+    assert len(inputs) >= 1, inputs
+    assert len(outputs) >= 1, outputs
+
+    for input_obj in inputs:
+        # `input` is a reserved word
+        if 'addresses' in input_obj:
+            assert type(input_obj['addresses']) is list, input_obj['addresses']
+            for address in input_obj['addresses']:
+                assert is_valid_address_for_coinsymbol(
+                        b58_address=address,
+                        coin_symbol=coin_symbol,
+                        ), address
+        elif 'wallet_name' in input_obj and 'wallet_token' in input_obj:
+            # good behavior
+            pass
+        else:
+            raise Exception('Invalid Input')
+
+    for output in outputs:
+        assert 'value' in output, output
+        assert type(output['value']) is int, output['value']
+
+        assert 'addresses' in output, output
+        assert type(output['addresses']) is list, output['addresses']
+        for address in output['addresses']:
+            assert is_valid_address_for_coinsymbol(
+                    b58_address=address,
+                    coin_symbol=coin_symbol,
+                    )
+
+    if change_address:
+        assert is_valid_address_for_coinsymbol(b58_address=change_address,
+                coin_symbol=coin_symbol), change_address
+
+    assert preference in ('high', 'medium', 'low', 'zero'), preference
+
+    # Beginning of method code
+    url = 'https://api.blockcypher.com/v1/%s/%s/txs/new' % (
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
+            )
+    if DEBUG_MODE:
+        print(url)
+
+    params = {
+            'inputs': inputs,
+            'outputs': outputs,
+            'preference': preference,
+            }
+    if min_confirmations:
+        params['confirmations'] = min_confirmations
+    if api_key:
+        params['token'] = api_key
+    if change_address:
+        params['change_address'] = change_address
+
+    r = requests.post(url, data=json.dumps(params), verify=True, timeout=TIMEOUT_IN_SECONDS)
+
+    return json.loads(r.text)
+
+
+def sign_unsigned_tx():
+    pass
+
+
+def quick_address_sweep(input_address, input_wif, destination_address, coin_symbol='btc',
+        api_key=None):
+    pass
