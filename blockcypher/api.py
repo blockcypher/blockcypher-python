@@ -1,6 +1,6 @@
 from .utils import (is_valid_address, is_valid_hash,
         is_valid_block_representation, is_valid_coin_symbol,
-        is_valid_address_for_coinsymbol)
+        is_valid_address_for_coinsymbol, is_valid_wallet_name)
 
 from .constants import COIN_SYMBOL_MAPPINGS, DEBUG_MODE
 
@@ -982,3 +982,14 @@ def get_websocket_url(coin_symbol):
             COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
             COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
             )
+
+def lookup_wallet_name(wallet_name, currency='btc', wns_base='https://pubapi.netki.com/api/wallet_lookup'):
+
+    assert is_valid_wallet_name(wallet_name)
+
+    r = requests.get('%s/%s/%s' % (wns_base, wallet_name, currency), verify=True, timeout=TIMEOUT_IN_SECONDS)
+    rdict = json.loads(r.text)
+    if rdict.get('success', False) and rdict.get('wallet_name','') == wallet_name and rdict.get('currency','') == currency:
+        return rdict.get('wallet_address')
+
+    return None
