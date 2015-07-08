@@ -5,6 +5,9 @@ from .constants import COIN_SYMBOL_MAPPINGS, DEBUG_MODE
 
 from dateutil import parser
 
+from bitcoin import (ecdsa_raw_sign, ecdsa_raw_verify, der_encode_sig,
+        der_decode_sig)
+
 import requests
 import json
 
@@ -949,10 +952,78 @@ def create_unsigned_tx(inputs, outputs, change_address=None, min_confirmations=0
     return json.loads(r.text)
 
 
-def sign_unsigned_tx():
-    pass
+def get_input_addresses(unsigned_tx):
+    '''
+    Helper function to get the addresses needed used in an unsigned transaction.
+    You will next have to retrieve the keys for these addreses in order to sign.
+
+    Depending on how they are generated, unsigned transactions often use
+    inputs whose address would be hard to know in advance, hence this step.
+
+    Note: if the same address is used in multiple inputs, it will be returned
+    multiple times.
+    '''
+    addresses = []
+    for input_obj in unsigned_tx['tx']['inputs']:
+        addresses.extend(input_obj['addresses'])
+    return addresses
 
 
-def quick_address_sweep(input_address, input_wif, destination_address, coin_symbol='btc',
-        api_key=None):
-    pass
+def make_tx_signatures(txs_to_sign, privkey_list, pubkey_list):
+    """
+    Loops through txs_to_sign and makes signatures, assumes you already have
+    privkey_list and pubkey_list in hexadecimal format.
+
+    Not sure what privkeys and pubkeys to supply?
+    Use get_input_addresses to return a list of addresses.
+    Matching those addresses to keys is up to you and how you store your
+    private keys.
+
+    bitmerchant works well for converting between WIF (or seed)
+    and privkey/pubkey hex:
+    https://github.com/sbuss/bitmerchant/
+    """
+    assert len(privkey_list) == len(pubkey_list) == len(txs_to_sign)
+    # in the event of multiple inputs using the same pub/privkey,
+    # that privkey should be included multiple times
+
+    signatures = []
+    for cnt, tx_to_sign in enumerate(txs_to_sign):
+        sig = der_encode_sig(*ecdsa_raw_sign(tx_to_sign.rstrip(' \t\r\n\0'),
+            privkey_list[cnt]))
+        assert ecdsa_raw_verify(tx_to_sign, der_decode_sig(sig),
+                pubkey_list[cnt])
+        signatures.append(sig)
+    return signatures
+
+
+def broadcast_signed_transaction(unsigned_tx, signatures, pubkeys,
+        coin_symbol='btc'):
+    '''
+    Broadcasts the transaction from create_unsigned_tx
+    '''
+    assert len(unsigned_tx['tosign']) == len(signatures)
+    assert 'errors' not in unsigned_tx
+
+    url = 'https://api.blockcypher.com/v1/%s/%s/txs/send' % (
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
+            )
+    if DEBUG_MODE:
+        print(url)
+
+    params = unsigned_tx.copy()
+    params['signatures'] = signatures
+    params['pubkeys'] = pubkeys
+
+    r = requests.post(url, data=json.dumps(params), verify=True, timeout=TIMEOUT_IN_SECONDS)
+
+    return json.loads(r.text)
+
+
+def quick_address_sweep(input_address, input_wif, destination_address,
+        coin_symbol='btc', api_key=None):
+    '''
+    Send all inputs controlled by an address to another address
+    '''
+    #FIXME: implement this
