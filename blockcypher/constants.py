@@ -1,5 +1,3 @@
-DEBUG_MODE = True
-
 # Ordered List of Coin Symbol Dictionaries
 COIN_SYMBOL_ODICT_LIST = [
         {
