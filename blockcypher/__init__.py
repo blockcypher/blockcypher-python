@@ -13,6 +13,11 @@ from .api import get_transactions_details
 from .api import get_block_overview
 from .api import get_blocks_overview
 from .api import get_block_details
+from .api import get_blockchain_overview
+from .api import get_blockchain_fee_estimates
+from .api import get_blockchain_high_fee
+from .api import get_blockchain_medium_fee
+from .api import get_blockchain_low_fee
 from .api import get_latest_block_height
 from .api import get_latest_block_hash
 from .api import get_total_balance

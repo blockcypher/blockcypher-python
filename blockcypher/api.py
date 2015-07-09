@@ -563,7 +563,7 @@ def get_block_details(block_representation, coin_symbol='btc', txn_limit=None,
 def get_blockchain_overview(coin_symbol='btc', api_key=None):
     assert is_valid_coin_symbol(coin_symbol)
 
-    url = 'https://api.blockcypher.com/v1/%s/%s/' % (
+    url = 'https://api.blockcypher.com/v1/%s/%s' % (
             COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
             COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
             )
@@ -575,7 +575,11 @@ def get_blockchain_overview(coin_symbol='btc', api_key=None):
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
-    return r.json()
+    response_dict = r.json()
+
+    response_dict['time'] = parser.parse(response_dict['time'])
+
+    return response_dict
 
 
 def get_latest_block_height(coin_symbol='btc', api_key=None):
@@ -594,6 +598,39 @@ def get_latest_block_hash(coin_symbol='btc', api_key=None):
 
     return get_blockchain_overview(coin_symbol=coin_symbol,
             api_key=api_key)['hash']
+
+
+def get_blockchain_fee_estimates(coin_symbol='btc', api_key=None):
+    """
+    Returns high, medium, and low fee estimates for a given blockchain.
+    """
+    overview = get_blockchain_overview(coin_symbol=coin_symbol, api_key=api_key)
+    return {
+            'high_fee_per_kb': overview['high_fee_per_kb'],
+            'medium_fee_per_kb': overview['medium_fee_per_kb'],
+            'low_fee_per_kb': overview['low_fee_per_kb'],
+            }
+
+
+def get_blockchain_high_fee(coin_symbol='btc', api_key=None):
+    """
+    Returns high fee estimate per kilobyte for a given blockchain.
+    """
+    return get_blockchain_overview(coin_symbol, api_key)['high_fee_per_kb']
+
+
+def get_blockchain_medium_fee(coin_symbol='btc', api_key=None):
+    """
+    Returns medium fee estimate per kilobyte for a given blockchain.
+    """
+    return get_blockchain_overview(coin_symbol, api_key)['medium_fee_per_kb']
+
+
+def get_blockchain_low_fee(coin_symbol='btc', api_key=None):
+    """
+    Returns low fee estimate per kilobyte for a given blockchain.
+    """
+    return get_blockchain_overview(coin_symbol, api_key)['low_fee_per_kb']
 
 
 def get_payments_url(coin_symbol='btc'):
