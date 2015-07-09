@@ -855,6 +855,11 @@ def create_unsigned_tx(inputs, outputs, change_address=None, min_confirmations=0
     min_confirmations is the minimum number of confirmations an unspent output
     must have in order to be included in a transaction
 
+    Inputs is a list of either:
+    - {'addresses': 'foo'} that will be included in the TX
+    - {'wallet_name': 'bar'} that was previously registered and will be used
+      to choose which addresses/inputs are used
+
     Details here: http://dev.blockcypher.com/#generic_transactions
     '''
 
