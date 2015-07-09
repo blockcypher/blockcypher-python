@@ -560,12 +560,22 @@ def get_block_details(block_representation, coin_symbol='btc', txn_limit=None,
     return block_overview
 
 
-def get_blockchain_overview_url(coin_symbol='btc'):
+def get_blockchain_overview(coin_symbol='btc', api_key=None):
     assert is_valid_coin_symbol(coin_symbol)
-    return 'https://api.blockcypher.com/v1/%s/%s/' % (
+
+    url = 'https://api.blockcypher.com/v1/%s/%s/' % (
             COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
             COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
             )
+    logger.info(url)
+
+    params = {}
+    if api_key:
+        params['token'] = api_key
+
+    r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+
+    return r.json()
 
 
 def get_latest_block_height(coin_symbol='btc', api_key=None):
@@ -573,20 +583,8 @@ def get_latest_block_height(coin_symbol='btc', api_key=None):
     Get the latest block height for a given coin
     '''
 
-    assert is_valid_coin_symbol(coin_symbol)
-
-    url = get_blockchain_overview_url(coin_symbol=coin_symbol)
-    logger.info(url)
-
-    params = {}
-    if api_key:
-        params['token'] = api_key
-
-    r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
-
-    response_dict = r.json()
-
-    return response_dict['height']
+    return get_blockchain_overview(coin_symbol=coin_symbol,
+            api_key=api_key)['height']
 
 
 def get_latest_block_hash(coin_symbol='btc', api_key=None):
@@ -594,20 +592,8 @@ def get_latest_block_hash(coin_symbol='btc', api_key=None):
     Get the latest block hash for a given coin
     '''
 
-    assert is_valid_coin_symbol(coin_symbol)
-
-    url = get_blockchain_overview_url(coin_symbol=coin_symbol)
-    logger.info(url)
-
-    params = {}
-    if api_key:
-        params['token'] = api_key
-
-    r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
-
-    response_dict = r.json()
-
-    return response_dict['hash']
+    return get_blockchain_overview(coin_symbol=coin_symbol,
+            api_key=api_key)['hash']
 
 
 def get_payments_url(coin_symbol='btc'):
@@ -706,7 +692,8 @@ def delete_forwarding_address(payment_id, coin_symbol='btc'):
     return r.text
 
 
-def subscribe_to_address_webhook(callback_url, subscription_address, coin_symbol='btc', api_key=None):
+def subscribe_to_address_webhook(callback_url, subscription_address,
+        coin_symbol='btc', api_key=None):
     '''
     Subscribe to transaction webhooks on a given address.
     Webhooks for transaction broadcast and each confirmation (up to 6).
