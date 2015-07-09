@@ -866,12 +866,12 @@ def create_wallet(wallet_name, address, api_key, coin_symbol='btc'):
             )
     logger.info(url)
 
-    r = requests.post(url, data=json.dumps(data), params=params)
+    r = requests.post(url, data=json.dumps(data), params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
     return r.json()
 
 
-def get_wallet(api_key, wallet_name, coin_symbol='btc'):
+def get_wallet(wallet_name, api_key, coin_symbol='btc'):
     assert is_valid_coin_symbol(coin_symbol)
     assert api_key
     assert type(wallet_name) is str
@@ -884,7 +884,7 @@ def get_wallet(api_key, wallet_name, coin_symbol='btc'):
             )
     logger.info(url)
 
-    r = requests.get(url, params=params)
+    r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
     return r.json()
 
 
@@ -903,7 +903,7 @@ def add_address_to_wallet(wallet_name, address, api_key, coin_symbol='btc'):
             )
     logger.info(url)
 
-    r = requests.post(url, data=json.dumps(data), params=params)
+    r = requests.post(url, data=json.dumps(data), params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
     return r.json()
 
 
@@ -922,7 +922,7 @@ def remove_address_from_wallet(wallet_name, address, api_key, coin_symbol='btc')
             )
     logger.info(url)
 
-    r = requests.delete(url, data=json.dumps(data), params=params)
+    r = requests.delete(url, data=json.dumps(data), params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
     if r.status_code != 204:
         # Didn't work
@@ -941,14 +941,14 @@ def delete_wallet(wallet_name, api_key, coin_symbol='btc'):
             )
     logger.info(url)
 
-    r = requests.delete(url, params=params)
+    r = requests.delete(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
     if r.status_code != 204:
         # Didn't work
         return r.json()
 
 
-def create_unsigned_tx(inputs, outputs, change_address=None, min_confirmations=0,
-        preference='high', coin_symbol='btc', api_key=None):
+def create_unsigned_tx(inputs, outputs, change_address=None,
+        min_confirmations=0, preference='high', coin_symbol='btc'):
     '''
     Create a new transaction to sign. Doesn't ask for or involve private keys.
     Behind the scenes, blockcypher will:
@@ -1020,8 +1020,6 @@ def create_unsigned_tx(inputs, outputs, change_address=None, min_confirmations=0
             }
     if min_confirmations:
         params['confirmations'] = min_confirmations
-    if api_key:
-        params['token'] = api_key
     if change_address:
         params['change_address'] = change_address
 
