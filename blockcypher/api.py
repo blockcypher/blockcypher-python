@@ -843,6 +843,110 @@ def decodetx(tx_hex, coin_symbol='btc', api_key=None):
     return r.json()
 
 
+def create_wallet(wallet_name, address, api_key, coin_symbol='btc'):
+    '''
+    Create a new wallet with one address
+
+    You can add addresses with the add_address_to_wallet method below
+    You can delete the wallet with the delete_wallet method below
+    '''
+    assert is_valid_address_for_coinsymbol(address, coin_symbol)
+    assert api_key
+    assert type(wallet_name) is str
+
+    data = {
+            'name': wallet_name,
+            'addresses': [address, ],
+            }
+    params = {'token': api_key}
+
+    url = 'https://api.blockcypher.com/v1/%s/%s/wallets' % (
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
+            )
+    logger.info(url)
+
+    r = requests.post(url, data=json.dumps(data), params=params)
+
+    return r.json()
+
+
+def get_wallet(api_key, wallet_name, coin_symbol='btc'):
+    assert is_valid_coin_symbol(coin_symbol)
+    assert api_key
+    assert type(wallet_name) is str
+
+    params = {'token': api_key}
+    url = 'https://api.blockcypher.com/v1/%s/%s/wallets/%s' % (
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
+            wallet_name,
+            )
+    logger.info(url)
+
+    r = requests.get(url, params=params)
+    return r.json()
+
+
+def add_address_to_wallet(wallet_name, address, api_key, coin_symbol='btc'):
+    assert is_valid_address_for_coinsymbol(address, coin_symbol)
+    assert api_key
+    assert type(wallet_name) is str
+
+    data = {'addresses': [address, ]}
+    params = {'token': api_key}
+
+    url = 'https://api.blockcypher.com/v1/%s/%s/wallets/%s/addresses' % (
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
+            wallet_name,
+            )
+    logger.info(url)
+
+    r = requests.post(url, data=json.dumps(data), params=params)
+    return r.json()
+
+
+def remove_address_from_wallet(wallet_name, address, api_key, coin_symbol='btc'):
+    assert is_valid_address_for_coinsymbol(address, coin_symbol)
+    assert api_key
+    assert type(wallet_name) is str
+
+    data = {'addresses': [address, ]}
+    params = {'token': api_key}
+
+    url = 'https://api.blockcypher.com/v1/%s/%s/wallets/%s/addresses' % (
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
+            wallet_name,
+            )
+    logger.info(url)
+
+    r = requests.delete(url, data=json.dumps(data), params=params)
+
+    if r.status_code != 204:
+        # Didn't work
+        return r.json()
+
+
+def delete_wallet(wallet_name, api_key, coin_symbol='btc'):
+    assert api_key
+    assert type(wallet_name) is str
+
+    params = {'token': api_key}
+    url = 'https://api.blockcypher.com/v1/%s/%s/wallets/%s' % (
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
+            wallet_name,
+            )
+    logger.info(url)
+
+    r = requests.delete(url, params=params)
+    if r.status_code != 204:
+        # Didn't work
+        return r.json()
+
+
 def create_unsigned_tx(inputs, outputs, change_address=None, min_confirmations=0,
         preference='high', coin_symbol='btc', api_key=None):
     '''
@@ -858,7 +962,7 @@ def create_unsigned_tx(inputs, outputs, change_address=None, min_confirmations=0
     Inputs is a list of either:
     - {'addresses': 'foo'} that will be included in the TX
     - {'wallet_name': 'bar'} that was previously registered and will be used
-      to choose which addresses/inputs are used
+      to choose which addresses/inputs are included in the TX
 
     Details here: http://dev.blockcypher.com/#generic_transactions
     '''
