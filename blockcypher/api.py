@@ -681,6 +681,62 @@ def get_blockchain_overview_url(coin_symbol='btc'):
             )
 
 
+def get_blockchain_overview(coin_symbol='btc', api_key=None):
+    """
+    Returns a blockchain overview.
+    """
+
+    url = get_blockchain_overview_url(coin_symbol=coin_symbol)
+
+    if DEBUG_MODE:
+        print(url)
+
+    params = {}
+    if api_key:
+        params['token'] = api_key
+
+    r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+
+    response_dict = json.loads(r.text)
+
+    if 'error' in response_dict:
+        return response_dict
+
+    response_dict['time'] = parser.parse(response_dict['time'])
+
+    return response_dict
+
+
+def get_blockchain_fee_estimates(coin_symbol='btc', api_key=None):
+    """
+    Returns high, medium, and low fee estimates for a given blockchain.
+    """
+    response = get_blockchain_overview(coin_symbol, api_key)
+
+    return {'high_fee_per_kb':response['high_fee_per_kb'], 'medium_fee_per_kb':response['medium_fee_per_kb'], 'low_fee_per_kb':response['low_fee_per_kb']}
+
+
+def get_blockchain_high_fee(coin_symbol='btc', api_key=None):
+    """
+    Returns high fee estimate per kilobyte for a given blockchain.
+    """
+    return get_blockchain_overview(coin_symbol, api_key)['high_fee_per_kb']
+
+
+def get_blockchain_medium_fee(coin_symbol='btc', api_key=None):
+    """
+    Returns medium fee estimate per kilobyte for a given blockchain.
+    """
+    return get_blockchain_overview(coin_symbol, api_key)['medium_fee_per_kb']
+
+
+def get_blockchain_low_fee(coin_symbol='btc', api_key=None):
+    """
+    Returns low fee estimate per kilobyte for a given blockchain.
+    """
+    return get_blockchain_overview(coin_symbol, api_key)['low_fee_per_kb']
+
+
 def get_latest_block_height(coin_symbol='btc', api_key=None):
     '''
     Get the latest block height for a given coin
