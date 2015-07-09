@@ -102,11 +102,28 @@ def is_valid_coin_symbol(coin_symbol):
 DIGITS58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
 
 
+# From https://github.com/nederhoed/python-bitcoinaddress/blob/cb483b875d4467ef798d178e232b357a153bed72/bitcoinaddress/validation.py
+def _long_to_bytes(n, length, byteorder):
+    """Convert a long to a bytestring
+    For use in python version prior to 3.2
+    Source:
+    http://bugs.python.org/issue16580#msg177208
+    """
+    if byteorder == 'little':
+        indexes = range(length)
+    else:
+        indexes = reversed(range(length))
+    return bytearray((n >> i * 8) & 0xff for i in indexes)
+
+
 def decode_base58(bc, length):
     n = 0
     for char in bc:
         n = n * 58 + DIGITS58.index(char)
-    return n.to_bytes(length, 'big')
+    try:
+        return n.to_bytes(length, 'big')
+    except AttributeError:
+        return _long_to_bytes(n, length, 'big')
 
 
 def crypto_address_valid(bc):
