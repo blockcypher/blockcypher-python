@@ -1096,11 +1096,3 @@ def broadcast_signed_transaction(unsigned_tx, signatures, pubkeys,
     r = requests.post(url, data=json.dumps(params), verify=True, timeout=TIMEOUT_IN_SECONDS)
 
     return r.json()
-
-
-def quick_address_sweep(input_address, input_wif, destination_address,
-        coin_symbol='btc', api_key=None):
-    '''
-    Send all inputs controlled by an address to another address
-    '''
-    #FIXME: implement this
