@@ -44,7 +44,7 @@ def get_address_details(address, coin_symbol='btc', txn_limit=None,
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
-    response_dict = json.loads(r.text)
+    response_dict = r.json()
 
     confirmed_txrefs = []
     for confirmed_txref in response_dict.get('txrefs', []):
@@ -88,7 +88,7 @@ def get_addresses_details(address_list, coin_symbol='btc', txn_limit=None,
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
-    response_dict_list = json.loads(r.text)
+    response_dict_list = r.json()
     cleaned_dict_list = []
 
     for response_dict in response_dict_list:
@@ -129,7 +129,7 @@ def get_address_overview(address, coin_symbol='btc', api_key=None):
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
-    return json.loads(r.text)
+    return r.json()
 
 
 def get_total_balance(address, coin_symbol='btc', api_key=None):
@@ -206,7 +206,7 @@ def generate_new_address(coin_symbol='btc', api_key=None):
 
     r = requests.post(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
-    return json.loads(r.text)
+    return r.json()
 
 
 def get_transaction_details(tx_hash, coin_symbol='btc', limit=None,
@@ -238,7 +238,7 @@ def get_transaction_details(tx_hash, coin_symbol='btc', limit=None,
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
-    response_dict = json.loads(r.text)
+    response_dict = r.json()
 
     if not 'error' in response_dict:
         if response_dict['block_height'] > 0:
@@ -290,7 +290,7 @@ def get_transactions_details(tx_hash_list, coin_symbol='btc', limit=None,
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
-    response_dict_list = json.loads(r.text)
+    response_dict_list = r.json()
     cleaned_dict_list = []
 
     for response_dict in response_dict_list:
@@ -364,7 +364,7 @@ def get_broadcast_transactions(coin_symbol='btc', limit=10, api_key=None):
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
-    response_dict = json.loads(r.text)
+    response_dict = r.json()
 
     unconfirmed_txs = []
     for unconfirmed_tx in response_dict:
@@ -413,7 +413,7 @@ def get_block_overview(block_representation, coin_symbol='btc', txn_limit=None,
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
-    response_dict = json.loads(r.text)
+    response_dict = r.json()
 
     if 'error' in response_dict:
         return response_dict
@@ -450,7 +450,7 @@ def get_blocks_overview(block_representation_list, coin_symbol='btc',
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
-    response_dict_list = json.loads(r.text)
+    response_dict_list = r.json()
 
     cleaned_dict_list = []
     for response_dict in response_dict_list:
@@ -584,7 +584,7 @@ def get_latest_block_height(coin_symbol='btc', api_key=None):
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
-    response_dict = json.loads(r.text)
+    response_dict = r.json()
 
     return response_dict['height']
 
@@ -605,7 +605,7 @@ def get_latest_block_hash(coin_symbol='btc', api_key=None):
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
-    response_dict = json.loads(r.text)
+    response_dict = r.json()
 
     return response_dict['hash']
 
@@ -646,7 +646,7 @@ def get_forwarding_address_details(destination_address, api_key, callback_url=No
 
     r = requests.post(url, data=json.dumps(params), verify=True, timeout=TIMEOUT_IN_SECONDS)
 
-    return json.loads(r.text)
+    return r.json()
 
 
 def get_forwarding_address(destination_address, api_key, callback_url=None,
@@ -685,7 +685,7 @@ def list_forwarding_addresses(api_key, coin_symbol='btc'):
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
-    return json.loads(r.text)
+    return r.json()
 
 
 def delete_forwarding_address(payment_id, coin_symbol='btc'):
@@ -733,7 +733,7 @@ def subscribe_to_address_webhook(callback_url, subscription_address, coin_symbol
 
     r = requests.post(url, data=json.dumps(params), verify=True, timeout=TIMEOUT_IN_SECONDS)
 
-    response_dict = json.loads(r.text)
+    response_dict = r.json()
 
     return response_dict['id']
 
@@ -766,7 +766,7 @@ def send_faucet_coins(address_to_fund, satoshis, api_key, coin_symbol='bcy'):
             }
 
     r = requests.post(url, data=json.dumps(data), params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
-    return json.loads(r.text)
+    return r.json()
 
 
 def get_websocket_url(coin_symbol):
@@ -807,7 +807,7 @@ def pushtx(tx_hex, coin_symbol='btc', api_key=None):
 
     r = requests.post(url, data=json.dumps(params), verify=True, timeout=TIMEOUT_IN_SECONDS)
 
-    return json.loads(r.text)
+    return r.json()
 
 
 def get_decodetx_url(coin_symbol='btc'):
@@ -840,7 +840,7 @@ def decodetx(tx_hex, coin_symbol='btc', api_key=None):
 
     r = requests.post(url, data=json.dumps(params), verify=True, timeout=TIMEOUT_IN_SECONDS)
 
-    return json.loads(r.text)
+    return r.json()
 
 
 def create_unsigned_tx(inputs, outputs, change_address=None, min_confirmations=0,
@@ -923,7 +923,7 @@ def create_unsigned_tx(inputs, outputs, change_address=None, min_confirmations=0
 
     r = requests.post(url, data=json.dumps(params), verify=True, timeout=TIMEOUT_IN_SECONDS)
 
-    return json.loads(r.text)
+    return r.json()
 
 
 def get_input_addresses(unsigned_tx):
@@ -991,7 +991,7 @@ def broadcast_signed_transaction(unsigned_tx, signatures, pubkeys,
 
     r = requests.post(url, data=json.dumps(params), verify=True, timeout=TIMEOUT_IN_SECONDS)
 
-    return json.loads(r.text)
+    return r.json()
 
 
 def quick_address_sweep(input_address, input_wif, destination_address,
