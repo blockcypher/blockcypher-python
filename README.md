@@ -26,6 +26,7 @@ $ python setup.py install
 ```
 >>> import blockcypher
 ```
+(to keep your code clean we recommend `from blockcypher import foo` where `foo` is the method you want to use)
 
 How much bitcoin (in satoshis) is currently sitting in the Bitcoin Foundation Address:
 ```
