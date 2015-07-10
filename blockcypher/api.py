@@ -633,7 +633,7 @@ def get_blockchain_low_fee(coin_symbol='btc', api_key=None):
     return get_blockchain_overview(coin_symbol, api_key)['low_fee_per_kb']
 
 
-def get_payments_url(coin_symbol='btc'):
+def _get_payments_url(coin_symbol='btc'):
     """
     Used for creating, listing and deleting payments
     """
@@ -656,7 +656,7 @@ def get_forwarding_address_details(destination_address, api_key, callback_url=No
     assert is_valid_coin_symbol(coin_symbol)
     assert api_key
 
-    url = get_payments_url(coin_symbol=coin_symbol)
+    url = _get_payments_url(coin_symbol=coin_symbol)
     logger.info(url)
 
     params = {
@@ -701,7 +701,7 @@ def list_forwarding_addresses(api_key, coin_symbol='btc'):
     assert is_valid_coin_symbol(coin_symbol)
     assert api_key
 
-    url = get_payments_url(coin_symbol=coin_symbol)
+    url = _get_payments_url(coin_symbol=coin_symbol)
     logger.info(url)
 
     params = {'token': api_key}
@@ -720,7 +720,7 @@ def delete_forwarding_address(payment_id, coin_symbol='btc'):
     assert payment_id
     assert is_valid_coin_symbol(coin_symbol)
 
-    url = '%s/%s' % (get_payments_url(coin_symbol=coin_symbol), payment_id)
+    url = '%s/%s' % (_get_payments_url(coin_symbol=coin_symbol), payment_id)
     logger.info(url)
 
     r = requests.delete(url, verify=True, timeout=TIMEOUT_IN_SECONDS)
@@ -793,7 +793,7 @@ def send_faucet_coins(address_to_fund, satoshis, api_key, coin_symbol='bcy'):
     return r.json()
 
 
-def get_websocket_url(coin_symbol):
+def _get_websocket_url(coin_symbol):
 
     assert is_valid_coin_symbol(coin_symbol)
 
@@ -803,7 +803,7 @@ def get_websocket_url(coin_symbol):
             )
 
 
-def get_pushtx_url(coin_symbol='btc'):
+def _get_pushtx_url(coin_symbol='btc'):
     """
     Used for pushing hexadecimal transactions to the network
     """
@@ -821,7 +821,7 @@ def pushtx(tx_hex, coin_symbol='btc', api_key=None):
 
     assert is_valid_coin_symbol(coin_symbol)
 
-    url = get_pushtx_url(coin_symbol=coin_symbol)
+    url = _get_pushtx_url(coin_symbol=coin_symbol)
 
     logger.info(url)
 
@@ -834,17 +834,6 @@ def pushtx(tx_hex, coin_symbol='btc', api_key=None):
     return r.json()
 
 
-def get_decodetx_url(coin_symbol='btc'):
-    """
-    Used for decoding hexadecimal transactions without broadcasting them
-    """
-    assert is_valid_coin_symbol(coin_symbol)
-    return 'https://api.blockcypher.com/v1/%s/%s/txs/decode' % (
-            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
-            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
-            )
-
-
 def decodetx(tx_hex, coin_symbol='btc', api_key=None):
     '''
     Takes a signed transaction hex binary (and coin_symbol) and decodes it to JSON.
@@ -855,7 +844,10 @@ def decodetx(tx_hex, coin_symbol='btc', api_key=None):
 
     assert is_valid_coin_symbol(coin_symbol)
 
-    url = get_decodetx_url(coin_symbol=coin_symbol)
+    url = 'https://api.blockcypher.com/v1/%s/%s/txs/decode' % (
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
+            )
     logger.info(url)
 
     params = {'tx': tx_hex}
