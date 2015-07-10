@@ -87,7 +87,7 @@ Now any funds sent to `1Am4RUsCoiC3LfVC53kxVyfPkB4gEdRtkg` will instantly forwar
 
 You can check on your payments like this:
 ```
->>> blockcypher.list_forwarding_addresses(api_key='5ceb4450-e15c-11e3-8b68-0800200c9a66', coin_symbol='btc')
+>>> blockcypher.list_forwarding_addresses(api_key='your key here', coin_symbol='btc')
 [{'token': '8d99...',
   'id': '60ad7de3-ce81-40a2-ac92-6c74ab85bb72',
   'txs': ['f7750e98af49d12b2c63835399d4a96e1b5fd76f897d020f6c6bf8a7c13cdae1'],
