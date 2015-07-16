@@ -12,7 +12,7 @@ More features and support for more endpoints coming soon. Should support python 
 
 Use pip with
 ```
-$ pip3 install -e git+git://github.com/blockcypher/blockcypher-python.git@master#egg=blockcypher
+$ pip3 install blockcypher
 ```
 (for python 2.x use `pip` instead of `pip3`)
 
@@ -21,13 +21,12 @@ You can of course install it the old fashioned way like this:
 $ python setup.py install
 ```
 
-PyPI support coming soon.
-
 #### Get Started:
 
 ```
 >>> import blockcypher
 ```
+(to keep your code clean we recommend `from blockcypher import foo` where `foo` is the method you want to use)
 
 How much bitcoin (in satoshis) is currently sitting in the Bitcoin Foundation Address:
 ```
@@ -66,7 +65,7 @@ We can also convert between block hashes and block heights
 >>> blockcypher.get_block_height('0000000000000000126fc62619701b8c3da59424755e9de409053524620b114d')  # BTC unless specified otherwise
 330545
 ```
-Use `get-block_hash()` to convert back.
+Use `get_block_hash()` to convert back.
 
 We can also find the previous block hash:
 ```
