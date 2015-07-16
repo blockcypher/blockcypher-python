@@ -10,6 +10,8 @@ COIN_SYMBOL_ODICT_LIST = [
             'pow': 'sha',
             'example_address': '16Fg2yjwrbtC6fZp61EV9mNVKmwCzGasw5',
             'address_first_char_list': ('1', '3'),
+            'first4_mprv': 'xprv',
+            'first4_mpub': 'xpub',
             },
         {
             'coin_symbol': 'btc-testnet',
@@ -21,6 +23,8 @@ COIN_SYMBOL_ODICT_LIST = [
             'pow': 'sha',
             'example_address': '2N1rjhumXA3ephUQTDMfGhufxGQPZuZUTMk',
             'address_first_char_list': ('m', 'n', '2'),
+            'first4_mprv': 'tprv',
+            'first4_mpub': 'tpub',
             },
         {
             'coin_symbol': 'ltc',
@@ -32,6 +36,8 @@ COIN_SYMBOL_ODICT_LIST = [
             'pow': 'scrypt',
             'example_address': 'LcFFkbRUrr8j7TMi8oXUnfR4GPsgcXDepo',
             'address_first_char_list': ('L', 'U', '3'),  # TODO: confirm
+            'first4_mprv': 'Ltpv',
+            'first4_mpub': 'Ltub',
             },
         {
             'coin_symbol': 'doge',
@@ -43,6 +49,8 @@ COIN_SYMBOL_ODICT_LIST = [
             'pow': 'scrypt',
             'example_address': 'D7Y55r6Yoc1G8EECxkQ6SuSjTgGJJ7M6yD',
             'address_first_char_list': ('D', '9', 'A'),
+            'first4_mprv': 'dgpv',
+            'first4_mpub': 'dgub',
             },
         {
             'coin_symbol': 'uro',
@@ -65,6 +73,9 @@ COIN_SYMBOL_ODICT_LIST = [
             'pow': 'sha',
             'example_address': 'CFr99841LyMkyX5ZTGepY58rjXJhyNGXHf',
             'address_first_char_list': ('B', 'C', 'D'),
+            # intentionally excluding since these have the same names as BTC
+            # 'first4_mprv': 'xprv',
+            # 'first4_mpub': 'xpub',
             },
         ]
 
@@ -100,7 +111,16 @@ COIN_CHOICES = []
 for coin_symbol_dict in COIN_SYMBOL_ODICT_LIST:
     COIN_CHOICES.append((coin_symbol_dict['coin_symbol'], coin_symbol_dict['display_name']))
 
+# upper-case to be forgiving on user error
+FIRST4_MKEY_CS_MAPPINGS_UPPER = {}
+for coin_symbol_dict in COIN_SYMBOL_ODICT_LIST:
+    if 'first4_mprv' in coin_symbol_dict:
+        FIRST4_MKEY_CS_MAPPINGS_UPPER[coin_symbol_dict['first4_mprv'].upper()] = coin_symbol_dict['coin_symbol']
+    if 'first4_mpub' in coin_symbol_dict:
+        FIRST4_MKEY_CS_MAPPINGS_UPPER[coin_symbol_dict['first4_mpub'].upper()] = coin_symbol_dict['coin_symbol']
+
 # mappings (similar to above but easier retrieval for when order doens't matter)
+# must come last because of popping out
 COIN_SYMBOL_MAPPINGS = {}
 for coin_symbol_dict in COIN_SYMBOL_ODICT_LIST:
     coin_symbol = coin_symbol_dict.pop('coin_symbol')

@@ -2,7 +2,8 @@ import re
 
 from hashlib import sha256
 
-from .constants import SHA_COINS, SCRYPT_COINS, COIN_SYMBOL_LIST, COIN_SYMBOL_MAPPINGS
+from .constants import (SHA_COINS, SCRYPT_COINS, COIN_SYMBOL_LIST,
+    COIN_SYMBOL_MAPPINGS, FIRST4_MKEY_CS_MAPPINGS_UPPER)
 
 
 SATOSHIS_PER_BTC = 10**8
@@ -94,6 +95,15 @@ def is_valid_block_representation(block_representation, coin_symbol):
 
 def is_valid_coin_symbol(coin_symbol):
     return coin_symbol in COIN_SYMBOL_LIST
+
+
+def coin_symbol_from_mkey(mkey):
+    '''
+    Take the first four of a master public or private key and return the coin_symbol
+
+    Case insensitive to be forgiving of user error
+    '''
+    return FIRST4_MKEY_CS_MAPPINGS_UPPER.get(mkey[:4].upper())
 
 ### Addresses ###
 
