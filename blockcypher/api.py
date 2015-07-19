@@ -1,5 +1,6 @@
 from .utils import (is_valid_hash, is_valid_block_representation,
-        is_valid_coin_symbol, is_valid_address_for_coinsymbol)
+        is_valid_coin_symbol, is_valid_address_for_coinsymbol,
+        coin_symbol_from_mkey)
 
 from .constants import COIN_SYMBOL_MAPPINGS
 
@@ -19,6 +20,15 @@ TIMEOUT_IN_SECONDS = 20
 
 logger = logging.getLogger(__name__)
 
+'''
+# For debugging:
+# https://docs.python.org/3/howto/logging.html#configuring-logging
+logger.setLevel(logging.DEBUG)
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+logger.addHandler(ch)
+'''
+
 
 def get_address_details(address, coin_symbol='btc', txn_limit=None,
         api_key=None):
@@ -34,6 +44,47 @@ def get_address_details(address, coin_symbol='btc', txn_limit=None,
             COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
             COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
             address)
+    logger.info(url)
+
+    params = {}
+    if txn_limit:
+        params['limit'] = txn_limit
+    if api_key:
+        params['token'] = api_key
+
+    r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+
+    response_dict = r.json()
+
+    confirmed_txrefs = []
+    for confirmed_txref in response_dict.get('txrefs', []):
+        confirmed_txref['confirmed'] = parser.parse(confirmed_txref['confirmed'])
+        confirmed_txrefs.append(confirmed_txref)
+    response_dict['txrefs'] = confirmed_txrefs
+
+    unconfirmed_txrefs = []
+    for unconfirmed_txref in response_dict.get('unconfirmed_txrefs', []):
+        unconfirmed_txref['received'] = parser.parse(unconfirmed_txref['received'])
+        unconfirmed_txrefs.append(unconfirmed_txref)
+    response_dict['unconfirmed_txrefs'] = unconfirmed_txrefs
+
+    return response_dict
+
+
+def get_wallet_details(wallet_name, api_key, coin_symbol='btc', txn_limit=None):
+    '''
+    Takes a wallet, api_key, coin_symbol and txn_limit (optional) and returns
+    the wallet's address details
+    '''
+
+    assert type(wallet_name) is str
+    assert api_key
+    assert is_valid_coin_symbol(coin_symbol=coin_symbol)
+
+    url = 'https://api.blockcypher.com/v1/%s/%s/addrs/%s' % (
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
+            wallet_name)
     logger.info(url)
 
     params = {}
@@ -859,7 +910,7 @@ def decodetx(tx_hex, coin_symbol='btc', api_key=None):
     return r.json()
 
 
-def create_wallet(wallet_name, address, api_key, coin_symbol='btc'):
+def create_wallet_from_address(wallet_name, address, api_key, coin_symbol='btc'):
     '''
     Create a new wallet with one address
 
@@ -887,15 +938,49 @@ def create_wallet(wallet_name, address, api_key, coin_symbol='btc'):
     return r.json()
 
 
-def get_wallet(wallet_name, api_key, coin_symbol='btc'):
+def create_hd_wallet(wallet_name, xpubkey, api_key, subchain_indexes=[],
+        coin_symbol='btc'):
+    '''
+    Create a new wallet from an extended pubkey (xpub... for BTC)
+
+    You can delete the wallet with the delete_wallet method below
+    '''
+    inferred_coin_symbol = coin_symbol_from_mkey(mkey=xpubkey)
+    if inferred_coin_symbol:
+        assert inferred_coin_symbol == coin_symbol
+    assert api_key
+    assert type(wallet_name) is str
+
+    data = {
+            'name': wallet_name,
+            'extended_public_key': xpubkey,
+            }
+    params = {'token': api_key}
+
+    if subchain_indexes:
+        data['subchain_indexes'] = subchain_indexes
+
+    url = 'https://api.blockcypher.com/v1/%s/%s/wallets/hd' % (
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
+            )
+    logger.info(url)
+
+    r = requests.post(url, data=json.dumps(data), params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+
+    return r.json()
+
+
+def get_wallet(wallet_name, api_key, is_hd_wallet=False, coin_symbol='btc'):
     assert is_valid_coin_symbol(coin_symbol)
     assert api_key
     assert type(wallet_name) is str
 
     params = {'token': api_key}
-    url = 'https://api.blockcypher.com/v1/%s/%s/wallets/%s' % (
+    url = 'https://api.blockcypher.com/v1/%s/%s/wallets/%s%s' % (
             COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
             COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
+            'hd/' if is_hd_wallet else '',  # hack!
             wallet_name,
             )
     logger.info(url)
@@ -945,14 +1030,15 @@ def remove_address_from_wallet(wallet_name, address, api_key, coin_symbol='btc')
         return r.json()
 
 
-def delete_wallet(wallet_name, api_key, coin_symbol='btc'):
+def delete_wallet(wallet_name, api_key, is_hd_wallet=False, coin_symbol='btc'):
     assert api_key
     assert type(wallet_name) is str
 
     params = {'token': api_key}
-    url = 'https://api.blockcypher.com/v1/%s/%s/wallets/%s' % (
+    url = 'https://api.blockcypher.com/v1/%s/%s/wallets/%s%s' % (
             COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
             COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
+            'hd/' if is_hd_wallet else '',  # hack!
             wallet_name,
             )
     logger.info(url)
@@ -964,7 +1050,8 @@ def delete_wallet(wallet_name, api_key, coin_symbol='btc'):
 
 
 def create_unsigned_tx(inputs, outputs, change_address=None,
-        min_confirmations=0, preference='high', coin_symbol='btc'):
+        include_tosigntx=False, min_confirmations=0, preference='high',
+        coin_symbol='btc'):
     '''
     Create a new transaction to sign. Doesn't ask for or involve private keys.
     Behind the scenes, blockcypher will:
@@ -974,6 +1061,10 @@ def create_unsigned_tx(inputs, outputs, change_address=None,
 
     min_confirmations is the minimum number of confirmations an unspent output
     must have in order to be included in a transaction
+
+    tosign_tx is the raw tx which can be decoded to verify the transaction
+    you're signing matches what you want to sign. You can also verify:
+    sha256(sha256(tosign_tx))== tosign
 
     Inputs is a list of either:
     - {'addresses': 'foo'} that will be included in the TX
@@ -1029,17 +1120,19 @@ def create_unsigned_tx(inputs, outputs, change_address=None,
             )
     logger.info(url)
 
-    params = {
+    data = {
             'inputs': inputs,
             'outputs': outputs,
             'preference': preference,
             }
     if min_confirmations:
-        params['confirmations'] = min_confirmations
+        data['confirmations'] = min_confirmations
     if change_address:
-        params['change_address'] = change_address
+        data['change_address'] = change_address
 
-    r = requests.post(url, data=json.dumps(params), verify=True, timeout=TIMEOUT_IN_SECONDS)
+    params = {'includeToSignTx': include_tosigntx}
+
+    r = requests.post(url, data=json.dumps(data), params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
     return r.json()
 
@@ -1110,3 +1203,8 @@ def broadcast_signed_transaction(unsigned_tx, signatures, pubkeys,
     r = requests.post(url, data=json.dumps(params), verify=True, timeout=TIMEOUT_IN_SECONDS)
 
     return r.json()
+
+
+def sign_and_broadcast(unsigned_tx, privkey_list, pubkey_list,
+        coin_symbol='btc'):
+    pass
