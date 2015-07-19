@@ -1131,6 +1131,9 @@ def create_unsigned_tx(inputs, outputs, change_address=None,
         data['change_address'] = change_address
 
     params = {'includeToSignTx': include_tosigntx}
+    # Nasty Hack - remove when library updated
+    if 'wallet_token' in inputs[0]:
+        params['token'] = inputs[0]['wallet_token']
 
     r = requests.post(url, data=json.dumps(data), params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
