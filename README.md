@@ -173,7 +173,7 @@ You can also get a list of broadcast transactions that haven't made it into a bl
  '313dfba9bd69d406176e5b305146a3136f40eda4589f06e1d770d6bfacaf5b52',
  'c3e0a3a702a4b8cd6f72618fd13e87b7f2b55a215fd78c35ca13a2d2bbd89088']
 ```
-For more details on those transactions, use `blockcypher.api.get_broadcast_transactions()`
+For more details on those transactions, use `blockcypher.get_broadcast_transactions()`
 
 Want more info about a block?
 ```
