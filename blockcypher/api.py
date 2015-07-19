@@ -74,10 +74,10 @@ def get_address_details(address, coin_symbol='btc', txn_limit=None,
 def get_wallet_details(wallet_name, api_key, coin_symbol='btc', txn_limit=None):
     '''
     Takes a wallet, api_key, coin_symbol and txn_limit (optional) and returns
-    the wallet's address details
+    the wallet's addresses details
     '''
 
-    assert type(wallet_name) is str
+    assert len(wallet_name) <= 25, wallet_name
     assert api_key
     assert is_valid_coin_symbol(coin_symbol=coin_symbol)
 
@@ -919,7 +919,7 @@ def create_wallet_from_address(wallet_name, address, api_key, coin_symbol='btc')
     '''
     assert is_valid_address_for_coinsymbol(address, coin_symbol)
     assert api_key
-    assert type(wallet_name) is str
+    assert len(wallet_name) <= 25, wallet_name
 
     data = {
             'name': wallet_name,
@@ -949,7 +949,7 @@ def create_hd_wallet(wallet_name, xpubkey, api_key, subchain_indexes=[],
     if inferred_coin_symbol:
         assert inferred_coin_symbol == coin_symbol
     assert api_key
-    assert type(wallet_name) is str
+    assert len(wallet_name) <= 25, wallet_name
 
     data = {
             'name': wallet_name,
@@ -974,7 +974,7 @@ def create_hd_wallet(wallet_name, xpubkey, api_key, subchain_indexes=[],
 def get_wallet(wallet_name, api_key, is_hd_wallet=False, coin_symbol='btc'):
     assert is_valid_coin_symbol(coin_symbol)
     assert api_key
-    assert type(wallet_name) is str
+    assert len(wallet_name) <= 25, wallet_name
 
     params = {'token': api_key}
     url = 'https://api.blockcypher.com/v1/%s/%s/wallets/%s%s' % (
@@ -992,7 +992,7 @@ def get_wallet(wallet_name, api_key, is_hd_wallet=False, coin_symbol='btc'):
 def add_address_to_wallet(wallet_name, address, api_key, coin_symbol='btc'):
     assert is_valid_address_for_coinsymbol(address, coin_symbol)
     assert api_key
-    assert type(wallet_name) is str
+    assert len(wallet_name) <= 25, wallet_name
 
     data = {'addresses': [address, ]}
     params = {'token': api_key}
@@ -1011,7 +1011,7 @@ def add_address_to_wallet(wallet_name, address, api_key, coin_symbol='btc'):
 def remove_address_from_wallet(wallet_name, address, api_key, coin_symbol='btc'):
     assert is_valid_address_for_coinsymbol(address, coin_symbol)
     assert api_key
-    assert type(wallet_name) is str
+    assert len(wallet_name) <= 25, wallet_name
 
     data = {'addresses': [address, ]}
     params = {'token': api_key}
@@ -1032,7 +1032,7 @@ def remove_address_from_wallet(wallet_name, address, api_key, coin_symbol='btc')
 
 def delete_wallet(wallet_name, api_key, is_hd_wallet=False, coin_symbol='btc'):
     assert api_key
-    assert type(wallet_name) is str
+    assert len(wallet_name) <= 25, wallet_name
 
     params = {'token': api_key}
     url = 'https://api.blockcypher.com/v1/%s/%s/wallets/%s%s' % (
