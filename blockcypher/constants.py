@@ -12,6 +12,8 @@ COIN_SYMBOL_ODICT_LIST = [
             'address_first_char_list': ('1', '3'),
             'first4_mprv': 'xprv',
             'first4_mpub': 'xpub',
+            'vbyte_pubkey': 0,
+            'vbyte_script': 5,
             },
         {
             'coin_symbol': 'btc-testnet',
@@ -25,6 +27,8 @@ COIN_SYMBOL_ODICT_LIST = [
             'address_first_char_list': ('m', 'n', '2'),
             'first4_mprv': 'tprv',
             'first4_mpub': 'tpub',
+            'vbyte_pubkey': 111,
+            'vbyte_script': 196,
             },
         {
             'coin_symbol': 'ltc',
@@ -38,6 +42,8 @@ COIN_SYMBOL_ODICT_LIST = [
             'address_first_char_list': ('L', 'U', '3'),  # TODO: confirm
             'first4_mprv': 'Ltpv',
             'first4_mpub': 'Ltub',
+            'vbyte_pubkey': 48,
+            'vbyte_script': 5,
             },
         {
             'coin_symbol': 'doge',
@@ -51,6 +57,8 @@ COIN_SYMBOL_ODICT_LIST = [
             'address_first_char_list': ('D', '9', 'A'),
             'first4_mprv': 'dgpv',
             'first4_mpub': 'dgub',
+            'vbyte_pubkey': 30,
+            'vbyte_script': 22,
             },
         {
             'coin_symbol': 'uro',
@@ -76,6 +84,8 @@ COIN_SYMBOL_ODICT_LIST = [
             # intentionally excluding since these have the same names as BTC
             # 'first4_mprv': 'xprv',
             # 'first4_mpub': 'xpub',
+            'vbyte_pubkey': 27,
+            'vbyte_script': 31,
             },
         ]
 

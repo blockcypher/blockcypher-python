@@ -5,11 +5,110 @@ from hashlib import sha256
 from .constants import (SHA_COINS, SCRYPT_COINS, COIN_SYMBOL_LIST,
     COIN_SYMBOL_MAPPINGS, FIRST4_MKEY_CS_MAPPINGS_UPPER)
 
+from bitcoin.main import safe_from_hex
+from bitcoin.transaction import deserialize, script_to_address
+
 
 SATOSHIS_PER_BTC = 10**8
 SATOSHIS_PER_MILLIBITCOIN = 10**5
 
 HEX_CHARS_RE = re.compile('^[0-9a-f]*$')
+
+
+def lib_can_deserialize_cs(coin_symbol):
+    '''
+    Be sure that this library can deserialize a transaction for this coin
+
+    This is not a limitation of blockcypher's service but this library's
+    ability to deserialize a transaction hex to json.
+    '''
+    assert is_valid_coin_symbol(coin_symbol), coin_symbol
+    if COIN_SYMBOL_MAPPINGS[coin_symbol].get('vbyte_pubkey'):
+        return True
+    else:
+        return False
+
+
+def get_txn_outputs(raw_tx_hex, output_addr_list, coin_symbol):
+    '''
+    Used to verify a transaction hex does what's expected of it.
+
+    Must supply a list of output addresses so that the library can try to
+    convert from script to address using both pubkey and script.
+
+    Returns a list of the following form:
+        [{'value': 12345, 'address': '1abc...'}, ...]
+
+    Uses @vbuterin's decoding methods.
+    '''
+    # Defensive checks:
+    err_msg = 'Library not able to parse %s transactions' % coin_symbol
+    assert lib_can_deserialize_cs(coin_symbol), err_msg
+    assert type(output_addr_list) in (list, tuple)
+    for output_addr in output_addr_list:
+        assert is_valid_address(output_addr), output_addr
+
+    outputs = []
+    for out in deserialize(raw_tx_hex).get('outs', []):
+        output_addr_set = set(output_addr_list)  # speed optimization
+
+        # determine if the address is a pubkey address or a script address
+        pubkey_addr = script_to_address(out['script'],
+                vbyte=COIN_SYMBOL_MAPPINGS[coin_symbol]['vbyte_pubkey'])
+        script_addr = script_to_address(out['script'],
+                vbyte=COIN_SYMBOL_MAPPINGS[coin_symbol]['vbyte_script'])
+        if pubkey_addr in output_addr_set:
+            address = pubkey_addr
+        elif script_addr in output_addr_set:
+            address = script_addr
+        else:
+            raise Exception('Output Address Not in Script %s' % out['script'])
+
+        output = {
+                'value': out['value'],
+                'address': address,
+                }
+        outputs.append(output)
+    return outputs
+
+
+def compress_txn_outputs(txn_outputs):
+    '''
+    Take a list of txn ouputs (from get_txn_outputs) and compress it to the
+    sum of satoshis sent to each address in a dictionary.
+
+    Returns a dict of the following form:
+        {'1abc...': 12345, '1def': 54321, ...}
+    '''
+    result_dict = {}
+    for txn_output in txn_outputs:
+        if txn_output['address'] in result_dict:
+            result_dict[txn_output['address']] += txn_output['value']
+        else:
+            result_dict[txn_output['address']] = txn_output['value']
+    return result_dict
+
+
+def get_txn_outputs_dict(raw_tx_hex, output_addr_list, coin_symbol):
+    return compress_txn_outputs(
+            txn_outputs=get_txn_outputs(
+                raw_tx_hex=raw_tx_hex,
+                output_addr_list=output_addr_list,
+                coin_symbol=coin_symbol,
+                )
+            )
+
+
+def double_sha256(hex_string):
+    '''
+    Double sha256. Example:
+    Input:
+      '0100000001294ea156f83627e196b31f8c70597c3b38851c174259bca7c80888ca422c4db8010000001976a914869441d5dc3befb911151d60501d85683483aa9d88acffffffff020a000000000000001976a914f93d302789520e8ca07affb76d4ba4b74ca3b3e688ac3c215200000000001976a914869441d5dc3befb911151d60501d85683483aa9d88ac0000000001000000'
+    Output:
+      'e147a7e260afbb779db8acd56888aab66232d6136f60a11aeb4c0bb4efacb33c'
+    Uses @vbuterin's safe_from_hex for python2/3 compatibility
+    '''
+    return sha256(sha256(safe_from_hex(hex_string)).digest()).hexdigest()
 
 
 def btc_to_satoshis(btc):

@@ -1,6 +1,7 @@
 from .utils import (is_valid_hash, is_valid_block_representation,
         is_valid_coin_symbol, is_valid_address_for_coinsymbol,
-        coin_symbol_from_mkey)
+        coin_symbol_from_mkey, double_sha256, compress_txn_outputs,
+        get_txn_outputs_dict)
 
 from .constants import COIN_SYMBOL_MAPPINGS
 
@@ -31,10 +32,16 @@ logger.addHandler(ch)
 
 
 def get_address_details(address, coin_symbol='btc', txn_limit=None,
-        api_key=None):
+        api_key=None, before_bh=None, confirmations=0):
     '''
-    Takes an address, coin_symbol and txn_limit (optional) and return the
-    address details
+    Takes an address and coin_symbol and returns the address details
+
+    Optional:
+      - txn_limit: # transactions to include
+      - before_bh: filters response to only include transactions below before
+      height in the blockchain.
+      - confirmations: returns the balance and TXRefs that have this number
+      of confirmations
     '''
 
     assert is_valid_address_for_coinsymbol(b58_address=address,
@@ -51,6 +58,10 @@ def get_address_details(address, coin_symbol='btc', txn_limit=None,
         params['limit'] = txn_limit
     if api_key:
         params['token'] = api_key
+    if before_bh:
+        params['before_bh'] = before_bh
+    if confirmations:
+        params['confirmations'] = confirmations
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
@@ -71,10 +82,17 @@ def get_address_details(address, coin_symbol='btc', txn_limit=None,
     return response_dict
 
 
-def get_wallet_details(wallet_name, api_key, coin_symbol='btc', txn_limit=None):
+def get_wallet_details(wallet_name, api_key, coin_symbol='btc',
+        before_bh=None, txn_limit=None, confirmations=0):
     '''
-    Takes a wallet, api_key, coin_symbol and txn_limit (optional) and returns
-    the wallet's addresses details
+    Takes a wallet, api_key, coin_symbol and returns the wallet's details
+
+    Optional:
+      - txn_limit: # transactions to include
+      - before_bh: filters response to only include transactions below before
+      height in the blockchain.
+      - confirmations: returns the balance and TXRefs that have this number
+      of confirmations
     '''
 
     assert len(wallet_name) <= 25, wallet_name
@@ -92,6 +110,10 @@ def get_wallet_details(wallet_name, api_key, coin_symbol='btc', txn_limit=None):
         params['limit'] = txn_limit
     if api_key:
         params['token'] = api_key
+    if before_bh:
+        params['before_bh'] = before_bh
+    if confirmations:
+        params['confirmations'] = confirmations
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
@@ -1050,8 +1072,8 @@ def delete_wallet(wallet_name, api_key, is_hd_wallet=False, coin_symbol='btc'):
 
 
 def create_unsigned_tx(inputs, outputs, change_address=None,
-        include_tosigntx=False, min_confirmations=0, preference='high',
-        coin_symbol='btc'):
+        include_tosigntx=False, verify_tosigntx=False, min_confirmations=0,
+        preference='high', coin_symbol='btc'):
     '''
     Create a new transaction to sign. Doesn't ask for or involve private keys.
     Behind the scenes, blockcypher will:
@@ -1066,9 +1088,13 @@ def create_unsigned_tx(inputs, outputs, change_address=None,
     you're signing matches what you want to sign. You can also verify:
     sha256(sha256(tosign_tx))== tosign
 
+    verify_tosigntx will take the raw tx data in tosign_tx and run the
+    verification for you and protect you against a malicious or compromised
+    blockcypher server
+
     Inputs is a list of either:
-    - {'addresses': 'foo'} that will be included in the TX
-    - {'wallet_name': 'bar'} that was previously registered and will be used
+    - {'address': '1abcxyz...'} that will be included in the TX
+    - {'wallet_name': 'bar', 'wallet_token': 'yourtoken'} that was previously registered and will be used
       to choose which addresses/inputs are included in the TX
 
     Details here: http://dev.blockcypher.com/#generic_transactions
@@ -1080,32 +1106,44 @@ def create_unsigned_tx(inputs, outputs, change_address=None,
     assert len(inputs) >= 1, inputs
     assert len(outputs) >= 1, outputs
 
+    inputs_cleaned = []
     for input_obj in inputs:
         # `input` is a reserved word
-        if 'addresses' in input_obj:
-            assert type(input_obj['addresses']) is list, input_obj['addresses']
-            for address in input_obj['addresses']:
-                assert is_valid_address_for_coinsymbol(
-                        b58_address=address,
-                        coin_symbol=coin_symbol,
-                        ), address
+        if 'address' in input_obj:
+            address = input_obj['address']
+            assert is_valid_address_for_coinsymbol(
+                    b58_address=address,
+                    coin_symbol=coin_symbol,
+                    ), address
+            inputs_cleaned.append({
+                'addresses': [address, ],
+                })
         elif 'wallet_name' in input_obj and 'wallet_token' in input_obj:
             # good behavior
             pass
         else:
-            raise Exception('Invalid Input')
+            raise Exception('Invalid Input: %s' % input_obj)
 
+    outputs_cleaned = []
+    sweep_funds = False
     for output in outputs:
         assert 'value' in output, output
         assert type(output['value']) is int, output['value']
+        if output['value'] == -1:
+            sweep_funds = True
+            assert not change_address, 'Change Address Supplied for Sweep TX'
 
-        assert 'addresses' in output, output
-        assert type(output['addresses']) is list, output['addresses']
-        for address in output['addresses']:
-            assert is_valid_address_for_coinsymbol(
-                    b58_address=address,
-                    coin_symbol=coin_symbol,
-                    )
+        # note that API requires the singleton list 'addresses' which is
+        # intentionally hidden away from the user here
+        assert 'address' in output, output
+        assert is_valid_address_for_coinsymbol(
+                b58_address=address,
+                coin_symbol=coin_symbol,
+                )
+        outputs_cleaned.append({
+            'value': output['value'],
+            'addresses': [output['address'], ],
+            })
 
     if change_address:
         assert is_valid_address_for_coinsymbol(b58_address=change_address,
@@ -1121,8 +1159,8 @@ def create_unsigned_tx(inputs, outputs, change_address=None,
     logger.info(url)
 
     data = {
-            'inputs': inputs,
-            'outputs': outputs,
+            'inputs': inputs_cleaned,
+            'outputs': outputs_cleaned,
             'preference': preference,
             }
     if min_confirmations:
@@ -1130,14 +1168,65 @@ def create_unsigned_tx(inputs, outputs, change_address=None,
     if change_address:
         data['change_address'] = change_address
 
-    params = {'includeToSignTx': include_tosigntx}
-    # Nasty Hack - remove when library updated
+    if include_tosigntx or verify_tosigntx:
+        params = {'includeToSignTx': 'true'}  # Nasty hack
+    else:
+        params = {}
+
+    # Nasty Hack - remove when API updated
     if 'wallet_token' in inputs[0]:
         params['token'] = inputs[0]['wallet_token']
 
     r = requests.post(url, data=json.dumps(data), params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
-    return r.json()
+    r_dict = r.json()
+
+    if verify_tosigntx:
+        if not change_address and not sweep_funds:
+            raise Exception('TX Verification Error: Cannot Verify Without Developer Supplying Change Address')
+
+        if 'tosign_tx' not in r_dict:
+            raise Exception('TX Verification Error: tosign_tx not in API response:\n%s' % r.json())
+
+        output_addr_list = [x['address'] for x in outputs]
+        if change_address:
+            output_addr_list.append(change_address)
+
+        assert len(r_dict['tosign_tx']) == len(r_dict['tosign']), r_dict
+        for cnt, tosign_tx_toverify in enumerate(r_dict['tosign_tx']):
+
+            # Confirm tosign is the dsha256 of tosign_tx
+            err_msg = 'double_sha256(%s) =! %s' % (tosign_tx_toverify,
+                    r_dict['tosign'][cnt])
+            assert double_sha256(tosign_tx_toverify) == r_dict['tosign'][cnt], err_msg
+
+            txn_outputs_response_dict = get_txn_outputs_dict(
+                    raw_tx_hex=tosign_tx_toverify,
+                    output_addr_list=output_addr_list,
+                    coin_symbol=coin_symbol,
+                    )
+
+            if sweep_funds:
+                # output adresses are already confirmed in `get_txn_outputs`,
+                # which was called by `get_txn_outputs_dict`
+                # no point in confirming values for a sweep
+                continue
+
+            # get rid of change address as tx fee (which affects value)
+            # is determined by blockcypher and can't be known up front
+            try:
+                txn_outputs_response_dict.pop(change_address)
+            except KeyError:
+                # This might be possible in the case of no change address needed
+                # Consider dropping this requirement
+                raise Exception('TX Verification Error: change_address not in API response')
+
+            user_outputs = compress_txn_outputs(outputs)
+            if txn_outputs_response_dict != user_outputs:
+                # TODO: more helpful error message
+                raise Exception('TX Verification Error: API Response Ouputs != Supplied Outputs\n\n%s\n\n%s' % (txn_outputs_response_dict, user_outputs))
+
+    return r_dict
 
 
 def get_input_addresses(unsigned_tx):
@@ -1206,8 +1295,3 @@ def broadcast_signed_transaction(unsigned_tx, signatures, pubkeys,
     r = requests.post(url, data=json.dumps(params), verify=True, timeout=TIMEOUT_IN_SECONDS)
 
     return r.json()
-
-
-def sign_and_broadcast(unsigned_tx, privkey_list, pubkey_list,
-        coin_symbol='btc'):
-    pass
