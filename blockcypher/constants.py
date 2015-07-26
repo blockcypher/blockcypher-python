@@ -81,9 +81,8 @@ COIN_SYMBOL_ODICT_LIST = [
             'pow': 'sha',
             'example_address': 'CFr99841LyMkyX5ZTGepY58rjXJhyNGXHf',
             'address_first_char_list': ('B', 'C', 'D'),
-            # intentionally excluding since these have the same names as BTC
-            # 'first4_mprv': 'xprv',
-            # 'first4_mpub': 'xpub',
+            'first4_mprv': 'bprv',
+            'first4_mpub': 'bpub',
             'vbyte_pubkey': 27,
             'vbyte_script': 31,
             },
