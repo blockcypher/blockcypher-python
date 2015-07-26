@@ -1137,7 +1137,7 @@ def create_unsigned_tx(inputs, outputs, change_address=None,
         # intentionally hidden away from the user here
         assert 'address' in output, output
         assert is_valid_address_for_coinsymbol(
-                b58_address=address,
+                b58_address=output['address'],
                 coin_symbol=coin_symbol,
                 )
         outputs_cleaned.append({
@@ -1242,7 +1242,8 @@ def get_input_addresses(unsigned_tx):
     '''
     addresses = []
     for input_obj in unsigned_tx['tx']['inputs']:
-        addresses.extend(input_obj['addresses'])
+        # TODO: confirm this will work for multisig
+        addresses.append(input_obj['addresses'][0])
     return addresses
 
 
