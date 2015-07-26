@@ -1120,7 +1120,7 @@ def create_unsigned_tx(inputs, outputs, change_address=None,
                 })
         elif 'wallet_name' in input_obj and 'wallet_token' in input_obj:
             # good behavior
-            pass
+            inputs_cleaned.append(input_obj)
         else:
             raise Exception('Invalid Input: %s' % input_obj)
 
