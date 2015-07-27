@@ -112,6 +112,20 @@ def double_sha256(hex_string):
     return sha256(sha256(safe_from_hex(hex_string)).digest()).hexdigest()
 
 
+def get_blockcypher_walletname_from_mpub(mpub, subchain_indices=[]):
+    '''
+    Blockcypher limits wallet names to 25 chars.
+
+    Hash the master pubkey (with subchain indexes) and take the first 25 chars.
+
+    Hackey determinstic method for naming.
+    '''
+    assert type(mpub) in (str, unicode), mpub
+    if subchain_indices:
+        mpub += ','.join([str(x) for x in subchain_indices])
+    return sha256(mpub).hexdigest()[:25]
+
+
 def btc_to_satoshis(btc):
     return int(float(btc) * SATOSHIS_PER_BTC)
 

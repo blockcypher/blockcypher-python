@@ -960,7 +960,7 @@ def create_wallet_from_address(wallet_name, address, api_key, coin_symbol='btc')
     return r.json()
 
 
-def create_hd_wallet(wallet_name, xpubkey, api_key, subchain_indexes=[],
+def create_hd_wallet(wallet_name, xpubkey, api_key, subchain_indices=[],
         coin_symbol='btc'):
     '''
     Create a new wallet from an extended pubkey (xpub... for BTC)
@@ -979,8 +979,8 @@ def create_hd_wallet(wallet_name, xpubkey, api_key, subchain_indexes=[],
             }
     params = {'token': api_key}
 
-    if subchain_indexes:
-        data['subchain_indexes'] = subchain_indexes
+    if subchain_indices:
+        data['subchain_indexes'] = subchain_indices
 
     url = 'https://api.blockcypher.com/v1/%s/%s/wallets/hd' % (
             COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
