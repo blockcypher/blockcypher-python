@@ -1073,7 +1073,7 @@ def delete_wallet(wallet_name, api_key, is_hd_wallet=False, coin_symbol='btc'):
 
 def create_unsigned_tx(inputs, outputs, change_address=None,
         include_tosigntx=False, verify_tosigntx=False, min_confirmations=0,
-        preference='high', coin_symbol='btc'):
+        preference='high', coin_symbol='btc', api_key=None):
     '''
     Create a new transaction to sign. Doesn't ask for or involve private keys.
     Behind the scenes, blockcypher will:
@@ -1176,6 +1176,8 @@ def create_unsigned_tx(inputs, outputs, change_address=None,
     # Nasty Hack - remove when API updated
     if 'wallet_token' in inputs[0]:
         params['token'] = inputs[0]['wallet_token']
+    elif api_key:
+        params['token'] = api_key
 
     r = requests.post(url, data=json.dumps(data), params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
@@ -1200,11 +1202,17 @@ def create_unsigned_tx(inputs, outputs, change_address=None,
                     r_dict['tosign'][cnt])
             assert double_sha256(tosign_tx_toverify) == r_dict['tosign'][cnt], err_msg
 
-            txn_outputs_response_dict = get_txn_outputs_dict(
-                    raw_tx_hex=tosign_tx_toverify,
-                    output_addr_list=output_addr_list,
-                    coin_symbol=coin_symbol,
-                    )
+            try:
+                txn_outputs_response_dict = get_txn_outputs_dict(
+                        raw_tx_hex=tosign_tx_toverify,
+                        output_addr_list=output_addr_list,
+                        coin_symbol=coin_symbol,
+                        )
+            except Exception as inst:
+                # Could be wrong output addresses, keep this for debug info
+                print(r.json())
+                print(coin_symbol)
+                raise(inst)
 
             if sweep_funds:
                 # output adresses are already confirmed in `get_txn_outputs`,
@@ -1217,9 +1225,8 @@ def create_unsigned_tx(inputs, outputs, change_address=None,
             try:
                 txn_outputs_response_dict.pop(change_address)
             except KeyError:
-                # This might be possible in the case of no change address needed
-                # Consider dropping this requirement
-                raise Exception('TX Verification Error: change_address not in API response')
+                # This is possible in the case of no change address needed
+                pass
 
             user_outputs = compress_txn_outputs(outputs)
             if txn_outputs_response_dict != user_outputs:

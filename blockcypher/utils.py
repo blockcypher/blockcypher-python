@@ -23,7 +23,7 @@ def lib_can_deserialize_cs(coin_symbol):
     ability to deserialize a transaction hex to json.
     '''
     assert is_valid_coin_symbol(coin_symbol), coin_symbol
-    if COIN_SYMBOL_MAPPINGS[coin_symbol].get('vbyte_pubkey'):
+    if 'vbyte_pubkey' in COIN_SYMBOL_MAPPINGS[coin_symbol]:
         return True
     else:
         return False
@@ -63,7 +63,10 @@ def get_txn_outputs(raw_tx_hex, output_addr_list, coin_symbol):
         elif script_addr in output_addr_set:
             address = script_addr
         else:
-            raise Exception('Output Address Not in Script %s' % out['script'])
+            raise Exception('Script %s Does Not Contain a Valid Output Address: %s' % (
+                out['script'],
+                output_addr_set,
+                ))
 
         output = {
                 'value': out['value'],
