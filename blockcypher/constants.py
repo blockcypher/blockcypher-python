@@ -54,7 +54,7 @@ COIN_SYMBOL_ODICT_LIST = [
             'currency_abbrev': 'DOGE',
             'pow': 'scrypt',
             'example_address': 'D7Y55r6Yoc1G8EECxkQ6SuSjTgGJJ7M6yD',
-            'address_first_char_list': ('D', '9', 'A'),
+            'address_first_char_list': ('D', '9', 'A', '2'),
             'first4_mprv': 'dgpv',
             'first4_mpub': 'dgub',
             'vbyte_pubkey': 30,
