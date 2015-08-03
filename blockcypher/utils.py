@@ -219,7 +219,8 @@ def is_valid_coin_symbol(coin_symbol):
 
 def coin_symbol_from_mkey(mkey):
     '''
-    Take the first four of a master public or private key and return the coin_symbol
+    Take a master private or public extended key in standard format
+    (e.g. xpriv123..., xpub123..., tprv123..., etc) and infer the coin symbol
 
     Case insensitive to be forgiving of user error
     '''
