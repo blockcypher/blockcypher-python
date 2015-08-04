@@ -1227,9 +1227,10 @@ def verify_unsigned_tx(unsigned_tx, inputs, outputs, sweep_funds=False,
     for cnt, tosign_tx_toverify in enumerate(unsigned_tx['tosign_tx']):
 
         # Confirm tosign is the dsha256 of tosign_tx
-        if double_sha256(tosign_tx_toverify) == unsigned_tx['tosign'][cnt]:
+        if double_sha256(tosign_tx_toverify) != unsigned_tx['tosign'][cnt]:
             err_msg = 'double_sha256(%s) =! %s' % (tosign_tx_toverify,
                     unsigned_tx['tosign'][cnt])
+            print(unsigned_tx)
             return False, err_msg
 
         try:
