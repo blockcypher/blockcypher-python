@@ -57,6 +57,7 @@ from .api import add_address_to_wallet
 from .api import remove_address_from_wallet
 from .api import delete_wallet
 from .api import create_unsigned_tx
+from .api import verify_unsigned_tx
 from .api import get_input_addresses
 from .api import make_tx_signatures
 from .api import broadcast_signed_transaction

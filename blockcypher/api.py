@@ -1181,59 +1181,92 @@ def create_unsigned_tx(inputs, outputs, change_address=None,
 
     r = requests.post(url, data=json.dumps(data), params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
-    r_dict = r.json()
+    unsigned_tx = r.json()
 
     if verify_tosigntx:
-        if not change_address and not sweep_funds:
-            raise Exception('TX Verification Error: Cannot Verify Without Developer Supplying Change Address')
+        tx_is_correct, err_msg = verify_unsigned_tx(
+                unsigned_tx=unsigned_tx,
+                inputs=inputs,
+                outputs=outputs,
+                sweep_funds=sweep_funds,
+                change_address=change_address,
+                coin_symbol=coin_symbol,
+                )
+        if not tx_is_correct:
+            print(unsigned_tx)  # for debug
+            raise('TX Verification Error: %s' % err_msg)
 
-        if 'tosign_tx' not in r_dict:
-            raise Exception('TX Verification Error: tosign_tx not in API response:\n%s' % r.json())
+    return unsigned_tx
 
-        output_addr_list = [x['address'] for x in outputs]
-        if change_address:
-            output_addr_list.append(change_address)
 
-        assert len(r_dict['tosign_tx']) == len(r_dict['tosign']), r_dict
-        for cnt, tosign_tx_toverify in enumerate(r_dict['tosign_tx']):
+def verify_unsigned_tx(unsigned_tx, inputs, outputs, sweep_funds=False,
+        change_address=None, coin_symbol='btc'):
+    '''
+    Takes an unsigned transaction and what was used to build it (in
+    create_unsigned_tx) and verifies that tosign_tx matches what is being
+    signed and what was requestsed to be signed
 
-            # Confirm tosign is the dsha256 of tosign_tx
+    Returns if valid:
+        (True, '')
+    Returns if invalid:
+        (False, 'err_msg')
+    '''
+    if not change_address and not sweep_funds:
+        err_msg = 'Cannot Verify Without Developer Supplying Change Address'
+        return False, err_msg
+
+    if 'tosign_tx' not in unsigned_tx:
+        err_msg = 'tosign_tx not in API response:\n%s' % unsigned_tx
+        return False, err_msg
+
+    output_addr_list = [x['address'] for x in outputs]
+    if change_address:
+        output_addr_list.append(change_address)
+
+    assert len(unsigned_tx['tosign_tx']) == len(unsigned_tx['tosign']), unsigned_tx
+    for cnt, tosign_tx_toverify in enumerate(unsigned_tx['tosign_tx']):
+
+        # Confirm tosign is the dsha256 of tosign_tx
+        if double_sha256(tosign_tx_toverify) == unsigned_tx['tosign'][cnt]:
             err_msg = 'double_sha256(%s) =! %s' % (tosign_tx_toverify,
-                    r_dict['tosign'][cnt])
-            assert double_sha256(tosign_tx_toverify) == r_dict['tosign'][cnt], err_msg
+                    unsigned_tx['tosign'][cnt])
+            return False, err_msg
 
-            try:
-                txn_outputs_response_dict = get_txn_outputs_dict(
-                        raw_tx_hex=tosign_tx_toverify,
-                        output_addr_list=output_addr_list,
-                        coin_symbol=coin_symbol,
-                        )
-            except Exception as inst:
-                # Could be wrong output addresses, keep this for debug info
-                print(r.json())
-                print(coin_symbol)
-                raise(inst)
+        try:
+            txn_outputs_response_dict = get_txn_outputs_dict(
+                    raw_tx_hex=tosign_tx_toverify,
+                    output_addr_list=output_addr_list,
+                    coin_symbol=coin_symbol,
+                    )
+        except Exception as inst:
+            # Could be wrong output addresses, keep print statement for debug
+            print(unsigned_tx)
+            print(coin_symbol)
+            return False, str(inst)
 
-            if sweep_funds:
-                # output adresses are already confirmed in `get_txn_outputs`,
-                # which was called by `get_txn_outputs_dict`
-                # no point in confirming values for a sweep
-                continue
+        if sweep_funds:
+            # output adresses are already confirmed in `get_txn_outputs`,
+            # which was called by `get_txn_outputs_dict`
+            # no point in confirming values for a sweep
+            continue
 
+        else:
             # get rid of change address as tx fee (which affects value)
             # is determined by blockcypher and can't be known up front
             try:
                 txn_outputs_response_dict.pop(change_address)
             except KeyError:
-                # This is possible in the case of no change address needed
+                # This is possible in the case of change address not needed
                 pass
 
-            user_outputs = compress_txn_outputs(outputs)
-            if txn_outputs_response_dict != user_outputs:
-                # TODO: more helpful error message
-                raise Exception('TX Verification Error: API Response Ouputs != Supplied Outputs\n\n%s\n\n%s' % (txn_outputs_response_dict, user_outputs))
+        user_outputs = compress_txn_outputs(outputs)
+        if txn_outputs_response_dict != user_outputs:
+            # TODO: more helpful error message
+            err_msg = 'API Response Ouputs != Supplied Outputs\n\n%s\n\n%s' % (
+                    txn_outputs_response_dict, user_outputs)
+            return False, err_msg
 
-    return r_dict
+    return True, ''
 
 
 def get_input_addresses(unsigned_tx):
