@@ -74,7 +74,7 @@ COIN_SYMBOL_ODICT_LIST = [
         {
             'coin_symbol': 'bcy',
             'display_name': 'BlockCypher Testnet',
-            'display_shortname': 'BC Testnet',
+            'display_shortname': 'BCY Testnet',
             'blockcypher_code': 'bcy',
             'blockcypher_network': 'test',
             'currency_abbrev': 'BCY',
