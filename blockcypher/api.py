@@ -258,11 +258,16 @@ def get_total_num_transactions(address, coin_symbol='btc', api_key=None):
 
 def generate_new_address(coin_symbol='btc', api_key=None):
     '''
-    Takes a coin_symbol and returns a new address with it's public and private keys
+    Takes a coin_symbol and returns a new address with it's public and private keys.
 
-    This method will create the address server side. If you want to create a secure
-    address client-side using python, please check out the new_random_wallet()
-    method in https://github.com/sbuss/bitmerchant
+    This method will create the address server side, which is inherently insecure and should only be used for testing.
+
+    If you want to create a secure address client-side using python, please check out bitmerchant:
+
+        from bitmerchant.wallet import Wallet
+        Wallet.new_random_wallet()
+
+    https://github.com/sbuss/bitmerchant
     '''
 
     assert is_valid_coin_symbol(coin_symbol)
@@ -276,6 +281,42 @@ def generate_new_address(coin_symbol='btc', api_key=None):
     params = {}
     if api_key:
         params['token'] = api_key
+
+    r = requests.post(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+
+    return r.json()
+
+
+def generate_address_in_hd_wallet(api_key=None, wallet_name=None,
+        subchain_index=None, coin_symbol='btc'):
+    '''
+    Returns a new address (without access to the private key) and adds it to
+    your HD wallet (previously created using create_hd_wallet).
+
+    This method will traverse/discover a new address server-side from your
+    previously supplied extended public key, the server will never see your
+    private key. It is therefor safe for production use.
+
+    You may also include a subchain_index directive if your wallet has multiple
+    subchain_indices and you'd like to specify which one should be traversed.
+    '''
+
+    assert is_valid_coin_symbol(coin_symbol)
+    assert api_key, api_key
+    assert wallet_name, wallet_name
+
+    url = 'https://api.blockcypher.com/v1/%s/%s/wallets/hd/%s/addresses/generate' % (
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
+            wallet_name,
+            )
+    logger.info(url)
+
+    params = {}
+    if api_key:
+        params['token'] = api_key
+    if subchain_index:
+        params['subchain_index'] = subchain_index
 
     r = requests.post(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
@@ -313,7 +354,7 @@ def get_transaction_details(tx_hash, coin_symbol='btc', limit=None,
 
     response_dict = r.json()
 
-    if not 'error' in response_dict:
+    if 'error' not in response_dict:
         if response_dict['block_height'] > 0:
             response_dict['confirmed'] = parser.parse(response_dict['confirmed'])
         else:
@@ -367,7 +408,7 @@ def get_transactions_details(tx_hash_list, coin_symbol='btc', limit=None,
     cleaned_dict_list = []
 
     for response_dict in response_dict_list:
-        if not 'error' in response_dict:
+        if 'error' not in response_dict:
             if response_dict['block_height'] > 0:
                 response_dict['confirmed'] = parser.parse(response_dict['confirmed'])
             else:
