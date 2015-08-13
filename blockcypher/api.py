@@ -312,9 +312,7 @@ def generate_address_in_hd_wallet(api_key=None, wallet_name=None,
             )
     logger.info(url)
 
-    params = {}
-    if api_key:
-        params['token'] = api_key
+    params = {'token': api_key}
     if subchain_index:
         params['subchain_index'] = subchain_index
 
