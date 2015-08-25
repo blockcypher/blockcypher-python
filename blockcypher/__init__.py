@@ -27,7 +27,7 @@ from .api import get_num_confirmed_transactions
 from .api import get_num_unconfirmed_transactions
 from .api import get_total_num_transactions
 from .api import generate_new_address
-from .api import generate_address_in_hd_wallet
+from .api import derive_hd_address
 from .api import get_num_confirmations
 from .api import get_confidence
 from .api import get_miner_preference
@@ -52,8 +52,9 @@ from .api import delete_forwarding_address
 from .api import send_faucet_coins
 from .api import create_wallet_from_address
 from .api import create_hd_wallet
-from .api import get_wallet
-from .api import get_wallet_details
+from .api import get_wallet_addresses
+from .api import get_wallet_transactions
+from .api import get_latest_paths_from_hd_wallet_addresses
 from .api import add_address_to_wallet
 from .api import remove_address_from_wallet
 from .api import delete_wallet
