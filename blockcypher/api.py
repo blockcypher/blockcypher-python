@@ -82,7 +82,7 @@ def get_address_details(address, coin_symbol='btc', txn_limit=None,
     return response_dict
 
 
-def get_wallet_details(wallet_name, api_key, coin_symbol='btc',
+def get_wallet_transactions(wallet_name, api_key, coin_symbol='btc',
         before_bh=None, txn_limit=None, confirmations=0):
     '''
     Takes a wallet, api_key, coin_symbol and returns the wallet's details
@@ -287,7 +287,7 @@ def generate_new_address(coin_symbol='btc', api_key=None):
     return r.json()
 
 
-def generate_address_in_hd_wallet(api_key=None, wallet_name=None,
+def derive_hd_address(api_key=None, wallet_name=None, num_addresses=1,
         subchain_index=None, coin_symbol='btc'):
     '''
     Returns a new address (without access to the private key) and adds it to
@@ -304,8 +304,9 @@ def generate_address_in_hd_wallet(api_key=None, wallet_name=None,
     assert is_valid_coin_symbol(coin_symbol)
     assert api_key, api_key
     assert wallet_name, wallet_name
+    assert type(num_addresses) is int
 
-    url = 'https://api.blockcypher.com/v1/%s/%s/wallets/hd/%s/addresses/generate' % (
+    url = 'https://api.blockcypher.com/v1/%s/%s/wallets/hd/%s/addresses/derive' % (
             COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
             COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
             wallet_name,
@@ -315,6 +316,8 @@ def generate_address_in_hd_wallet(api_key=None, wallet_name=None,
     params = {'token': api_key}
     if subchain_index:
         params['subchain_index'] = subchain_index
+    if num_addresses > 1:
+        params['count'] = num_addresses
 
     r = requests.post(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
@@ -1032,10 +1035,15 @@ def create_hd_wallet(wallet_name, xpubkey, api_key, subchain_indices=[],
     return r.json()
 
 
-def get_wallet(wallet_name, api_key, is_hd_wallet=False, coin_symbol='btc'):
+def get_wallet_addresses(wallet_name, api_key, is_hd_wallet=False, zero_balance=None, used=None, coin_symbol='btc'):
+    '''
+    Returns a list of wallet addresses as well as some meta-data
+    '''
     assert is_valid_coin_symbol(coin_symbol)
     assert api_key
     assert len(wallet_name) <= 25, wallet_name
+    assert zero_balance in (None, True, False)
+    assert used in (None, True, False)
 
     params = {'token': api_key}
     url = 'https://api.blockcypher.com/v1/%s/%s/wallets/%s%s' % (
@@ -1046,8 +1054,54 @@ def get_wallet(wallet_name, api_key, is_hd_wallet=False, coin_symbol='btc'):
             )
     logger.info(url)
 
+    if zero_balance is True:
+        params['zerobalance'] = 'true'
+    elif zero_balance is False:
+        params['zerobalance'] = 'false'
+    if used is True:
+        params['used'] = 'true'
+    elif used is False:
+        params['used'] = 'false'
+
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
     return r.json()
+
+
+def get_latest_paths_from_hd_wallet_addresses(wallet_addresses):
+    '''
+    Returns a list of dicts like this (note these are full paths):
+
+    [
+        {'subchain_index': 0, 'latest_path': 'm/0/2', 'latest_address':  '1foo',},
+        {'subchain_index': 1, 'latest_path': None, 'latest_address':  None,},
+        ...
+    ]
+
+    Note that if there is no subchain_index, it will return a singleton list
+    with a 'subchain_index' entry set to None.
+    '''
+    latest_paths = []
+    for chain in wallet_addresses['chains']:
+        latest_path = None
+        latest_address = None
+        if chain['chain_addresses']:
+            latest_address = chain['chain_addresses'][-1].get('address')
+            latest_path = chain['chain_addresses'][-1].get('path')
+
+        latest_path_dict = {
+                'latest_path': latest_path,
+                'latest_address': latest_address,
+                }
+
+        if 'index' in chain:
+            index = chain['index']
+            latest_path_dict['subchain_index'] = index
+        else:
+            latest_path_dict['subchain_index'] = None
+
+        latest_paths.append(latest_path_dict)
+
+    return latest_paths
 
 
 def add_address_to_wallet(wallet_name, address, api_key, coin_symbol='btc'):
