@@ -11,8 +11,103 @@ from bitcoin.transaction import deserialize, script_to_address
 
 SATOSHIS_PER_BTC = 10**8
 SATOSHIS_PER_MILLIBITCOIN = 10**5
+SATOSHIS_PER_BIT = 10**2
 
 HEX_CHARS_RE = re.compile('^[0-9a-f]*$')
+
+
+UNIT_CHOICES = ['btc', 'mbtc', 'bit', 'satoshi']
+
+
+def format_output(num, output_type):
+    if output_type == 'btc':
+        return '{0:,.8f}'.format(num)
+    elif output_type == 'mbtc':
+        return '{0:,.5f}'.format(num)
+    elif output_type == 'bit':
+        return '{0:,.2f}'.format(num)
+    elif output_type == 'satoshi':
+        return '{:,}'.format(int(num))
+    else:
+        raise Exception('Invalid Unit Choice: %s' % output_type)
+
+
+def to_satoshis(input_quantity, input_type):
+    ''' convert to satoshis, no rounding '''
+    assert input_type in UNIT_CHOICES, input_type
+
+    # convert to satoshis
+    if input_type == 'btc':
+        satoshis = float(input_quantity) * float(SATOSHIS_PER_BTC)
+    elif input_type == 'mbtc':
+        satoshis = float(input_quantity) * float(SATOSHIS_PER_MILLIBITCOIN)
+    elif input_type == 'bit':
+        satoshis = float(input_quantity) * float(SATOSHIS_PER_BIT)
+    elif input_type == 'satoshi':
+        satoshis = input_quantity
+    else:
+        raise Exception('Invalid Unit Choice: %s' % input_type)
+
+    return int(satoshis)
+
+
+def from_satoshis(input_satoshis, output_type):
+    # convert to output_type,
+    if output_type == 'btc':
+        return input_satoshis / float(SATOSHIS_PER_BTC)
+    elif output_type == 'mbtc':
+        return input_satoshis / float(SATOSHIS_PER_MILLIBITCOIN)
+    elif output_type == 'bit':
+        return input_satoshis / float(SATOSHIS_PER_BIT)
+    elif output_type == 'satoshi':
+        return int(input_satoshis)
+    else:
+        raise Exception('Invalid Unit Choice: %s' % output_type)
+
+
+def get_curr_symbol(coin_symbol, output_type):
+    if output_type == 'btc':
+        return COIN_SYMBOL_MAPPINGS[coin_symbol]['currency_abbrev']
+    elif output_type == 'mbtc':
+        return 'm%s' % COIN_SYMBOL_MAPPINGS[coin_symbol]['currency_abbrev']
+    elif output_type == 'bit':
+        return 'bits'
+    elif output_type == 'satoshi':
+        return 'satoshis'
+    else:
+        raise Exception('Invalid Unit Choice: %s' % output_type)
+
+
+def format_crypto_units(input_quantity, input_type, output_type, coin_symbol=None, print_cs=False):
+    '''
+    Take an input like 11002343 satoshis and convert it to another unit (e.g. BTC) and format it with appropriate units
+
+    if coin_symbol is supplied and print_cs == True then the units will be added (e.g. BTC or satoshis)
+
+    Requires python >= 2.7
+    '''
+    assert input_type in UNIT_CHOICES, input_type
+    assert output_type in UNIT_CHOICES, output_type
+    if print_cs:
+        assert is_valid_coin_symbol(coin_symbol=coin_symbol), coin_symbol
+
+    satoshis_float = to_satoshis(input_quantity=input_quantity, input_type=input_type)
+
+    output_quantity = from_satoshis(
+            input_satoshis=satoshis_float,
+            output_type=output_type,
+            )
+
+    # add thousands separator and appropriate # of decimals
+    output_quantity_formatted = format_output(num=output_quantity, output_type=output_type)
+
+    if print_cs:
+        output_quantity_formatted += ' ' + get_curr_symbol(
+                coin_symbol=coin_symbol,
+                output_type=output_type,
+                )
+
+    return output_quantity_formatted
 
 
 def lib_can_deserialize_cs(coin_symbol):
@@ -124,7 +219,7 @@ def get_blockcypher_walletname_from_mpub(mpub, subchain_indices=[]):
     Hackey determinstic method for naming.
     '''
 
-    #http://stackoverflow.com/a/19877309/1754586
+    #  http://stackoverflow.com/a/19877309/1754586
     mpub = mpub.encode('utf-8')
 
     if subchain_indices:
@@ -157,7 +252,7 @@ def is_valid_hash(string):
     return len(string.strip()) == 64 and uses_only_hash_chars(string)
 
 
-### Blocks ###
+# Blocks #
 
 def is_valid_block_num(block_num):
     try:
@@ -211,7 +306,7 @@ def is_valid_block_representation(block_representation, coin_symbol):
         return is_valid_scrypt_block_representation(block_representation)
 
 
-### Coin Symbol ###
+# Coin Symbol #
 
 def is_valid_coin_symbol(coin_symbol):
     return coin_symbol in COIN_SYMBOL_LIST
@@ -226,7 +321,7 @@ def coin_symbol_from_mkey(mkey):
     '''
     return FIRST4_MKEY_CS_MAPPINGS_UPPER.get(mkey[:4].upper())
 
-### Addresses ###
+# Addresses #
 
 # Copied 2014-09-24 from http://rosettacode.org/wiki/Bitcoin/address_validation#Python
 
