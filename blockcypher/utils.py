@@ -78,11 +78,33 @@ def get_curr_symbol(coin_symbol, output_type):
         raise Exception('Invalid Unit Choice: %s' % output_type)
 
 
-def format_crypto_units(input_quantity, input_type, output_type, coin_symbol=None, print_cs=False):
+def safe_round(qty_as_string):
+    '''
+    Safe rounding means the following:
+        1.0010000 -> 1.001
+        1.0 -> 1.0 (no change)
+        1.0000001 -> 1.0000001 (no change)
+    '''
+    qty_formatted = qty_as_string
+    if '.' in qty_as_string:
+        # only affect numbers with decimals
+        while True:
+            if qty_formatted[-1] == '0' and qty_formatted[-2] != '.':
+                qty_formatted = qty_formatted[:-1]
+            else:
+                break
+
+    return qty_formatted
+
+
+def format_crypto_units(input_quantity, input_type, output_type, coin_symbol=None, print_cs=False, smart_rounding=False):
     '''
     Take an input like 11002343 satoshis and convert it to another unit (e.g. BTC) and format it with appropriate units
 
     if coin_symbol is supplied and print_cs == True then the units will be added (e.g. BTC or satoshis)
+
+    Smart rounding gets rid of trailing 0s in the decimal place, except for satoshis (irrelevant) and bits (always two decimals points).
+    It also preserves one decimal place in the case of 1.0 to show significant figures.
 
     Requires python >= 2.7
     '''
@@ -101,12 +123,15 @@ def format_crypto_units(input_quantity, input_type, output_type, coin_symbol=Non
     # add thousands separator and appropriate # of decimals
     output_quantity_formatted = format_output(num=output_quantity, output_type=output_type)
 
+    if smart_rounding and output_type not in ('satoshi', 'bit'):
+        output_quantity_formatted = safe_round(qty_as_string=output_quantity_formatted)
+
     if print_cs:
-        output_quantity_formatted += ' ' + get_curr_symbol(
+        curr_symbol = get_curr_symbol(
                 coin_symbol=coin_symbol,
                 output_type=output_type,
                 )
-
+        output_quantity_formatted += ' %s' % curr_symbol
     return output_quantity_formatted
 
 
