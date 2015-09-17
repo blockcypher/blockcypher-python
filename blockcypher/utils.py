@@ -112,8 +112,13 @@ def format_crypto_units(input_quantity, input_type, output_type, coin_symbol=Non
             output_type=output_type,
             )
 
-    # add thousands separator and appropriate # of decimals
-    output_quantity_formatted = format_output(num=output_quantity, output_type=output_type)
+    if output_type == 'bit' and round_digits >= 2:
+        pass
+        # hack to add thousands separator with no decimals
+        output_quantity_formatted = format_output(num=output_quantity, output_type='satoshi')
+    else:
+        # add thousands separator and appropriate # of decimals
+        output_quantity_formatted = format_output(num=output_quantity, output_type=output_type)
 
     if safe_trimming and output_type not in ('satoshi', 'bit'):
         output_quantity_formatted = safe_trim(qty_as_string=output_quantity_formatted)
