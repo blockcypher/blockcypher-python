@@ -2,21 +2,13 @@ import re
 
 from hashlib import sha256
 
-from .constants import (SHA_COINS, SCRYPT_COINS, COIN_SYMBOL_LIST,
-    COIN_SYMBOL_MAPPINGS, FIRST4_MKEY_CS_MAPPINGS_UPPER)
+from .constants import SHA_COINS, SCRYPT_COINS, COIN_SYMBOL_LIST, COIN_SYMBOL_MAPPINGS, FIRST4_MKEY_CS_MAPPINGS_UPPER, UNIT_CHOICES, UNIT_MAPPINGS
 
 from bitcoin.main import safe_from_hex
 from bitcoin.transaction import deserialize, script_to_address
 
 
-SATOSHIS_PER_BTC = 10**8
-SATOSHIS_PER_MILLIBITCOIN = 10**5
-SATOSHIS_PER_BIT = 10**2
-
 HEX_CHARS_RE = re.compile('^[0-9a-f]*$')
-
-
-UNIT_CHOICES = ['btc', 'mbtc', 'bit', 'satoshi']
 
 
 def format_output(num, output_type):
@@ -37,12 +29,8 @@ def to_satoshis(input_quantity, input_type):
     assert input_type in UNIT_CHOICES, input_type
 
     # convert to satoshis
-    if input_type == 'btc':
-        satoshis = float(input_quantity) * float(SATOSHIS_PER_BTC)
-    elif input_type == 'mbtc':
-        satoshis = float(input_quantity) * float(SATOSHIS_PER_MILLIBITCOIN)
-    elif input_type == 'bit':
-        satoshis = float(input_quantity) * float(SATOSHIS_PER_BIT)
+    if input_type in ('btc', 'mbtc', 'bit'):
+        satoshis = float(input_quantity) * float(UNIT_MAPPINGS[input_type]['satoshis_per'])
     elif input_type == 'satoshi':
         satoshis = input_quantity
     else:
@@ -53,12 +41,8 @@ def to_satoshis(input_quantity, input_type):
 
 def from_satoshis(input_satoshis, output_type):
     # convert to output_type,
-    if output_type == 'btc':
-        return input_satoshis / float(SATOSHIS_PER_BTC)
-    elif output_type == 'mbtc':
-        return input_satoshis / float(SATOSHIS_PER_MILLIBITCOIN)
-    elif output_type == 'bit':
-        return input_satoshis / float(SATOSHIS_PER_BIT)
+    if output_type in ('btc', 'mbtc', 'bit'):
+        return input_satoshis / float(UNIT_MAPPINGS[output_type]['satoshis_per'])
     elif output_type == 'satoshi':
         return int(input_satoshis)
     else:
@@ -78,9 +62,9 @@ def get_curr_symbol(coin_symbol, output_type):
         raise Exception('Invalid Unit Choice: %s' % output_type)
 
 
-def safe_round(qty_as_string):
+def safe_trim(qty_as_string):
     '''
-    Safe rounding means the following:
+    Safe trimming means the following:
         1.0010000 -> 1.001
         1.0 -> 1.0 (no change)
         1.0000001 -> 1.0000001 (no change)
@@ -97,14 +81,18 @@ def safe_round(qty_as_string):
     return qty_formatted
 
 
-def format_crypto_units(input_quantity, input_type, output_type, coin_symbol=None, print_cs=False, smart_rounding=False):
+def format_crypto_units(input_quantity, input_type, output_type, coin_symbol=None, print_cs=False, smart_rounding=False, safe_trimming=False):
     '''
     Take an input like 11002343 satoshis and convert it to another unit (e.g. BTC) and format it with appropriate units
 
     if coin_symbol is supplied and print_cs == True then the units will be added (e.g. BTC or satoshis)
 
-    Smart rounding gets rid of trailing 0s in the decimal place, except for satoshis (irrelevant) and bits (always two decimals points).
+    Smart trimming gets rid of trailing 0s in the decimal place, except for satoshis (irrelevant) and bits (always two decimals points).
     It also preserves one decimal place in the case of 1.0 to show significant figures.
+    It is stil technically correct and reversible.
+
+    Smart rounding performs a rounding operation (so it is techincally not the correct number and is not reversible).
+    The number of decimals to round by is a function of the output_type
 
     Requires python >= 2.7
     '''
@@ -112,6 +100,7 @@ def format_crypto_units(input_quantity, input_type, output_type, coin_symbol=Non
     assert output_type in UNIT_CHOICES, output_type
     if print_cs:
         assert is_valid_coin_symbol(coin_symbol=coin_symbol), coin_symbol
+    assert not (safe_trimming and smart_rounding), 'You cannot both round *and* trim'
 
     satoshis_float = to_satoshis(input_quantity=input_quantity, input_type=input_type)
 
@@ -120,11 +109,14 @@ def format_crypto_units(input_quantity, input_type, output_type, coin_symbol=Non
             output_type=output_type,
             )
 
+    if smart_rounding:
+        output_quantity = round(output_quantity, UNIT_MAPPINGS[output_type]['default_round_digits'])
+
     # add thousands separator and appropriate # of decimals
     output_quantity_formatted = format_output(num=output_quantity, output_type=output_type)
 
-    if smart_rounding and output_type not in ('satoshi', 'bit'):
-        output_quantity_formatted = safe_round(qty_as_string=output_quantity_formatted)
+    if safe_trimming and output_type not in ('satoshi', 'bit'):
+        output_quantity_formatted = safe_trim(qty_as_string=output_quantity_formatted)
 
     if print_cs:
         curr_symbol = get_curr_symbol(
@@ -253,11 +245,11 @@ def get_blockcypher_walletname_from_mpub(mpub, subchain_indices=[]):
 
 
 def btc_to_satoshis(btc):
-    return int(float(btc) * SATOSHIS_PER_BTC)
+    return int(float(btc) * UNIT_MAPPINGS['btc']['satoshis_per'])
 
 
 def satoshis_to_btc(satoshis):
-    return float(satoshis) / float(SATOSHIS_PER_BTC)
+    return float(satoshis) / float(UNIT_MAPPINGS['btc']['satoshis_per'])
 
 
 def satoshis_to_btc_rounded(satoshis, decimals=4):

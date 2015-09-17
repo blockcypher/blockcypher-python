@@ -134,3 +134,37 @@ COIN_SYMBOL_MAPPINGS = {}
 for coin_symbol_dict in COIN_SYMBOL_ODICT_LIST:
     coin_symbol = coin_symbol_dict.pop('coin_symbol')
     COIN_SYMBOL_MAPPINGS[coin_symbol] = coin_symbol_dict
+
+
+UNIT_CHOICE_ODICT_LIST = [
+        {
+            'unit': 'btc',
+            'default_round_digits': 4,
+            'satoshis_per': 10**8,
+            },
+        {
+            'unit': 'mbtc',
+            'default_round_digits': 2,
+            'satoshis_per': 10**5,
+            },
+        {
+            'unit': 'bit',
+            'default_round_digits': 0,
+            'satoshis_per': 10**2,
+            },
+        {
+            'unit': 'satoshi',
+            'default_round': -100,
+            },
+        ]
+
+UNIT_CHOICES = []
+for unit_choice_dict in UNIT_CHOICE_ODICT_LIST:
+    UNIT_CHOICES.append(unit_choice_dict['unit'])
+
+# mappings (similar to above but easier retrieval for when order doens't matter)
+# must come last because of popping out
+UNIT_MAPPINGS = {}
+for unit_choice_dict in UNIT_CHOICE_ODICT_LIST:
+    unit_choice = unit_choice_dict.pop('unit')
+    UNIT_MAPPINGS[unit_choice] = unit_choice_dict
