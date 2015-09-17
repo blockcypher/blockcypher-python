@@ -164,11 +164,3 @@ UNIT_MAPPINGS = {}
 for unit_choice_dict in UNIT_CHOICE_ODICT_LIST:
     unit_choice = unit_choice_dict.pop('unit')
     UNIT_MAPPINGS[unit_choice] = unit_choice_dict
-
-
-ROUNDING_DICT = {
-        # descriptor, num_digits_to_round (from satoshis)
-        'cautious': 2,
-        'default': 4,
-        'agressive': 6,
-        }

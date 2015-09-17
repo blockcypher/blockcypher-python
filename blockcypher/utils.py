@@ -2,7 +2,7 @@ import re
 
 from hashlib import sha256
 
-from .constants import SHA_COINS, SCRYPT_COINS, COIN_SYMBOL_LIST, COIN_SYMBOL_MAPPINGS, FIRST4_MKEY_CS_MAPPINGS_UPPER, UNIT_CHOICES, UNIT_MAPPINGS, ROUNDING_DICT
+from .constants import SHA_COINS, SCRYPT_COINS, COIN_SYMBOL_LIST, COIN_SYMBOL_MAPPINGS, FIRST4_MKEY_CS_MAPPINGS_UPPER, UNIT_CHOICES, UNIT_MAPPINGS
 
 from bitcoin.main import safe_from_hex
 from bitcoin.transaction import deserialize, script_to_address
@@ -81,7 +81,7 @@ def safe_trim(qty_as_string):
     return qty_formatted
 
 
-def format_crypto_units(input_quantity, input_type, output_type, coin_symbol=None, print_cs=False, safe_trimming=False, rounding=None):
+def format_crypto_units(input_quantity, input_type, output_type, coin_symbol=None, print_cs=False, safe_trimming=False, round_digits=0):
     '''
     Take an input like 11002343 satoshis and convert it to another unit (e.g. BTC) and format it with appropriate units
 
@@ -100,18 +100,17 @@ def format_crypto_units(input_quantity, input_type, output_type, coin_symbol=Non
     assert output_type in UNIT_CHOICES, output_type
     if print_cs:
         assert is_valid_coin_symbol(coin_symbol=coin_symbol), coin_symbol
-    if rounding:
-        assert rounding in ROUNDING_DICT.keys(), rounding
+    assert type(round_digits) is int
 
     satoshis_float = to_satoshis(input_quantity=input_quantity, input_type=input_type)
+
+    if round_digits:
+        satoshis_float = round(satoshis_float, -1*round_digits)
 
     output_quantity = from_satoshis(
             input_satoshis=satoshis_float,
             output_type=output_type,
             )
-
-    if rounding:
-        output_quantity = round(output_quantity, -1*ROUNDING_DICT[rounding])
 
     # add thousands separator and appropriate # of decimals
     output_quantity_formatted = format_output(num=output_quantity, output_type=output_type)
