@@ -139,22 +139,18 @@ for coin_symbol_dict in COIN_SYMBOL_ODICT_LIST:
 UNIT_CHOICE_ODICT_LIST = [
         {
             'unit': 'btc',
-            'default_round_digits': 4,
             'satoshis_per': 10**8,
             },
         {
             'unit': 'mbtc',
-            'default_round_digits': 2,
             'satoshis_per': 10**5,
             },
         {
             'unit': 'bit',
-            'default_round_digits': 0,
             'satoshis_per': 10**2,
             },
         {
             'unit': 'satoshi',
-            'default_round_digits': -100,
             },
         ]
 
@@ -168,3 +164,11 @@ UNIT_MAPPINGS = {}
 for unit_choice_dict in UNIT_CHOICE_ODICT_LIST:
     unit_choice = unit_choice_dict.pop('unit')
     UNIT_MAPPINGS[unit_choice] = unit_choice_dict
+
+
+ROUNDING_DICT = {
+        # descriptor, num_digits_to_round (from satoshis)
+        'cautious': 2,
+        'default': 4,
+        'agressive': 6,
+        }
