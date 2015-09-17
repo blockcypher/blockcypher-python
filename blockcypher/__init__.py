@@ -64,7 +64,7 @@ from .api import get_input_addresses
 from .api import make_tx_signatures
 from .api import broadcast_signed_transaction
 
+from .utils import from_satoshis
 from .utils import satoshis_to_btc
-from .utils import satoshis_to_btc_rounded
 from .utils import is_valid_hash
 from .utils import is_valid_address

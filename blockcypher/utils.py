@@ -49,6 +49,10 @@ def from_satoshis(input_satoshis, output_type):
         raise Exception('Invalid Unit Choice: %s' % output_type)
 
 
+def satoshis_to_btc(satoshis):
+    return from_satoshis(input_satoshis=satoshis, output_type='btc')
+
+
 def get_curr_symbol(coin_symbol, output_type):
     if output_type == 'btc':
         return COIN_SYMBOL_MAPPINGS[coin_symbol]['currency_abbrev']
@@ -251,18 +255,6 @@ def get_blockcypher_walletname_from_mpub(mpub, subchain_indices=[]):
 
 def btc_to_satoshis(btc):
     return int(float(btc) * UNIT_MAPPINGS['btc']['satoshis_per'])
-
-
-def satoshis_to_btc(satoshis):
-    return float(satoshis) / float(UNIT_MAPPINGS['btc']['satoshis_per'])
-
-
-def satoshis_to_btc_rounded(satoshis, decimals=4):
-    btc = satoshis_to_btc(satoshis)
-    if decimals:
-        return round(btc, decimals)
-    else:
-        return btc
 
 
 def uses_only_hash_chars(string):
