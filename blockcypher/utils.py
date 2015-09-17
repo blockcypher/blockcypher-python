@@ -100,7 +100,6 @@ def format_crypto_units(input_quantity, input_type, output_type, coin_symbol=Non
     assert output_type in UNIT_CHOICES, output_type
     if print_cs:
         assert is_valid_coin_symbol(coin_symbol=coin_symbol), coin_symbol
-    assert not (safe_trimming and smart_rounding), 'You cannot both round *and* trim'
 
     satoshis_float = to_satoshis(input_quantity=input_quantity, input_type=input_type)
 
