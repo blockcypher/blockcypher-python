@@ -154,7 +154,7 @@ UNIT_CHOICE_ODICT_LIST = [
             },
         {
             'unit': 'satoshi',
-            'default_round': -100,
+            'default_round_digits': -100,
             },
         ]
 
