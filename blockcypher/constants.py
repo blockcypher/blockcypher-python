@@ -139,24 +139,30 @@ for coin_symbol_dict in COIN_SYMBOL_ODICT_LIST:
 UNIT_CHOICE_ODICT_LIST = [
         {
             'unit': 'btc',
+            'display_name': 'BTC',
             'satoshis_per': 10**8,
             },
         {
             'unit': 'mbtc',
+            'display_name': 'mBTC',
             'satoshis_per': 10**5,
             },
         {
             'unit': 'bit',
+            'display_name': 'bit',
             'satoshis_per': 10**2,
             },
         {
+            'display_name': 'satoshi',
             'unit': 'satoshi',
             },
         ]
 
 UNIT_CHOICES = []
+UNIT_CHOICES_DJANGO = []
 for unit_choice_dict in UNIT_CHOICE_ODICT_LIST:
     UNIT_CHOICES.append(unit_choice_dict['unit'])
+    UNIT_CHOICES_DJANGO.append((unit_choice_dict['unit'], unit_choice_dict['display_name']))
 
 # mappings (similar to above but easier retrieval for when order doens't matter)
 # must come last because of popping out
