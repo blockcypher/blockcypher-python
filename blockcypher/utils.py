@@ -1,12 +1,12 @@
 import re
 
-from hashlib import sha256
-
 from .constants import SHA_COINS, SCRYPT_COINS, COIN_SYMBOL_LIST, COIN_SYMBOL_MAPPINGS, FIRST4_MKEY_CS_MAPPINGS_UPPER, UNIT_CHOICES, UNIT_MAPPINGS
 
 from bitcoin.main import safe_from_hex
 from bitcoin.transaction import deserialize, script_to_address
 
+from collections import OrderedDict
+from hashlib import sha256
 
 HEX_CHARS_RE = re.compile('^[0-9a-f]*$')
 
@@ -266,7 +266,41 @@ def is_valid_hash(string):
     return len(string.strip()) == 64 and uses_only_hash_chars(string)
 
 
+# TX Object Formatting #
+
+def flatten_txns_by_hash(tx_list):
+    ''' Flattens a response from querying a list of address (or wallet) transactions '''
+    txs_cleaned = OrderedDict()
+    for tx in tx_list:
+        tx_hash = tx.get('tx_hash')
+
+        satoshis = tx.get('value', 0)  # rare edge case where API returns 0
+
+        if tx.get('tx_input_n') >= 0:
+            satoshis *= -1
+
+        if tx_hash in txs_cleaned:
+            txs_cleaned[tx_hash]['txs_satoshis_list'].append(satoshis)
+            txs_cleaned[tx_hash]['satoshis_net'] = sum(txs_cleaned[tx_hash]['txs_satoshis_list'])
+            if tx.get('double_spend') and not txs_cleaned[tx_hash]['double_spend']:
+                txs_cleaned[tx_hash]['double_spend'] = True
+
+        else:
+            txs_cleaned[tx_hash] = {
+                    'txs_satoshis_list': [satoshis, ],
+                    'satoshis_net': satoshis,
+                    'received_at': tx.get('received'),
+                    'confirmed_at': tx.get('confirmed'),
+                    'confirmations': tx.get('confirmations', 0),
+                    'block_height': tx.get('block_height'),
+                    'double_spend': tx.get('double_spend', False),
+                    }
+
+    return txs_cleaned
+
+
 # Blocks #
+
 
 def is_valid_block_num(block_num):
     try:
