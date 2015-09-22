@@ -268,9 +268,14 @@ def is_valid_hash(string):
 
 # TX Object Formatting #
 
-def flatten_txns_by_hash(tx_list):
-    ''' Flattens a response from querying a list of address (or wallet) transactions '''
-    txs_cleaned = OrderedDict()
+def flatten_txns_by_hash(tx_list, nesting=True):
+    '''
+    Flattens a response from querying a list of address (or wallet) transactions
+
+    If nesting==True then it will return an ordered dictionary where the keys are tranasaction hashes, otherwise it will be a list of dicts.
+    (nesting==False is good for django templates)
+    '''
+    nested_cleaned_txs = OrderedDict()
     for tx in tx_list:
         tx_hash = tx.get('tx_hash')
 
@@ -279,15 +284,15 @@ def flatten_txns_by_hash(tx_list):
         if tx.get('tx_input_n') >= 0:
             satoshis *= -1
 
-        if tx_hash in txs_cleaned:
-            txs_cleaned[tx_hash]['txs_satoshis_list'].append(satoshis)
-            txs_cleaned[tx_hash]['satoshis_net'] = sum(txs_cleaned[tx_hash]['txs_satoshis_list'])
-            if tx.get('double_spend') and not txs_cleaned[tx_hash]['double_spend']:
-                txs_cleaned[tx_hash]['double_spend'] = True
+        if tx_hash in nested_cleaned_txs:
+            nested_cleaned_txs[tx_hash]['txns_satoshis_list'].append(satoshis)
+            nested_cleaned_txs[tx_hash]['satoshis_net'] = sum(nested_cleaned_txs[tx_hash]['txns_satoshis_list'])
+            if tx.get('double_spend') and not nested_cleaned_txs[tx_hash]['double_spend']:
+                nested_cleaned_txs[tx_hash]['double_spend'] = True
 
         else:
-            txs_cleaned[tx_hash] = {
-                    'txs_satoshis_list': [satoshis, ],
+            nested_cleaned_txs[tx_hash] = {
+                    'txns_satoshis_list': [satoshis, ],
                     'satoshis_net': satoshis,
                     'received_at': tx.get('received'),
                     'confirmed_at': tx.get('confirmed'),
@@ -295,8 +300,15 @@ def flatten_txns_by_hash(tx_list):
                     'block_height': tx.get('block_height'),
                     'double_spend': tx.get('double_spend', False),
                     }
-
-    return txs_cleaned
+    if nesting:
+        return nested_cleaned_txs
+    else:
+        unnested_cleaned_txs = []
+        for tx_hash in nested_cleaned_txs:
+            tx_cleaned = nested_cleaned_txs[tx_hash]
+            tx_cleaned['tx_hash'] = tx_hash
+            unnested_cleaned_txs.append(tx_cleaned)
+        return unnested_cleaned_txs
 
 
 # Blocks #
