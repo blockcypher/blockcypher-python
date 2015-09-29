@@ -53,6 +53,7 @@ from .api import send_faucet_coins
 from .api import create_wallet_from_address
 from .api import create_hd_wallet
 from .api import get_wallet_addresses
+from .api import get_wallet_balance
 from .api import get_wallet_transactions
 from .api import get_latest_paths_from_hd_wallet_addresses
 from .api import add_address_to_wallet

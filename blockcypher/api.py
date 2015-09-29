@@ -1067,6 +1067,28 @@ def get_wallet_addresses(wallet_name, api_key, is_hd_wallet=False, zero_balance=
     return r.json()
 
 
+def get_wallet_balance(wallet_name, api_key, coin_symbol='btc'):
+    '''
+    This is particularly useful over get_wallet_transactions and
+    get_wallet_addresses in cases where you have lots of addresses/transactions.
+    Much less data to return.
+    '''
+    assert is_valid_coin_symbol(coin_symbol)
+    assert api_key
+    assert len(wallet_name) <= 25, wallet_name
+
+    params = {'token': api_key}
+    url = 'https://api.blockcypher.com/v1/%s/%s/addrs/%s/balance' % (
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
+            wallet_name,
+            )
+    logger.info(url)
+
+    r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    return r.json()
+
+
 def get_latest_paths_from_hd_wallet_addresses(wallet_addresses):
     '''
     Returns a list of dicts like this (note these are full paths):
