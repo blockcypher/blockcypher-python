@@ -26,7 +26,7 @@ $ python setup.py install
 ```
 >>> import blockcypher
 ```
-(to keep your code clean we recommend `from blockcypher import foo` where `foo` is the method you want to use)
+Note: to keep your code clean we recommend `from blockcypher import foo` where `foo` is the method you want to use, but for simplicity all examples below are instead written as `blocypher.foo('bar')`
 
 How much bitcoin (in satoshis) is currently sitting in the Bitcoin Foundation Address:
 ```
@@ -257,7 +257,7 @@ Another cool feature is that we can generate a new address keypair server-side:
 ```
 >>> from blockcypher import constants
 >>> constants.COIN_SYMBOL_LIST
-['btc', 'btc-testnet', 'ltc', 'doge', 'uro', 'bcy']
+['btc', 'btc-testnet', 'ltc', 'doge', 'bcy']
 ```
 
 `btc` will always be assumed if nothing else is specified, but all methods support swapping in any of the previous `coin_symbol` entries. Just pass `coin_symbol='foo'` as a keyword argument to the function.
