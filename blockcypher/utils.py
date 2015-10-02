@@ -1,9 +1,9 @@
 import re
 
 from .constants import SHA_COINS, SCRYPT_COINS, COIN_SYMBOL_LIST, COIN_SYMBOL_MAPPINGS, FIRST4_MKEY_CS_MAPPINGS_UPPER, UNIT_CHOICES, UNIT_MAPPINGS
+from .crypto import script_to_address
 
-from bitcoin.main import safe_from_hex
-from bitcoin.transaction import deserialize, script_to_address
+from bitcoin import safe_from_hex, deserialize
 
 from collections import OrderedDict
 from hashlib import sha256

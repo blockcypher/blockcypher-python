@@ -2,13 +2,14 @@ from .utils import (is_valid_hash, is_valid_block_representation,
         is_valid_coin_symbol, is_valid_address_for_coinsymbol,
         coin_symbol_from_mkey, double_sha256, compress_txn_outputs,
         get_txn_outputs_dict)
+from .crypto import der_strict_encode_sig
 
 from .constants import COIN_SYMBOL_MAPPINGS
 
 from dateutil import parser
 
-from bitcoin import (ecdsa_raw_sign, ecdsa_raw_verify, der_encode_sig,
-        der_decode_sig)
+from bitcoin import ecdsa_raw_sign, ecdsa_raw_verify, der_decode_sig
+
 
 import requests
 import json
@@ -1423,10 +1424,8 @@ def make_tx_signatures(txs_to_sign, privkey_list, pubkey_list):
 
     signatures = []
     for cnt, tx_to_sign in enumerate(txs_to_sign):
-        sig = der_encode_sig(*ecdsa_raw_sign(tx_to_sign.rstrip(' \t\r\n\0'),
-            privkey_list[cnt]))
-        assert ecdsa_raw_verify(tx_to_sign, der_decode_sig(sig),
-                pubkey_list[cnt])
+        sig = der_strict_encode_sig(*ecdsa_raw_sign(tx_to_sign.rstrip(' \t\r\n\0'), privkey_list[cnt]))
+        assert ecdsa_raw_verify(tx_to_sign, der_decode_sig(sig), pubkey_list[cnt])
         signatures.append(sig)
     return signatures
 
