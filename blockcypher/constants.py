@@ -61,17 +61,6 @@ COIN_SYMBOL_ODICT_LIST = [
             'vbyte_script': 22,
             },
         {
-            'coin_symbol': 'uro',
-            'display_name': 'Uro',
-            'display_shortname': 'URO',
-            'blockcypher_code': 'uro',
-            'blockcypher_network': 'main',
-            'currency_abbrev': 'URO',
-            'pow': 'sha',
-            'example_address': 'Uhf1LGdgmWe33hB9VVtubyzq1GduUAtaAJ',
-            'address_first_char_list': ('U', ),  # TODO: more?
-            },
-        {
             'coin_symbol': 'bcy',
             'display_name': 'BlockCypher Testnet',
             'display_shortname': 'BCY Testnet',
