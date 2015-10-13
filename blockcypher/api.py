@@ -1430,8 +1430,7 @@ def make_tx_signatures(txs_to_sign, privkey_list, pubkey_list):
     return signatures
 
 
-def broadcast_signed_transaction(unsigned_tx, signatures, pubkeys,
-        coin_symbol='btc'):
+def broadcast_signed_transaction(unsigned_tx, signatures, pubkeys, coin_symbol='btc'):
     '''
     Broadcasts the transaction from create_unsigned_tx
     '''
@@ -1449,5 +1448,29 @@ def broadcast_signed_transaction(unsigned_tx, signatures, pubkeys,
     params['pubkeys'] = pubkeys
 
     r = requests.post(url, data=json.dumps(params), verify=True, timeout=TIMEOUT_IN_SECONDS)
+
+    return r.json()
+
+
+def embed_data(to_embed, api_key, data_is_hex=True, coin_symbol='btc'):
+    assert is_valid_coin_symbol(coin_symbol), coin_symbol
+    assert api_key
+
+    url = 'https://api.blockcypher.com/v1/%s/%s/txs/data' % (
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
+            )
+    logger.info(url)
+
+    params = {'token': api_key}
+
+    data = {'data': to_embed}
+    if not data_is_hex:
+        data['encoding'] = 'string'
+
+    print('params', params)
+    print('data', data)
+
+    r = requests.post(url, data=data, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
     return r.json()

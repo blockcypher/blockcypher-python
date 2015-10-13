@@ -64,6 +64,7 @@ from .api import verify_unsigned_tx
 from .api import get_input_addresses
 from .api import make_tx_signatures
 from .api import broadcast_signed_transaction
+from .api import embed_data
 
 from .utils import from_satoshis
 from .utils import satoshis_to_btc
