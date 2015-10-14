@@ -1468,9 +1468,6 @@ def embed_data(to_embed, api_key, data_is_hex=True, coin_symbol='btc'):
     if not data_is_hex:
         data['encoding'] = 'string'
 
-    print('params', params)
-    print('data', data)
-
     r = requests.post(url, data=data, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
     return r.json()
