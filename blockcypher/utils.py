@@ -258,7 +258,7 @@ def btc_to_satoshis(btc):
 
 
 def uses_only_hash_chars(string):
-    return HEX_CHARS_RE.match(string)
+    return bool(HEX_CHARS_RE.match(string))
 
 
 def is_valid_hash(string):
