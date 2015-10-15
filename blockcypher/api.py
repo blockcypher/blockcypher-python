@@ -775,15 +775,15 @@ def get_forwarding_address_details(destination_address, api_key, callback_url=No
     url = _get_payments_url(coin_symbol=coin_symbol)
     logger.info(url)
 
-    params = {
+    data = {
             'destination': destination_address,
             'token': api_key,
             }
 
     if callback_url:
-        params['callback_url'] = callback_url
+        data['callback_url'] = callback_url
 
-    r = requests.post(url, data=json.dumps(params), verify=True, timeout=TIMEOUT_IN_SECONDS)
+    r = requests.post(url, data=json.dumps(data), verify=True, timeout=TIMEOUT_IN_SECONDS)
 
     return r.json()
 
@@ -862,16 +862,16 @@ def subscribe_to_address_webhook(callback_url, subscription_address,
             )
     logger.info(url)
 
-    params = {
+    data = {
             'event': 'tx-confirmation',
             'url': callback_url,
             'address': subscription_address,
             }
 
     if api_key:
-        params['token'] = api_key
+        data['token'] = api_key
 
-    r = requests.post(url, data=json.dumps(params), verify=True, timeout=TIMEOUT_IN_SECONDS)
+    r = requests.post(url, data=json.dumps(data), verify=True, timeout=TIMEOUT_IN_SECONDS)
 
     response_dict = r.json()
 
@@ -941,11 +941,11 @@ def pushtx(tx_hex, coin_symbol='btc', api_key=None):
 
     logger.info(url)
 
-    params = {'tx': tx_hex}
+    data = {'tx': tx_hex}
     if api_key:
-        params['token'] = api_key
+        data['token'] = api_key
 
-    r = requests.post(url, data=json.dumps(params), verify=True, timeout=TIMEOUT_IN_SECONDS)
+    r = requests.post(url, data=json.dumps(data), verify=True, timeout=TIMEOUT_IN_SECONDS)
 
     return r.json()
 
@@ -966,11 +966,11 @@ def decodetx(tx_hex, coin_symbol='btc', api_key=None):
             )
     logger.info(url)
 
-    params = {'tx': tx_hex}
+    data = {'tx': tx_hex}
     if api_key:
-        params['token'] = api_key
+        data['token'] = api_key
 
-    r = requests.post(url, data=json.dumps(params), verify=True, timeout=TIMEOUT_IN_SECONDS)
+    r = requests.post(url, data=json.dumps(data), verify=True, timeout=TIMEOUT_IN_SECONDS)
 
     return r.json()
 
@@ -1443,11 +1443,11 @@ def broadcast_signed_transaction(unsigned_tx, signatures, pubkeys, coin_symbol='
             )
     logger.info(url)
 
-    params = unsigned_tx.copy()
-    params['signatures'] = signatures
-    params['pubkeys'] = pubkeys
+    data = unsigned_tx.copy()
+    data['signatures'] = signatures
+    data['pubkeys'] = pubkeys
 
-    r = requests.post(url, data=json.dumps(params), verify=True, timeout=TIMEOUT_IN_SECONDS)
+    r = requests.post(url, data=json.dumps(data), verify=True, timeout=TIMEOUT_IN_SECONDS)
 
     return r.json()
 
