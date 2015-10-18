@@ -12,7 +12,6 @@ from bitcoin import ecdsa_raw_sign, ecdsa_raw_verify, der_decode_sig
 
 
 import requests
-import json
 
 import logging
 
@@ -783,7 +782,7 @@ def get_forwarding_address_details(destination_address, api_key, callback_url=No
     if callback_url:
         data['callback_url'] = callback_url
 
-    r = requests.post(url, data=json.dumps(data), verify=True, timeout=TIMEOUT_IN_SECONDS)
+    r = requests.post(url, json=data, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
     return r.json()
 
@@ -871,7 +870,7 @@ def subscribe_to_address_webhook(callback_url, subscription_address,
     if api_key:
         data['token'] = api_key
 
-    r = requests.post(url, data=json.dumps(data), verify=True, timeout=TIMEOUT_IN_SECONDS)
+    r = requests.post(url, json=data, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
     response_dict = r.json()
 
@@ -905,7 +904,7 @@ def send_faucet_coins(address_to_fund, satoshis, api_key, coin_symbol='bcy'):
             'token': api_key,
             }
 
-    r = requests.post(url, data=json.dumps(data), params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    r = requests.post(url, json=data, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
     return r.json()
 
 
@@ -945,7 +944,7 @@ def pushtx(tx_hex, coin_symbol='btc', api_key=None):
     if api_key:
         data['token'] = api_key
 
-    r = requests.post(url, data=json.dumps(data), verify=True, timeout=TIMEOUT_IN_SECONDS)
+    r = requests.post(url, json=data, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
     return r.json()
 
@@ -970,7 +969,7 @@ def decodetx(tx_hex, coin_symbol='btc', api_key=None):
     if api_key:
         data['token'] = api_key
 
-    r = requests.post(url, data=json.dumps(data), verify=True, timeout=TIMEOUT_IN_SECONDS)
+    r = requests.post(url, json=data, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
     return r.json()
 
@@ -998,7 +997,7 @@ def create_wallet_from_address(wallet_name, address, api_key, coin_symbol='btc')
             )
     logger.info(url)
 
-    r = requests.post(url, data=json.dumps(data), params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    r = requests.post(url, json=data, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
     return r.json()
 
@@ -1031,7 +1030,7 @@ def create_hd_wallet(wallet_name, xpubkey, api_key, subchain_indices=[],
             )
     logger.info(url)
 
-    r = requests.post(url, data=json.dumps(data), params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    r = requests.post(url, json=data, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
     return r.json()
 
@@ -1142,7 +1141,7 @@ def add_address_to_wallet(wallet_name, address, api_key, coin_symbol='btc'):
             )
     logger.info(url)
 
-    r = requests.post(url, data=json.dumps(data), params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    r = requests.post(url, json=data, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
     return r.json()
 
 
@@ -1161,7 +1160,7 @@ def remove_address_from_wallet(wallet_name, address, api_key, coin_symbol='btc')
             )
     logger.info(url)
 
-    r = requests.delete(url, data=json.dumps(data), params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    r = requests.delete(url, json=data, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
     if r.status_code != 204:
         # Didn't work
@@ -1295,7 +1294,7 @@ def create_unsigned_tx(inputs, outputs, change_address=None,
     elif api_key:
         params['token'] = api_key
 
-    r = requests.post(url, data=json.dumps(data), params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    r = requests.post(url, json=data, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
     unsigned_tx = r.json()
 
@@ -1447,7 +1446,7 @@ def broadcast_signed_transaction(unsigned_tx, signatures, pubkeys, coin_symbol='
     data['signatures'] = signatures
     data['pubkeys'] = pubkeys
 
-    r = requests.post(url, data=json.dumps(data), verify=True, timeout=TIMEOUT_IN_SECONDS)
+    r = requests.post(url, json=data, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
     return r.json()
 
