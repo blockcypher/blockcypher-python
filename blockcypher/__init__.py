@@ -6,8 +6,11 @@ With this you can write code like the following:
 """
 
 # Main methods used
+from .api import get_token_info
 from .api import get_address_details
 from .api import get_addresses_details
+from .api import get_address_overview
+from .api import get_address_full
 from .api import get_transaction_details
 from .api import get_transactions_details
 from .api import get_block_overview
@@ -43,13 +46,19 @@ from .api import get_block_height
 from .api import get_broadcast_transactions
 from .api import get_broadcast_transaction_hashes
 from .api import subscribe_to_address_webhook
+from .api import list_webhooks
+from .api import get_webhook_info
+from .api import unsubscribe_from_webhook
 from .api import pushtx
 from .api import decodetx
 from .api import get_forwarding_address
+from .api import create_forwarding_address
+from .api import create_forwarding_address_with_details
 from .api import get_forwarding_address_details
 from .api import list_forwarding_addresses
 from .api import delete_forwarding_address
 from .api import send_faucet_coins
+from .api import list_wallet_names
 from .api import create_wallet_from_address
 from .api import create_hd_wallet
 from .api import get_wallet_addresses
@@ -59,11 +68,13 @@ from .api import get_latest_paths_from_hd_wallet_addresses
 from .api import add_address_to_wallet
 from .api import remove_address_from_wallet
 from .api import delete_wallet
+from .api import generate_multisig_address
 from .api import create_unsigned_tx
 from .api import verify_unsigned_tx
 from .api import get_input_addresses
 from .api import make_tx_signatures
 from .api import broadcast_signed_transaction
+from .api import simple_spend_tx
 from .api import embed_data
 
 from .utils import from_satoshis
