@@ -101,6 +101,7 @@ for coin_symbol_dict in COIN_SYMBOL_ODICT_LIST:
 
 
 COIN_SYMBOL_LIST = [x['coin_symbol'] for x in COIN_SYMBOL_ODICT_LIST]
+COIN_SYMBOL_SET = set(COIN_SYMBOL_LIST)
 SHA_COINS = [x['coin_symbol'] for x in COIN_SYMBOL_ODICT_LIST if x['pow'] == 'sha']
 SCRYPT_COINS = [x['coin_symbol'] for x in COIN_SYMBOL_ODICT_LIST if x['pow'] == 'scrypt']
 

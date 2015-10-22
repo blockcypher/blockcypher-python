@@ -1,6 +1,6 @@
 import re
 
-from .constants import SHA_COINS, SCRYPT_COINS, COIN_SYMBOL_LIST, COIN_SYMBOL_MAPPINGS, FIRST4_MKEY_CS_MAPPINGS_UPPER, UNIT_CHOICES, UNIT_MAPPINGS
+from .constants import SHA_COINS, SCRYPT_COINS, COIN_SYMBOL_SET, COIN_SYMBOL_MAPPINGS, FIRST4_MKEY_CS_MAPPINGS_UPPER, UNIT_CHOICES, UNIT_MAPPINGS
 from .crypto import script_to_address
 
 from bitcoin import safe_from_hex, deserialize
@@ -369,7 +369,7 @@ def is_valid_block_representation(block_representation, coin_symbol):
 # Coin Symbol #
 
 def is_valid_coin_symbol(coin_symbol):
-    return coin_symbol in COIN_SYMBOL_LIST
+    return coin_symbol in COIN_SYMBOL_SET
 
 
 def coin_symbol_from_mkey(mkey):
