@@ -246,8 +246,6 @@ def estimate_satoshis_transacted(inputs, outputs):
         output_address = output['addresses'][0]
         if output_address not in inputs_compressed:
             satoshis_transacted += output['value']
-        else:
-            print(output_address)
 
     return satoshis_transacted
 
