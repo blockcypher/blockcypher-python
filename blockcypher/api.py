@@ -649,7 +649,7 @@ def get_block_height(block_hash, coin_symbol='btc', api_key=None):
 
 
 def get_block_details(block_representation, coin_symbol='btc', txn_limit=None,
-        txn_offset=None, api_key=None):
+        txn_offset=None, in_out_limit=None, api_key=None):
     """
     Takes a block_representation, coin_symbol and txn_limit and
     1) Gets the block overview
@@ -678,7 +678,7 @@ def get_block_details(block_representation, coin_symbol='btc', txn_limit=None,
     txs_details = get_transactions_details(
             tx_hash_list=txids_to_lookup,
             coin_symbol=coin_symbol,
-            limit=10,  # arbitrary, but a decently large number
+            limit=in_out_limit,
             api_key=api_key,
             )
 

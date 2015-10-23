@@ -199,8 +199,8 @@ def get_txn_outputs(raw_tx_hex, output_addr_list, coin_symbol):
 
 def compress_txn_outputs(txn_outputs):
     '''
-    Take a list of txn ouputs (from get_txn_outputs) and compress it to the
-    sum of satoshis sent to each address in a dictionary.
+    Take a list of txn ouputs (from get_txn_outputs output of pybitcointools)
+    and compress it to the sum of satoshis sent to each address in a dictionary.
 
     Returns a dict of the following form:
         {'1abc...': 12345, '1def': 54321, ...}
@@ -222,6 +222,34 @@ def get_txn_outputs_dict(raw_tx_hex, output_addr_list, coin_symbol):
                 coin_symbol=coin_symbol,
                 )
             )
+
+
+def compress_txn_inputs(txn_inputs):
+    result_dict = {}
+    for txn_input in txn_inputs:
+        if 'addresses' in txn_input:
+            # coinbase tx has no address
+            address = txn_input['addresses'][0]
+            if address in result_dict:
+                result_dict[address] += txn_input['output_value']
+            else:
+                result_dict[address] = txn_input['output_value']
+    return result_dict
+
+
+def estimate_satoshis_transacted(inputs, outputs):
+    inputs_compressed = compress_txn_inputs(inputs)
+
+    # total sent less fees and "known" change
+    satoshis_transacted = 0
+    for output in outputs:
+        output_address = output['addresses'][0]
+        if output_address not in inputs_compressed:
+            satoshis_transacted += output['value']
+        else:
+            print(output_address)
+
+    return satoshis_transacted
 
 
 def double_sha256(hex_string):
