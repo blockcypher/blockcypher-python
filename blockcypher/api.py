@@ -1825,7 +1825,7 @@ def _is_valid_metadata_identifier(coin_symbol, address, tx_hash, block_hash):
         raise Exception('Logic Fail: This Should Not Be Possible')
 
 
-def get_metadata(address=None, tx_hash=None, block_hash=None, api_key=None, private=True, coin_symbol='btc'):
+def get_metadata(address=None, tx_hash=None, block_hash=None, api_key=None, private_only=True, coin_symbol='btc'):
     '''
     Get metadata using blockcypher's API.
 
@@ -1849,7 +1849,7 @@ def get_metadata(address=None, tx_hash=None, block_hash=None, api_key=None, priv
             )
 
     params = {'token': api_key}
-    if private:
+    if private_only:
         params['private'] = 'true'
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
@@ -1859,7 +1859,7 @@ def get_metadata(address=None, tx_hash=None, block_hash=None, api_key=None, priv
     return response_dict
 
 
-def put_metadata(metadata_dict, address=None, tx_hash=None, block_hash=None, api_key=None, private_only=True, coin_symbol='btc'):
+def put_metadata(metadata_dict, address=None, tx_hash=None, block_hash=None, api_key=None, private=True, coin_symbol='btc'):
     '''
     Embed metadata using blockcypher's API.
 
@@ -1885,7 +1885,7 @@ def put_metadata(metadata_dict, address=None, tx_hash=None, block_hash=None, api
             )
 
     params = {'token': api_key}
-    if private_only:
+    if private:
         params['private'] = 'true'
 
     r = requests.put(url, json=metadata_dict, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
