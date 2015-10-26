@@ -1832,7 +1832,7 @@ def get_metadata(address=None, tx_hash=None, block_hash=None, api_key=None, priv
     This is data on blockcypher's servers and not embedded into the bitcoin (or other) blockchain.
     '''
     assert is_valid_coin_symbol(coin_symbol), coin_symbol
-    assert api_key
+    assert api_key or not private_only, 'Cannot see private metadata without an API key'
 
     _is_valid_metadata_identifier(
             coin_symbol=coin_symbol,
@@ -1848,7 +1848,9 @@ def get_metadata(address=None, tx_hash=None, block_hash=None, api_key=None, priv
             block_hash=block_hash,
             )
 
-    params = {'token': api_key}
+    params = {}
+    if api_key:
+        params['token'] = api_key
     if private_only:
         params['private'] = 'true'
 
