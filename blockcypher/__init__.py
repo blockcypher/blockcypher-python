@@ -76,6 +76,9 @@ from .api import make_tx_signatures
 from .api import broadcast_signed_transaction
 from .api import simple_spend_tx
 from .api import embed_data
+from .api import get_metadata
+from .api import put_metadata
+from .api import delete_metadata
 
 from .utils import from_satoshis
 from .utils import satoshis_to_btc

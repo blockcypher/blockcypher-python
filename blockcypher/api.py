@@ -1001,10 +1001,10 @@ def unsubscribe_from_webhook(webhook_id, api_key, coin_symbol='btc'):
 
     r = requests.delete(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
-    # Will return nothing, but we can confirm the status code to be sure
+    # Will return nothing, but we confirm the status code to be sure it worked
     if r.status_code != 204:
         print(r.status_code)
-        print(r.json())
+        print(r.text)
         raise Exception('Bad Status Code')
 
     return True
@@ -1781,6 +1781,153 @@ def embed_data(to_embed, api_key, data_is_hex=True, coin_symbol='btc'):
     if not data_is_hex:
         data['encoding'] = 'string'
 
-    r = requests.post(url, data=data, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    r = requests.post(url, json=data, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
     return r.json()
+
+
+def _get_metadata_url(coin_symbol, address, tx_hash, block_hash):
+    '''
+    Assume that one and only one of (address, tx_hash, block_hash) exists
+    '''
+    base_url = '%s/%s/%s/%s/%%s/%%s/meta' % (
+            BLOCKCYPHER_DOMAIN,
+            ENDPOINT_VERSION,
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
+            )
+    if address:
+        url = base_url % ('addrs', address)
+    elif tx_hash:
+        url = base_url % ('txs', tx_hash)
+    elif block_hash:
+        url = base_url % ('blocks', block_hash)
+
+    logger.info(url)
+    return url
+
+
+def _is_valid_metadata_identifier(coin_symbol, address, tx_hash, block_hash):
+    err_msg = 'Please supply only one of: address, tx_hash, or block_hash'
+    assert sum([1 for x in (address, tx_hash, block_hash) if x]) == 1, err_msg
+
+    if address:
+        assert is_valid_address_for_coinsymbol(
+                b58_address=address,
+                coin_symbol=coin_symbol), address
+    elif tx_hash:
+        assert is_valid_hash(tx_hash), tx_hash
+    elif block_hash:
+        assert is_valid_block_representation(
+                block_representation=block_hash,
+                coin_symbol=coin_symbol)
+    else:
+        raise Exception('Logic Fail: This Should Not Be Possible')
+
+
+def get_metadata(address=None, tx_hash=None, block_hash=None, api_key=None, private=True, coin_symbol='btc'):
+    '''
+    Get metadata using blockcypher's API.
+
+    This is data on blockcypher's servers and not embedded into the bitcoin (or other) blockchain.
+    '''
+    assert is_valid_coin_symbol(coin_symbol), coin_symbol
+    assert api_key
+
+    _is_valid_metadata_identifier(
+            coin_symbol=coin_symbol,
+            address=address,
+            tx_hash=tx_hash,
+            block_hash=block_hash,
+            )
+
+    url = _get_metadata_url(
+            coin_symbol=coin_symbol,
+            address=address,
+            tx_hash=tx_hash,
+            block_hash=block_hash,
+            )
+
+    params = {'token': api_key}
+    if private:
+        params['private'] = 'true'
+
+    r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+
+    response_dict = r.json()
+
+    return response_dict
+
+
+def put_metadata(metadata_dict, address=None, tx_hash=None, block_hash=None, api_key=None, private_only=True, coin_symbol='btc'):
+    '''
+    Embed metadata using blockcypher's API.
+
+    This is not embedded into the bitcoin (or other) blockchain,
+    and is only stored on blockcypher's servers.
+    '''
+    assert is_valid_coin_symbol(coin_symbol), coin_symbol
+    assert api_key
+    assert metadata_dict and type(metadata_dict) is dict, metadata_dict
+
+    _is_valid_metadata_identifier(
+            coin_symbol=coin_symbol,
+            address=address,
+            tx_hash=tx_hash,
+            block_hash=block_hash,
+            )
+
+    url = _get_metadata_url(
+            coin_symbol=coin_symbol,
+            address=address,
+            tx_hash=tx_hash,
+            block_hash=block_hash,
+            )
+
+    params = {'token': api_key}
+    if private_only:
+        params['private'] = 'true'
+
+    r = requests.put(url, json=metadata_dict, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+
+    # Will return nothing, but we confirm the status code to be sure it worked
+    if r.status_code != 204:
+        print(r.status_code)
+        print(r.text)
+        raise Exception('Bad Status Code')
+
+    return True
+
+
+def delete_metadata(address=None, tx_hash=None, block_hash=None, api_key=None, coin_symbol='btc'):
+    '''
+    Only available for metadata that was embedded privately.
+    '''
+    assert is_valid_coin_symbol(coin_symbol), coin_symbol
+    assert api_key
+
+    _is_valid_metadata_identifier(
+            coin_symbol=coin_symbol,
+            address=address,
+            tx_hash=tx_hash,
+            block_hash=block_hash,
+            )
+
+    url = _get_metadata_url(
+            coin_symbol=coin_symbol,
+            address=address,
+            tx_hash=tx_hash,
+            block_hash=block_hash,
+            )
+
+    params = {'token': api_key}
+
+    r = requests.delete(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+
+    # Will return nothing, but we confirm the status code to be sure it worked
+    if r.status_code != 204:
+        print(r.status_code)
+        print(r.text)
+        raise Exception('Bad Status Code')
+
+    return True
