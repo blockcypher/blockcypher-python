@@ -1825,14 +1825,14 @@ def _is_valid_metadata_identifier(coin_symbol, address, tx_hash, block_hash):
         raise Exception('Logic Fail: This Should Not Be Possible')
 
 
-def get_metadata(address=None, tx_hash=None, block_hash=None, api_key=None, private_only=True, coin_symbol='btc'):
+def get_metadata(address=None, tx_hash=None, block_hash=None, api_key=None, private=True, coin_symbol='btc'):
     '''
     Get metadata using blockcypher's API.
 
     This is data on blockcypher's servers and not embedded into the bitcoin (or other) blockchain.
     '''
     assert is_valid_coin_symbol(coin_symbol), coin_symbol
-    assert api_key or not private_only, 'Cannot see private metadata without an API key'
+    assert api_key or not private, 'Cannot see private metadata without an API key'
 
     _is_valid_metadata_identifier(
             coin_symbol=coin_symbol,
@@ -1851,7 +1851,7 @@ def get_metadata(address=None, tx_hash=None, block_hash=None, api_key=None, priv
     params = {}
     if api_key:
         params['token'] = api_key
-    if private_only:
+    if private:
         params['private'] = 'true'
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
