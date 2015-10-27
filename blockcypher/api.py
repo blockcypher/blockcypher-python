@@ -899,11 +899,10 @@ def delete_forwarding_address(payment_id, coin_symbol='btc'):
 
     r = requests.delete(url, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
-    if r.status_code != 204:
-        print(r.text)
-        raise Exception('Bad Status Code')
-
-    return True
+    if r.status_code == 204:
+        return True
+    else:
+        return r.json()
 
 
 def subscribe_to_address_webhook(callback_url, subscription_address,
@@ -1002,12 +1001,10 @@ def unsubscribe_from_webhook(webhook_id, api_key, coin_symbol='btc'):
     r = requests.delete(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
     # Will return nothing, but we confirm the status code to be sure it worked
-    if r.status_code != 204:
-        print(r.status_code)
-        print(r.text)
-        raise Exception('Bad Status Code')
-
-    return True
+    if r.status_code == 204:
+        return True
+    else:
+        return r.json()
 
 
 def send_faucet_coins(address_to_fund, satoshis, api_key, coin_symbol='bcy'):
@@ -1335,11 +1332,11 @@ def remove_address_from_wallet(wallet_name, address, api_key, coin_symbol='btc')
 
     r = requests.delete(url, json=data, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
-    if r.status_code != 204:
+    if r.status_code == 204:
+        return True
+    else:
         # Didn't work
         return r.json()
-
-    return True
 
 
 def delete_wallet(wallet_name, api_key, is_hd_wallet=False, coin_symbol='btc'):
@@ -1358,11 +1355,11 @@ def delete_wallet(wallet_name, api_key, is_hd_wallet=False, coin_symbol='btc'):
     logger.info(url)
 
     r = requests.delete(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
-    if r.status_code != 204:
+    if r.status_code == 204:
+        return True
+    else:
         # Didn't work
         return r.json()
-
-    return True
 
 
 def generate_multisig_address(pubkey_list, script_type='multisig-2-of-3', coin_symbol='btc'):
@@ -1893,12 +1890,11 @@ def put_metadata(metadata_dict, address=None, tx_hash=None, block_hash=None, api
     r = requests.put(url, json=metadata_dict, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
     # Will return nothing, but we confirm the status code to be sure it worked
-    if r.status_code != 204:
-        print(r.status_code)
-        print(r.text)
-        raise Exception('Bad Status Code')
-
-    return True
+    if r.status_code == 204:
+        return True
+    else:
+        # return the exact text
+        return r.json()
 
 
 def delete_metadata(address=None, tx_hash=None, block_hash=None, api_key=None, coin_symbol='btc'):
@@ -1927,9 +1923,7 @@ def delete_metadata(address=None, tx_hash=None, block_hash=None, api_key=None, c
     r = requests.delete(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
     # Will return nothing, but we confirm the status code to be sure it worked
-    if r.status_code != 204:
-        print(r.status_code)
-        print(r.text)
-        raise Exception('Bad Status Code')
-
-    return True
+    if r.status_code == 204:
+        return True
+    else:
+        return r.json()
