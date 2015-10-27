@@ -243,8 +243,11 @@ def estimate_satoshis_transacted(inputs, outputs):
     # total sent less fees and "known" change
     satoshis_transacted = 0
     for output in outputs:
-        output_address = output['addresses'][0]
-        if output_address not in inputs_compressed:
+        if len(output['addresses']) == 0:
+            # null data - count it for the estimate
+            satoshis_transacted += output['value']
+        elif output['addresses'][0] not in inputs_compressed:
+            # not change
             satoshis_transacted += output['value']
 
     return satoshis_transacted
