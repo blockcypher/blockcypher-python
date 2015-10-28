@@ -9,7 +9,7 @@ setup(name='blockcypher',
       description='BlockCypher Python Library',
       author='Michael Flaxman',
       author_email='mflaxman+blockcypher@gmail.com',
-      url='https://github.com/blockcypher/blockcypher-python/',
+      url='https://github.com/michailbrynard/blockcypher-python/',
       install_requires=[
           'requests==2.4.3',
           'python-dateutil==2.2',
