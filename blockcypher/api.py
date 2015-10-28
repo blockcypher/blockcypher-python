@@ -435,7 +435,9 @@ def get_transactions_details(tx_hash_list, coin_symbol='btc', limit=None, api_ke
         assert is_valid_hash(tx_hash)
     assert is_valid_coin_symbol(coin_symbol)
 
-    if len(tx_hash_list) == 1:
+    if len(tx_hash_list) == 0:
+        return []
+    elif len(tx_hash_list) == 1:
         return [get_transaction_details(
                 tx_hash=tx_hash_list[0],
                 coin_symbol=coin_symbol,
