@@ -942,6 +942,39 @@ def subscribe_to_address_webhook(callback_url, subscription_address,
     return response_dict['id']
 
 
+def subscribe_to_wallet_webhook(callback_url, subscription_wallet,
+        event='tx-confirmation', coin_symbol='btc', api_key):
+    '''
+    Subscribe to transaction webhooks on a given address.
+    Webhooks for transaction broadcast and each confirmation (up to 6).
+
+    Returns the blockcypher ID of the subscription
+    '''
+    assert is_valid_coin_symbol(coin_symbol)
+    assert apikey
+
+    url = '%s/%s/%s/%s/hooks' % (
+            BLOCKCYPHER_DOMAIN,
+            ENDPOINT_VERSION,
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
+            COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
+            )
+    logger.info(url)
+
+    data = {
+            'event': event,
+            'url': callback_url,
+            'wallet_name': subscription_wallet,
+            'token': api_key,
+            }
+
+    r = requests.post(url, json=data, verify=True, timeout=TIMEOUT_IN_SECONDS)
+
+    response_dict = r.json()
+
+    return response_dict['id']
+
+
 def list_webhooks(api_key, coin_symbol='btc'):
     assert api_key, api_key
     assert is_valid_coin_symbol(coin_symbol), coin_symbol
