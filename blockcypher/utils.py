@@ -282,6 +282,10 @@ def get_blockcypher_walletname_from_mpub(mpub, subchain_indices=[]):
     return sha256(mpub).hexdigest()[:25]
 
 
+def is_valid_wallet_name(wallet_name):
+    return len(wallet_name) <= 25
+
+
 def btc_to_satoshis(btc):
     return int(float(btc) * UNIT_MAPPINGS['btc']['satoshis_per'])
 
