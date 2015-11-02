@@ -46,6 +46,7 @@ from .api import get_block_height
 from .api import get_broadcast_transactions
 from .api import get_broadcast_transaction_hashes
 from .api import subscribe_to_address_webhook
+from .api import subscribe_to_wallet_webhook
 from .api import list_webhooks
 from .api import get_webhook_info
 from .api import unsubscribe_from_webhook
