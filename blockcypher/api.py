@@ -1,14 +1,19 @@
-from .utils import (is_valid_hash, is_valid_block_representation,
-        is_valid_coin_symbol, is_valid_address_for_coinsymbol,
-        coin_symbol_from_mkey, double_sha256, compress_txn_outputs,
-        get_txn_outputs_dict, uses_only_hash_chars)
+from bitcoin import ecdsa_raw_sign, ecdsa_raw_verify, der_decode_sig, compress, privkey_to_pubkey, pubkey_to_address, der_encode_sig
+
+from .utils import is_valid_hash
+from .utils import is_valid_block_representation
+from .utils import is_valid_coin_symbol
+from .utils import is_valid_wallet_name
+from .utils import is_valid_address_for_coinsymbol
+from .utils import coin_symbol_from_mkey
+from .utils import double_sha256
+from .utils import compress_txn_outputs
+from .utils import get_txn_outputs_dict
+from .utils import uses_only_hash_chars
 
 from .constants import COIN_SYMBOL_MAPPINGS
 
 from dateutil import parser
-
-from bitcoin import ecdsa_raw_sign, ecdsa_raw_verify, der_decode_sig, compress, privkey_to_pubkey, pubkey_to_address, \
-    der_encode_sig
 
 import requests
 
@@ -942,8 +947,8 @@ def subscribe_to_address_webhook(callback_url, subscription_address,
     return response_dict['id']
 
 
-def subscribe_to_wallet_webhook(callback_url, subscription_wallet,
-        event='tx-confirmation', coin_symbol='btc', api_key):
+def subscribe_to_wallet_webhook(callback_url, wallet_name,
+        event='tx-confirmation', coin_symbol='btc', api_key=None):
     '''
     Subscribe to transaction webhooks on a given address.
     Webhooks for transaction broadcast and each confirmation (up to 6).
@@ -951,7 +956,8 @@ def subscribe_to_wallet_webhook(callback_url, subscription_wallet,
     Returns the blockcypher ID of the subscription
     '''
     assert is_valid_coin_symbol(coin_symbol)
-    assert apikey
+    assert is_valid_wallet_name(wallet_name), wallet_name
+    assert api_key
 
     url = '%s/%s/%s/%s/hooks' % (
             BLOCKCYPHER_DOMAIN,
@@ -964,7 +970,7 @@ def subscribe_to_wallet_webhook(callback_url, subscription_wallet,
     data = {
             'event': event,
             'url': callback_url,
-            'wallet_name': subscription_wallet,
+            'wallet_name': wallet_name,
             'token': api_key,
             }
 
@@ -1177,7 +1183,7 @@ def create_wallet_from_address(wallet_name, address, api_key, coin_symbol='btc')
     '''
     assert is_valid_address_for_coinsymbol(address, coin_symbol)
     assert api_key
-    assert len(wallet_name) <= 25, wallet_name
+    assert is_valid_wallet_name(wallet_name), wallet_name
 
     data = {
             'name': wallet_name,
@@ -1330,7 +1336,7 @@ def get_latest_paths_from_hd_wallet_addresses(wallet_addresses):
 def add_address_to_wallet(wallet_name, address, api_key, coin_symbol='btc'):
     assert is_valid_address_for_coinsymbol(address, coin_symbol)
     assert api_key
-    assert len(wallet_name) <= 25, wallet_name
+    assert is_valid_wallet_name(wallet_name), wallet_name
 
     data = {'addresses': [address, ]}
     params = {'token': api_key}
@@ -1351,7 +1357,7 @@ def add_address_to_wallet(wallet_name, address, api_key, coin_symbol='btc'):
 def remove_address_from_wallet(wallet_name, address, api_key, coin_symbol='btc'):
     assert is_valid_address_for_coinsymbol(address, coin_symbol)
     assert api_key
-    assert len(wallet_name) <= 25, wallet_name
+    assert is_valid_wallet_name(wallet_name), wallet_name
 
     data = {'addresses': [address, ]}
     params = {'token': api_key}
@@ -1376,7 +1382,7 @@ def remove_address_from_wallet(wallet_name, address, api_key, coin_symbol='btc')
 
 def delete_wallet(wallet_name, api_key, is_hd_wallet=False, coin_symbol='btc'):
     assert api_key
-    assert len(wallet_name) <= 25, wallet_name
+    assert is_valid_wallet_name(wallet_name), wallet_name
 
     params = {'token': api_key}
     url = '%s/%s/%s/%s/wallets/%s%s' % (
