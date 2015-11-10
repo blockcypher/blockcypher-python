@@ -24,7 +24,7 @@ BLOCKCYPHER_DOMAIN = 'https://api.blockcypher.com'
 ENDPOINT_VERSION = 'v1'
 
 
-TIMEOUT_IN_SECONDS = 20
+TIMEOUT_IN_SECONDS = 10
 
 
 logger = logging.getLogger(__name__)
