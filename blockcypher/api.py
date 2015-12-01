@@ -1703,20 +1703,22 @@ def broadcast_signed_transaction(unsigned_tx, signatures, pubkeys, coin_symbol='
     return response_dict
 
 
-def simple_spend_tx(from_privkey_hex, to_address, to_satoshis, change_address=None, api_key=None, coin_symbol='btc'):
+def simple_spend_tx(from_privkey_hex, to_address, to_satoshis,
+                    change_address=None, api_key=None, coin_symbol='btc', compressed=True):
     '''
     Simple method to spend from one address to another.
 
     Signature takes place locally (client-side) after unsigned transaction is verified
 
     If no change_address specified, change will be sent back to sender address
-
-    Supports only compressed public keys (and their corresponding addresses), which has been the standard since v0.6
     '''
     assert is_valid_coin_symbol(coin_symbol), coin_symbol
     assert type(to_satoshis) is int and to_satoshis > 0, to_satoshis
 
-    from_pubkey_hex = compress(privkey_to_pubkey(from_privkey_hex))
+    if compressed:
+        from_pubkey_hex = compress(privkey_to_pubkey(from_privkey_hex))
+    else:
+        from_pubkey_hex = privkey_to_pubkey(from_privkey_hex)
     from_address = pubkey_to_address(
             pubkey=from_pubkey_hex,
             # this method only supports paying from pubkey anyway
