@@ -1,4 +1,10 @@
-from bitcoin import ecdsa_raw_sign, ecdsa_raw_verify, der_decode_sig, compress, privkey_to_pubkey, pubkey_to_address, der_encode_sig
+from bitcoin import ecdsa_raw_sign
+from bitcoin import ecdsa_raw_verify
+from bitcoin import der_decode_sig
+from bitcoin import compress
+from bitcoin import privkey_to_pubkey
+from bitcoin import pubkey_to_address
+from bitcoin import der_encode_sig
 
 from .utils import is_valid_hash
 from .utils import is_valid_block_representation
@@ -1019,10 +1025,8 @@ def get_webhook_info(webhook_id, api_key=None, coin_symbol='btc'):
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
-    print(r.content)
     response_dict = r.json()
-    print(response_dict)
-    return r.json()
+    return response_dict
 
 
 def unsubscribe_from_webhook(webhook_id, api_key, coin_symbol='btc'):
@@ -1650,17 +1654,11 @@ def get_input_addresses(unsigned_tx):
 
 def make_tx_signatures(txs_to_sign, privkey_list, pubkey_list):
     """
-    Loops through txs_to_sign and makes signatures, assumes you already have
-    privkey_list and pubkey_list in hexadecimal format.
+    Loops through txs_to_sign and makes signatures using privkey_list and pubkey_list
 
     Not sure what privkeys and pubkeys to supply?
     Use get_input_addresses to return a list of addresses.
-    Matching those addresses to keys is up to you and how you store your
-    private keys.
-
-    bitmerchant works well for converting between WIF (or seed)
-    and privkey/pubkey hex:
-    https://github.com/sbuss/bitmerchant/
+    Matching those addresses to keys is up to you and how you store your private keys.
     """
     assert len(privkey_list) == len(pubkey_list) == len(txs_to_sign)
     # in the event of multiple inputs using the same pub/privkey,
@@ -1703,24 +1701,31 @@ def broadcast_signed_transaction(unsigned_tx, signatures, pubkeys, coin_symbol='
     return response_dict
 
 
-def simple_spend_tx(from_privkey_hex, to_address, to_satoshis,
-                    change_address=None, api_key=None, coin_symbol='btc', compressed=True):
+def simple_spend(from_privkey, to_address, to_satoshis, change_address=None,
+        privkey_is_compressed=True, api_key=None, coin_symbol='btc'):
     '''
     Simple method to spend from one address to another.
 
-    Signature takes place locally (client-side) after unsigned transaction is verified
+    Signature takes place locally (client-side) after unsigned transaction is verified.
+
+    Returns the tx_hash of the newly broadcast tx.
 
     If no change_address specified, change will be sent back to sender address
+
+    To sweep, set to_satoshis=-1
+
+    Compressed public keys (and their corresponding addresses) have been the standard since v0.6,
+    set privkey_is_compressed=False if using uncompressed addresses.
     '''
     assert is_valid_coin_symbol(coin_symbol), coin_symbol
-    assert type(to_satoshis) is int and to_satoshis > 0, to_satoshis
+    assert type(to_satoshis) is int, to_satoshis
 
-    if compressed:
-        from_pubkey_hex = compress(privkey_to_pubkey(from_privkey_hex))
+    if privkey_is_compressed:
+        from_pubkey = compress(privkey_to_pubkey(from_privkey))
     else:
-        from_pubkey_hex = privkey_to_pubkey(from_privkey_hex)
+        from_pubkey = privkey_to_pubkey(from_privkey)
     from_address = pubkey_to_address(
-            pubkey=from_pubkey_hex,
+            pubkey=from_pubkey,
             # this method only supports paying from pubkey anyway
             magicbyte=COIN_SYMBOL_MAPPINGS[coin_symbol]['vbyte_pubkey'],
             )
@@ -1768,18 +1773,18 @@ def simple_spend_tx(from_privkey_hex, to_address, to_satoshis,
         print(unsigned_tx)  # for debug
         raise('TX Verification Error: %s' % err_msg)
 
-    privkeyhex_list, pubkeyhex_list = [], []
+    privkey_list, pubkey_list = [], []
     for _ in unsigned_tx['tx']['inputs']:
-        privkeyhex_list.append(from_privkey_hex)
-        pubkeyhex_list.append(from_pubkey_hex)
-    logger.info('privkeyhex_list: %s' % privkeyhex_list)
-    logger.info('pubkeyhex_list: %s' % pubkeyhex_list)
+        privkey_list.append(from_privkey)
+        pubkey_list.append(from_pubkey)
+    logger.info('privkey_list: %s' % privkey_list)
+    logger.info('pubkey_list: %s' % pubkey_list)
 
     # sign locally
     tx_signatures = make_tx_signatures(
             txs_to_sign=unsigned_tx['tosign'],
-            privkey_list=privkeyhex_list,
-            pubkey_list=pubkeyhex_list,
+            privkey_list=privkey_list,
+            pubkey_list=pubkey_list,
             )
     logger.info('tx_signatures: %s' % tx_signatures)
 
@@ -1787,11 +1792,10 @@ def simple_spend_tx(from_privkey_hex, to_address, to_satoshis,
     broadcasted_tx = broadcast_signed_transaction(
             unsigned_tx=unsigned_tx,
             signatures=tx_signatures,
-            pubkeys=pubkeyhex_list,
+            pubkeys=pubkey_list,
             coin_symbol=coin_symbol,
     )
     logger.info('broadcasted_tx: %s' % broadcasted_tx)
-    print(broadcasted_tx)
 
     if 'errors' in broadcasted_tx:
         print('TX Error(s): Tx May NOT Have Been Broadcast')
