@@ -919,7 +919,7 @@ def delete_forwarding_address(payment_id, coin_symbol='btc'):
 
 
 def subscribe_to_address_webhook(callback_url, subscription_address,
-        event='tx-confirmation', coin_symbol='btc', api_key=None):
+        event='tx-confirmation', coin_symbol='btc', confirmations=6, confidence=0.99, api_key=None):
     '''
     Subscribe to transaction webhooks on a given address.
     Webhooks for transaction broadcast and each confirmation (up to 6).
@@ -945,6 +945,11 @@ def subscribe_to_address_webhook(callback_url, subscription_address,
 
     if api_key:
         data['token'] = api_key
+    
+    if event == 'tx-confirmation':
+            data['confirmations'] = confirmations
+    elif event == 'tx-confidence':
+             data['confidence'] = confidence
 
     r = requests.post(url, json=data, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
