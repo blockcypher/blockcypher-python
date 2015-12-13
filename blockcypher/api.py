@@ -150,7 +150,7 @@ def get_addresses_details(address_list, coin_symbol='btc', txn_limit=None, api_k
 
     cleaned_dict_list = []
     for response_dict in r.json():
-        cleaned_dict_list.append(_clean_tx(response_dict=r.json()))
+        cleaned_dict_list.append(_clean_tx(response_dict=response_dict))
     return cleaned_dict_list
 
 
