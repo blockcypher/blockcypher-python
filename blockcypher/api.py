@@ -80,7 +80,7 @@ def _clean_block(response_dict):
     return response_dict
 
 
-def get_address_details(address, coin_symbol='btc', txn_limit=None, api_key=None, before_bh=None, confirmations=0):
+def get_address_details(address, coin_symbol='btc', txn_limit=None, api_key=None, before_bh=None, confirmations=0, unspent_only=False):
     '''
     Takes an address and coin_symbol and returns the address details
 
@@ -115,13 +115,16 @@ def get_address_details(address, coin_symbol='btc', txn_limit=None, api_key=None
         params['before_bh'] = before_bh
     if confirmations:
         params['confirmations'] = confirmations
+    if unspent_only:
+        params['unspentOnly'] = unspent_only
+        
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
     return _clean_tx(response_dict=r.json())
 
 
-def get_addresses_details(address_list, coin_symbol='btc', txn_limit=None, api_key=None, before_bh=None, confirmations=0):
+def get_addresses_details(address_list, coin_symbol='btc', txn_limit=None, api_key=None, before_bh=None, confirmations=0, unspent_only=False):
 
     for address in address_list:
         assert is_valid_address_for_coinsymbol(
@@ -145,6 +148,8 @@ def get_addresses_details(address_list, coin_symbol='btc', txn_limit=None, api_k
         params['before_bh'] = before_bh
     if confirmations:
         params['confirmations'] = confirmations
+    if unspent_only:
+        params['unspentOnly'] = unspent_only
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
