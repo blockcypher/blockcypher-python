@@ -66,6 +66,27 @@ class GetAddressesDetails(unittest.TestCase):
 
 class GetAddressDetails(unittest.TestCase):
 
+    def test_fetching_unspents(self):
+        # This address I previously sent funds to but threw out the private key
+        address_details = get_address_details(
+                address='C3B3dU12vpCVh2jfmGFdqLe5KWxtZfXW8j',
+                coin_symbol='bcy',
+                txn_limit=None,
+                api_key=BC_API_KEY,
+                unspent_only=True,
+                # This way the test result never changes:
+                before_bh=592822,
+                )
+        assert len(address_details['txrefs']) == 1
+        assert address_details['txrefs'][0]['tx_hash'] == 'b12c4b0ab466c9bbd05da88b3be1a13229c85a6edd2869e01e6a557c8a5cca2b'
+        assert address_details['txrefs'][0]['block_height'] == 592821
+        assert address_details['txrefs'][0]['tx_input_n'] == -1
+        assert address_details['txrefs'][0]['tx_output_n'] == 0
+        assert address_details['txrefs'][0]['value'] == 1000000
+        assert address_details['txrefs'][0]['spent'] is False
+        assert address_details['txrefs'][0]['double_spend'] is False
+        assert address_details['txrefs'][0]['confirmed'] is not None
+
     def test_get_address_details_before(self):
         address_details = get_address_details(
                 address='1HLoD9E4SDFFPDiYfNYnkBLQ85Y51J3Zb1',
