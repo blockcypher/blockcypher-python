@@ -2,7 +2,14 @@ import unittest
 
 from blockcypher.utils import is_valid_hash
 
-from blockcypher import simple_spend, get_transaction_details
+from blockcypher import simple_spend
+from blockcypher import get_transaction_details
+from blockcypher import get_address_details, get_addresses_details
+
+import os
+
+
+BC_API_KEY = os.getenv('BC_API_KEY')
 
 
 class TestUtils(unittest.TestCase):
@@ -17,6 +24,79 @@ class TestUtils(unittest.TestCase):
 
     def test_invalid_hash(self):
         assert not is_valid_hash(self.invalid_hash), self.invalid_hash
+
+
+class GetAddressesDetails(unittest.TestCase):
+
+    def test_get_addresses_details(self):
+        addresses_details = get_addresses_details(
+                address_list=[
+                    # 2 of the first used BTC addresses
+                    '1HLoD9E4SDFFPDiYfNYnkBLQ85Y51J3Zb1',
+                    '1FvzCLoTPGANNjWoUo6jUGuAG3wg1w4YjR',
+                    ],
+                coin_symbol='btc',
+                txn_limit=None,
+                api_key=BC_API_KEY,
+                # This way the test result never changes:
+                before_bh=4,
+                )
+
+        assert len(addresses_details) == 2
+
+        for addr_obj in addresses_details:
+            address = addr_obj.get('address')
+            if address == '1HLoD9E4SDFFPDiYfNYnkBLQ85Y51J3Zb1':
+                assert len(addr_obj['txrefs']) == 1
+                assert addr_obj['txrefs'][0]['tx_hash'] == '9b0fc92260312ce44e74ef369f5c66bbb85848f2eddd5a7a1cde251e54ccfdd5'
+                assert addr_obj['txrefs'][0]['block_height'] == 2
+                assert addr_obj['txrefs'][0]['confirmed'] is not None
+                assert addr_obj['txrefs'][0]['tx_input_n'] == -1
+                assert addr_obj['txrefs'][0]['tx_output_n'] == 0
+            elif address == '1FvzCLoTPGANNjWoUo6jUGuAG3wg1w4YjR':
+                assert len(addresses_details[1]['txrefs']) == 1
+                assert addr_obj['txrefs'][0]['tx_hash'] == '999e1c837c76a1b7fbb7e57baf87b309960f5ffefbf2a9b95dd890602272f644'
+                assert addr_obj['txrefs'][0]['block_height'] == 3
+                assert addr_obj['txrefs'][0]['confirmed'] is not None
+                assert addr_obj['txrefs'][0]['tx_input_n'] == -1
+                assert addr_obj['txrefs'][0]['tx_output_n'] == 0
+            else:
+                assert False, 'Invalid address: %s' % address
+
+
+class GetAddressDetails(unittest.TestCase):
+
+    def test_get_address_details_before(self):
+        address_details = get_address_details(
+                address='1HLoD9E4SDFFPDiYfNYnkBLQ85Y51J3Zb1',
+                coin_symbol='btc',
+                txn_limit=None,
+                api_key=BC_API_KEY,
+                # This way the test result never changes:
+                before_bh=4,
+                )
+
+        # first TX
+        assert len(address_details['txrefs']) == 1
+        assert address_details['txrefs'][0]['tx_hash'] == '9b0fc92260312ce44e74ef369f5c66bbb85848f2eddd5a7a1cde251e54ccfdd5'
+        assert address_details['txrefs'][0]['block_height'] == 2
+        assert address_details['txrefs'][0]['confirmed'] is not None
+        assert address_details['txrefs'][0]['tx_input_n'] == -1
+        assert address_details['txrefs'][0]['tx_output_n'] == 0
+
+    def test_get_address_details_after(self):
+        address_details = get_address_details(
+                address='1HLoD9E4SDFFPDiYfNYnkBLQ85Y51J3Zb1',
+                coin_symbol='btc',
+                api_key=BC_API_KEY,
+                # Exclude first result
+                after_bh=4,
+                txn_limit=1,
+                )
+
+        assert len(address_details['txrefs']) == 1
+        assert address_details['txrefs'][0]['tx_hash'] != '9b0fc92260312ce44e74ef369f5c66bbb85848f2eddd5a7a1cde251e54ccfdd5'
+        assert address_details['txrefs'][0]['block_height'] != 2
 
 
 class CompressedTXSign(unittest.TestCase):
@@ -41,7 +121,7 @@ class CompressedTXSign(unittest.TestCase):
                 to_address=self.bcy_faucet_addr,
                 to_satoshis=self.to_send_satoshis,
                 privkey_is_compressed=True,
-                api_key=None,
+                api_key=BC_API_KEY,
                 coin_symbol='bcy',
                 )
         # confirm details (esp that change sent back to sender address)
@@ -71,7 +151,7 @@ class CompressedTXSign(unittest.TestCase):
                 to_address=self.bcy_faucet_addr,
                 to_satoshis=self.to_send_satoshis,
                 privkey_is_compressed=True,
-                api_key=None,
+                api_key=BC_API_KEY,
                 coin_symbol='bcy',
                 )
         # confirm details (esp that change sent back to sender address)
@@ -127,7 +207,7 @@ class UncompressedTXSign(unittest.TestCase):
                 to_address=self.bcy_faucet_addr,
                 to_satoshis=self.to_send_satoshis,
                 privkey_is_compressed=False,
-                api_key=None,
+                api_key=BC_API_KEY,
                 coin_symbol='bcy',
                 )
         # confirm details (esp that change sent back to sender address)
@@ -157,7 +237,7 @@ class UncompressedTXSign(unittest.TestCase):
                 to_address=self.bcy_faucet_addr,
                 to_satoshis=self.to_send_satoshis,
                 privkey_is_compressed=False,
-                api_key=None,
+                api_key=BC_API_KEY,
                 coin_symbol='bcy',
                 )
         # confirm details (esp that change sent back to sender address)
