@@ -80,7 +80,7 @@ def _clean_block(response_dict):
     return response_dict
 
 
-def get_address_details(address, coin_symbol='btc', txn_limit=None, api_key=None, before_bh=None, confirmations=0):
+def get_address_details(address, coin_symbol='btc', txn_limit=None, api_key=None, before_bh=None, after_bh=None, confirmations=0):
     '''
     Takes an address and coin_symbol and returns the address details
 
@@ -112,7 +112,9 @@ def get_address_details(address, coin_symbol='btc', txn_limit=None, api_key=None
     if api_key:
         params['token'] = api_key
     if before_bh:
-        params['before_bh'] = before_bh
+        params['before'] = before_bh
+    if after_bh:
+        params['after'] = after_bh
     if confirmations:
         params['confirmations'] = confirmations
 
@@ -121,7 +123,7 @@ def get_address_details(address, coin_symbol='btc', txn_limit=None, api_key=None
     return _clean_tx(response_dict=r.json())
 
 
-def get_addresses_details(address_list, coin_symbol='btc', txn_limit=None, api_key=None, before_bh=None, confirmations=0):
+def get_addresses_details(address_list, coin_symbol='btc', txn_limit=None, api_key=None, before_bh=None, after_bh=None, confirmations=0):
 
     for address in address_list:
         assert is_valid_address_for_coinsymbol(
@@ -142,7 +144,9 @@ def get_addresses_details(address_list, coin_symbol='btc', txn_limit=None, api_k
     if api_key:
         params['token'] = api_key
     if before_bh:
-        params['before_bh'] = before_bh
+        params['before'] = before_bh
+    if after_bh:
+        params['after'] = after_bh
     if confirmations:
         params['confirmations'] = confirmations
 
@@ -150,7 +154,7 @@ def get_addresses_details(address_list, coin_symbol='btc', txn_limit=None, api_k
 
     cleaned_dict_list = []
     for response_dict in r.json():
-        cleaned_dict_list.append(_clean_tx(response_dict=r.json()))
+        cleaned_dict_list.append(_clean_tx(response_dict=response_dict))
     return cleaned_dict_list
 
 
@@ -918,8 +922,7 @@ def delete_forwarding_address(payment_id, coin_symbol='btc'):
         return r.json()
 
 
-def subscribe_to_address_webhook(callback_url, subscription_address,
-        event='tx-confirmation', coin_symbol='btc', api_key=None):
+def subscribe_to_address_webhook(callback_url, subscription_address, event='tx-confirmation', coin_symbol='btc', confirmations=0, confidence=0.00, api_key=None):
     '''
     Subscribe to transaction webhooks on a given address.
     Webhooks for transaction broadcast and each confirmation (up to 6).
@@ -945,6 +948,11 @@ def subscribe_to_address_webhook(callback_url, subscription_address,
 
     if api_key:
         data['token'] = api_key
+
+    if event == 'tx-confirmation' and confirmations:
+        data['confirmations'] = confirmations
+    elif event == 'tx-confidence' and confidence:
+        data['confidence'] = confidence
 
     r = requests.post(url, json=data, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
