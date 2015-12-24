@@ -1717,7 +1717,7 @@ def broadcast_signed_transaction(unsigned_tx, signatures, pubkeys, coin_symbol='
 
 
 def simple_spend(from_privkey, to_address, to_satoshis, change_address=None,
-        privkey_is_compressed=True, api_key=None, coin_symbol='btc', min_confirmations=0):
+        privkey_is_compressed=True, min_confirmations=0, api_key=None, coin_symbol='btc'):
     '''
     Simple method to spend from one address to another.
 
