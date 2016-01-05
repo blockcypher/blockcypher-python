@@ -1052,9 +1052,9 @@ def unsubscribe_from_webhook(webhook_id, api_key, coin_symbol='btc'):
     url = '%s/%s/%s/%s/hooks/%s' % (
             BLOCKCYPHER_DOMAIN,
             ENDPOINT_VERSION,
-            webhook_id,
             COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
             COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
+            webhook_id,
             )
     logger.info(url)
 
