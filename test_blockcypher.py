@@ -5,6 +5,7 @@ from blockcypher.utils import is_valid_hash
 from blockcypher import simple_spend
 from blockcypher import get_transaction_details
 from blockcypher import get_address_details, get_addresses_details
+from blockcypher import create_unsigned_tx
 
 import os
 
@@ -62,6 +63,54 @@ class GetAddressesDetails(unittest.TestCase):
                 assert addr_obj['txrefs'][0]['tx_output_n'] == 0
             else:
                 assert False, 'Invalid address: %s' % address
+
+
+class CreateUnsignedTX(unittest.TestCase):
+
+    def test_create_basic_unsigned(self):
+        # This address I previously sent funds to but threw out the private key
+        create_unsigned_tx(
+                inputs=[
+                    {'address': 'BwvSPyMWVL1gkp5FZdrGXLpHj2ZJyJYLVB'},
+                    ],
+                outputs=[
+                    {
+                        'value': -1,
+                        'address': 'CFr99841LyMkyX5ZTGepY58rjXJhyNGXHf',
+                        },
+                    ],
+                change_address=None,
+                include_tosigntx=True,
+                verify_tosigntx=True,
+                coin_symbol='bcy',
+                api_key=BC_API_KEY,
+                )
+
+    def test_create_ps2h_unsigned(self):
+        # This address I previously sent funds to but threw out the private key
+        create_unsigned_tx(
+                inputs=[
+                    {
+                        'pubkeys': [
+                            '036f5ca449944655b5c580ff6686bdd19123d1003b41f49f4b603f53e33f70a2d1',
+                            '03e93a754aa03dedbe032e5be051bce031db4337c48fbbcf970d1b27bb25a07964',
+                            '02582061ab1dba9d6b5b4e6e29f9da2bd590862f1b1e8566f405eb1d92898eafee',
+                            ],
+                        'script_type': 'multisig-2-of-3'
+                        },
+                    ],
+                outputs=[
+                    {
+                        'value': -1,
+                        'address': 'CFr99841LyMkyX5ZTGepY58rjXJhyNGXHf',
+                        },
+                    ],
+                change_address=None,
+                include_tosigntx=True,
+                verify_tosigntx=True,
+                coin_symbol='bcy',
+                api_key=BC_API_KEY,
+                )
 
 
 class GetAddressDetails(unittest.TestCase):

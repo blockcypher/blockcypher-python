@@ -1471,8 +1471,12 @@ def create_unsigned_tx(inputs, outputs, change_address=None,
 
     Inputs is a list of either:
     - {'address': '1abcxyz...'} that will be included in the TX
+    - {'pubkeys' : [pubkey1, pubkey2, pubkey3], "script_type": "multisig-2-of-3"}
     - {'wallet_name': 'bar', 'wallet_token': 'yourtoken'} that was previously registered and will be used
       to choose which addresses/inputs are included in the TX
+
+    Note that for consistency with the API `inputs` is always a list.
+    Currently, it is a singleton list, but it is possible it could have more elements in future versions.
 
     Details here: http://dev.blockcypher.com/#generic_transactions
     '''
@@ -1494,6 +1498,14 @@ def create_unsigned_tx(inputs, outputs, change_address=None,
                     ), address
             inputs_cleaned.append({
                 'addresses': [address, ],
+                })
+        elif 'pubkeys' in input_obj and input_obj.get('script_type', '').startswith('multisig-'):
+            for pubkey in input_obj['pubkeys']:
+                # TODO: better pubkey test
+                assert uses_only_hash_chars(pubkey), pubkey
+            inputs_cleaned.append({
+                'addresses': input_obj['pubkeys'],
+                'script_type': input_obj['script_type'],
                 })
         elif 'wallet_name' in input_obj and 'wallet_token' in input_obj:
             # good behavior
@@ -1573,7 +1585,7 @@ def create_unsigned_tx(inputs, outputs, change_address=None,
                 )
         if not tx_is_correct:
             print(unsigned_tx)  # for debug
-            raise('TX Verification Error: %s' % err_msg)
+            raise Exception('TX Verification Error: %s' % err_msg)
 
     return unsigned_tx
 
@@ -1731,6 +1743,9 @@ def simple_spend(from_privkey, to_address, to_satoshis, change_address=None,
 
     Compressed public keys (and their corresponding addresses) have been the standard since v0.6,
     set privkey_is_compressed=False if using uncompressed addresses.
+
+    Note that this currently only supports spending from single key addresses.
+    Future versions may support spending from p2sh addresses (PRs welcome).
     '''
     assert is_valid_coin_symbol(coin_symbol), coin_symbol
     assert type(to_satoshis) is int, to_satoshis
@@ -1787,7 +1802,7 @@ def simple_spend(from_privkey, to_address, to_satoshis, change_address=None,
             )
     if not tx_is_correct:
         print(unsigned_tx)  # for debug
-        raise('TX Verification Error: %s' % err_msg)
+        raise Exception('TX Verification Error: %s' % err_msg)
 
     privkey_list, pubkey_list = [], []
     for _ in unsigned_tx['tx']['inputs']:
