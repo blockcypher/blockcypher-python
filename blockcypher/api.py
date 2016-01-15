@@ -1471,6 +1471,7 @@ def create_unsigned_tx(inputs, outputs, change_address=None,
 
     Inputs is a list of either:
     - {'address': '1abcxyz...'} that will be included in the TX
+    - {'prev_hash': '01234567...', 'output_index': 0}
     - {'pubkeys' : [pubkey1, pubkey2, pubkey3], "script_type": "multisig-2-of-3"}
     - {'wallet_name': 'bar', 'wallet_token': 'yourtoken'} that was previously registered and will be used
       to choose which addresses/inputs are included in the TX
@@ -1498,6 +1499,15 @@ def create_unsigned_tx(inputs, outputs, change_address=None,
                     ), address
             inputs_cleaned.append({
                 'addresses': [address, ],
+                })
+        elif 'prev_hash' and  'output_index' in input_obj:
+            prev_hash = input_obj['prev_hash']
+            output_index = input_obj['output_index']
+            assert uses_only_hash_chars(prev_hash), prev_hash
+            assert str(output_index).isdigit(), output_index
+            inputs_cleaned.append({
+                    'prev_hash': prev_hash
+                    'output_index': output_index,
                 })
         elif 'pubkeys' in input_obj and input_obj.get('script_type', '').startswith('multisig-'):
             for pubkey in input_obj['pubkeys']:
