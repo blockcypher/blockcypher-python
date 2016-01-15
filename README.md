@@ -7,6 +7,7 @@ Designed to be used without having to RTFM.
 
 More features and support for more endpoints coming soon. Should support python 2.6+ and python3.x, but hasn't been thoroughly tested on 2.6+. Native support for datetime conversions. Issues and pull requests much appreciated!
 
+[![Build Status](https://travis-ci.org/blockcypher/blockcypher-python.svg?branch=master)](https://travis-ci.org/blockcypher/blockcypher-python)
 
 #### Installation
 
