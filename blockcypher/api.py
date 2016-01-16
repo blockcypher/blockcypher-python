@@ -1842,6 +1842,12 @@ def simple_spend(from_privkey, to_address, to_satoshis, change_address=None,
         print(broadcasted_tx)
         return
 
+    if 'error' in broadcasted_tx:
+        print('TX Error: Tx May NOT Have Been Broadcast')
+        print(broadcasted_tx['error'])
+        print(broadcasted_tx)
+        return
+
     return broadcasted_tx['tx']['hash']
 
 
