@@ -1684,8 +1684,15 @@ def make_tx_signatures(txs_to_sign, privkey_list, pubkey_list):
     Loops through txs_to_sign and makes signatures using privkey_list and pubkey_list
 
     Not sure what privkeys and pubkeys to supply?
-    Use get_input_addresses to return a list of addresses.
+    Use get_input_addresses() to return a list of addresses.
     Matching those addresses to keys is up to you and how you store your private keys.
+    A future version of this library may handle this for you, but it is not trivial.
+    
+    Note that if spending multisig funds the process is significantly more complicated.
+    Each tx_to_sign must be signed by *each* private key.
+    In a 2-of-3 transaction, 2 of privkey1, privkey2, and privkey3 must sign each tx_so_sign.
+    
+    http://dev.blockcypher.com/#multisig-transactions
     """
     assert len(privkey_list) == len(pubkey_list) == len(txs_to_sign)
     # in the event of multiple inputs using the same pub/privkey,
