@@ -1679,7 +1679,7 @@ def get_input_addresses(unsigned_tx):
     return addresses
 
 
-def make_tx_signatures(txs_to_sign, privkey_list, pubkey_list):
+def make_tx_signatures(txs_to_sign, privkey_list, pubkey_list, tx_type='p2pkh'):
     """
     Loops through txs_to_sign and makes signatures using privkey_list and pubkey_list
 
@@ -1694,25 +1694,34 @@ def make_tx_signatures(txs_to_sign, privkey_list, pubkey_list):
     
     http://dev.blockcypher.com/#multisig-transactions
     """
-    assert len(privkey_list) == len(pubkey_list) == len(txs_to_sign)
-    # in the event of multiple inputs using the same pub/privkey,
-    # that privkey should be included multiple times
-
     signatures = []
-    for cnt, tx_to_sign in enumerate(txs_to_sign):
-        sig = der_encode_sig(*ecdsa_raw_sign(tx_to_sign.rstrip(' \t\r\n\0'), privkey_list[cnt]))
-        assert ecdsa_raw_verify(tx_to_sign, der_decode_sig(sig), pubkey_list[cnt])
-        signatures.append(sig)
+    if tx_type == 'p2pkh': # spending from 'normal' address
+        assert len(privkey_list) == len(pubkey_list) == len(txs_to_sign)
+        # in the event of multiple inputs using the same pub/privkey,
+        # that privkey should be included multiple times
+        for cnt, tx_to_sign in enumerate(txs_to_sign):
+            sig = der_encode_sig(*ecdsa_raw_sign(tx_to_sign.rstrip(' \t\r\n\0'), privkey_list[cnt]))
+            assert ecdsa_raw_verify(tx_to_sign, der_decode_sig(sig), pubkey_list[cnt])
+            signatures.append(sig)
+
+    elif tx_type == 'p2sh': # spending from multi-sig address
+        assert len(privkey_list) == len(pubkey_list)
+        # make sure that the list of privkeys is sorted the same way of the list 
+        # of pubkeys: for ex.: [priv1,priv3] and [pub1,pub3]
+        for cnt, each_privkey in enumerate(privkey_list):
+            tx_to_sign = txs_to_sign[0]
+            sig = der_encode_sig(*ecdsa_raw_sign(tx_to_sign.rstrip(' \t\r\n\0'), privkey_list[cnt]))
+            assert ecdsa_raw_verify(tx_to_sign, der_decode_sig(sig), pubkey_list[cnt])
+            signatures.append(sig)
+
     return signatures
 
 
-def broadcast_signed_transaction(unsigned_tx, signatures, pubkeys, coin_symbol='btc'):
+def broadcast_signed_transaction(unsigned_tx, signatures, pubkeys, coin_symbol='btc', tx_type='p2pkh'):
     '''
     Broadcasts the transaction from create_unsigned_tx
     '''
-    assert len(unsigned_tx['tosign']) == len(signatures)
     assert 'errors' not in unsigned_tx
-
     url = '%s/%s/%s/%s/txs/send' % (
             BLOCKCYPHER_DOMAIN,
             ENDPOINT_VERSION,
@@ -1721,18 +1730,43 @@ def broadcast_signed_transaction(unsigned_tx, signatures, pubkeys, coin_symbol='
             )
     logger.info(url)
 
-    data = unsigned_tx.copy()
-    data['signatures'] = signatures
-    data['pubkeys'] = pubkeys
+    if tx_type == 'p2pkh': # spending from 'normal' address
+        assert len(unsigned_tx['tosign']) == len(signatures)
 
-    r = requests.post(url, json=data, verify=True, timeout=TIMEOUT_IN_SECONDS)
+        data = unsigned_tx.copy()
+        data['signatures'] = signatures
+        data['pubkeys'] = pubkeys
 
-    response_dict = r.json()
+        r = requests.post(url, json=data, verify=True, timeout=TIMEOUT_IN_SECONDS)
 
-    if response_dict.get('tx') and response_dict.get('received'):
-        response_dict['tx']['received'] = parser.parse(response_dict['tx']['received'])
+        response_dict = r.json()
 
-    return response_dict
+        if response_dict.get('tx') and response_dict.get('received'):
+            response_dict['tx']['received'] = parser.parse(response_dict['tx']['received'])
+
+        return response_dict
+
+    if tx_type == 'p2sh': # spending from multisig address
+        assert len(signatures) == len(pubkeys)
+        response_dict_list = []
+        
+        for idx, sig in enumerate(signatures):
+            signature = [sig]
+            pubkey = [pubkeys[idx]]
+
+            data = unsigned_tx.copy()
+            data['signatures'] = signature
+            data['pubkeys'] = pubkey
+
+            r = requests.post(url, json=data, verify=True, timeout=TIMEOUT_IN_SECONDS)
+
+            response_dict = r.json()
+
+            if response_dict.get('tx') and response_dict.get('received'):
+                response_dict['tx']['received'] = parser.parse(response_dict['tx']['received'])
+
+            response_dict_list.append(response_dict)
+        return response_dict_list
 
 
 def simple_spend(from_privkey, to_address, to_satoshis, change_address=None,
