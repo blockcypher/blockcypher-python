@@ -313,7 +313,6 @@ class UncompressedTXSign(unittest.TestCase):
         # confirm details (esp that change sent back to sender address)
         tx_details = get_transaction_details(tx_hash=tx_hash, coin_symbol='bcy')
 
-        print(tx_details)
         for input_obj in tx_details['inputs']:
             assert len(input_obj['addresses']) == 1, input_obj['addresses']
             assert input_obj['addresses'][0] == self.bcy_pub_addr
