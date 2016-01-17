@@ -1753,8 +1753,6 @@ def broadcast_signed_transaction(unsigned_tx, signatures, pubkeys, coin_symbol='
         for idx, sig in enumerate(signatures):
             signature = [sig]
             pubkey = [pubkeys[idx]]
-            print('sig = {}'.format(signature))
-            print('pubkey = {}'.format(pubkey))
 
             data = unsigned_tx.copy()
             data['signatures'] = signature
