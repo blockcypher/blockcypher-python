@@ -169,10 +169,11 @@ def get_txn_outputs(raw_tx_hex, output_addr_list, coin_symbol):
     for output_addr in output_addr_list:
         assert is_valid_address(output_addr), output_addr
 
+    output_addr_set = set(output_addr_list)  # speed optimization
+
     outputs = []
     deserialized_tx = deserialize(str(raw_tx_hex))
     for out in deserialized_tx.get('outs', []):
-        output_addr_set = set(output_addr_list)  # speed optimization
 
         # determine if the address is a pubkey address or a script address
         pubkey_addr = script_to_address(out['script'],

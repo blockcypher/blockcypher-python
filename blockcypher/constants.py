@@ -10,6 +10,8 @@ COIN_SYMBOL_ODICT_LIST = [
             'pow': 'sha',
             'example_address': '16Fg2yjwrbtC6fZp61EV9mNVKmwCzGasw5',
             'address_first_char_list': ('1', '3', '4'),
+            'singlesig_prefix_list': ('1', ),
+            'multisig_prefix_list': ('3', ),
             'first4_mprv': 'xprv',
             'first4_mpub': 'xpub',
             'vbyte_pubkey': 0,
@@ -25,6 +27,8 @@ COIN_SYMBOL_ODICT_LIST = [
             'pow': 'sha',
             'example_address': '2N1rjhumXA3ephUQTDMfGhufxGQPZuZUTMk',
             'address_first_char_list': ('m', 'n', '2', 'z'),
+            'singlesig_prefix_list': ('m', 'n', ),
+            'multisig_prefix_list': ('2', ),
             'first4_mprv': 'tprv',
             'first4_mpub': 'tpub',
             'vbyte_pubkey': 111,
@@ -40,6 +44,8 @@ COIN_SYMBOL_ODICT_LIST = [
             'pow': 'scrypt',
             'example_address': 'LcFFkbRUrr8j7TMi8oXUnfR4GPsgcXDepo',
             'address_first_char_list': ('L', 'U', '3', '4'),
+            'singlesig_prefix_list': ('L', ),
+            'multisig_prefix_list': ('3', ),
             'first4_mprv': 'Ltpv',
             'first4_mpub': 'Ltub',
             'vbyte_pubkey': 48,
@@ -55,6 +61,8 @@ COIN_SYMBOL_ODICT_LIST = [
             'pow': 'scrypt',
             'example_address': 'D7Y55r6Yoc1G8EECxkQ6SuSjTgGJJ7M6yD',
             'address_first_char_list': ('D', '9', 'A', '2'),
+            'singlesig_prefix_list': ('D', ),
+            'multisig_prefix_list': ('9', 'A', ),
             'first4_mprv': 'dgpv',
             'first4_mpub': 'dgub',
             'vbyte_pubkey': 30,
@@ -70,6 +78,8 @@ COIN_SYMBOL_ODICT_LIST = [
             'pow': 'sha',
             'example_address': 'CFr99841LyMkyX5ZTGepY58rjXJhyNGXHf',
             'address_first_char_list': ('B', 'C', 'D', 'Y'),
+            'singlesig_prefix_list': ('C', 'B', ),
+            'multisig_prefix_list': ('D', ),
             'first4_mprv': 'bprv',
             'first4_mpub': 'bpub',
             'vbyte_pubkey': 27,
@@ -87,6 +97,13 @@ REQUIRED_FIELDS = (
     'currency_abbrev',  # what the unit of currency looks like when abbreviated
     'pow',  # the proof of work algorithm (sha/scrypt)
     'example_address',  # an example address
+    'address_first_char_list',  # the list of first char possibilites for an address
+    'singlesig_prefix_list',  # the list of first char possibilities for a single signature address
+    'multisig_prefix_list',  # the list of first char possibilities for a multi signature address
+    'first4_mprv',  # first 4 chars of the master private key
+    'first4_mpub',  # first 4 chars of the master public key
+    'vbyte_pubkey',  # pubkey version byte
+    'vbyte_script',  # script hash version byte
     )
 
 ELIGIBLE_POW_ENTRIES = set(['sha', 'scrypt'])

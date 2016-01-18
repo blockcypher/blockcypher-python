@@ -9,6 +9,8 @@ from blockcypher import create_unsigned_tx
 
 import os
 
+from time import sleep
+
 
 BC_API_KEY = os.getenv('BC_API_KEY')
 
@@ -28,6 +30,15 @@ class TestUtils(unittest.TestCase):
 
 
 class GetAddressesDetails(unittest.TestCase):
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        if not BC_API_KEY:
+            # to avoid 429s in case of no API key
+            print('sleeping...')
+            sleep(5)
 
     def test_get_addresses_details(self):
         addresses_details = get_addresses_details(
@@ -67,6 +78,15 @@ class GetAddressesDetails(unittest.TestCase):
 
 class CreateUnsignedTX(unittest.TestCase):
 
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        if not BC_API_KEY:
+            # to avoid 429s in case of no API key
+            print('sleeping...')
+            sleep(5)
+
     def test_create_basic_unsigned(self):
         # This address I previously sent funds to but threw out the private key
         create_unsigned_tx(
@@ -76,11 +96,13 @@ class CreateUnsignedTX(unittest.TestCase):
                 outputs=[
                     {
                         'value': -1,
-                        'address': 'CFr99841LyMkyX5ZTGepY58rjXJhyNGXHf',
+                        # p2sh address for extra measure
+                        'address': 'Dbc9fnf1Kqct7zvfNTiwr6HjvDfPYaFSNg',
                         },
                     ],
                 change_address=None,
                 include_tosigntx=True,
+                # will test signature returned locally:
                 verify_tosigntx=True,
                 coin_symbol='bcy',
                 api_key=BC_API_KEY,
@@ -107,6 +129,7 @@ class CreateUnsignedTX(unittest.TestCase):
                     ],
                 change_address=None,
                 include_tosigntx=True,
+                # will test signature returned locally:
                 verify_tosigntx=True,
                 coin_symbol='bcy',
                 api_key=BC_API_KEY,
@@ -114,6 +137,15 @@ class CreateUnsignedTX(unittest.TestCase):
 
 
 class GetAddressDetails(unittest.TestCase):
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        if not BC_API_KEY:
+            # to avoid 429s in case of no API key
+            print('sleeping...')
+            sleep(5)
 
     def test_fetching_unspents(self):
         # This address I previously sent funds to but threw out the private key
@@ -184,6 +216,12 @@ class CompressedTXSign(unittest.TestCase):
 
         # Generation steps:
         # $ curl -X POST https://api.blockcypher.com/v1/bcy/test/addrs
+
+    def tearDown(self):
+        if not BC_API_KEY:
+            # to avoid 429s in case of no API key
+            print('sleeping...')
+            sleep(5)
 
     def test_simple_spend_hex(self):
         tx_hash = simple_spend(
@@ -270,6 +308,12 @@ class UncompressedTXSign(unittest.TestCase):
         wallet.public_key.get_key(compressed=False)
         wallet.public_key.to_address(compressed=False)
         '''
+
+    def tearDown(self):
+        if not BC_API_KEY:
+            # to avoid 429s in case of no API key
+            print('sleeping...')
+            sleep(5)
 
     def test_simple_spend_hex(self):
         tx_hash = simple_spend(

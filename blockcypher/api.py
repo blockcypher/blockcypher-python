@@ -1590,18 +1590,25 @@ def create_unsigned_tx(inputs, outputs, change_address=None,
     return unsigned_tx
 
 
-def verify_unsigned_tx(unsigned_tx, inputs, outputs, sweep_funds=False,
+def verify_unsigned_tx(unsigned_tx, outputs, inputs=None, sweep_funds=False,
         change_address=None, coin_symbol='btc'):
     '''
     Takes an unsigned transaction and what was used to build it (in
     create_unsigned_tx) and verifies that tosign_tx matches what is being
-    signed and what was requestsed to be signed
+    signed and what was requestsed to be signed.
 
     Returns if valid:
         (True, '')
     Returns if invalid:
         (False, 'err_msg')
+
+    Specifically, this checks that the outputs match what we're expecting
+    (bad inputs would fail signature anyway).
+
+    Note: it was a mistake to include `inputs` in verify_unsigned_tx as it by definition is not used.
+    It would be removed but that would break compatibility.
     '''
+
     if not (change_address or sweep_funds):
         err_msg = 'Cannot Verify Without Developer Supplying Change Address (or Sweeping)'
         return False, err_msg
@@ -1669,8 +1676,9 @@ def get_input_addresses(unsigned_tx):
     Depending on how they are generated, unsigned transactions often use
     inputs whose address would be hard to know in advance, hence this step.
 
-    Note: if the same address is used in multiple inputs, it will be returned
-    multiple times.
+    Note:
+    - if the same address is used in multiple inputs, it will be returned multiple times
+    - this funciton does not work for p2sh inputs
     '''
     addresses = []
     for input_obj in unsigned_tx['tx']['inputs']:
@@ -1687,11 +1695,11 @@ def make_tx_signatures(txs_to_sign, privkey_list, pubkey_list):
     Use get_input_addresses() to return a list of addresses.
     Matching those addresses to keys is up to you and how you store your private keys.
     A future version of this library may handle this for you, but it is not trivial.
-    
+
     Note that if spending multisig funds the process is significantly more complicated.
     Each tx_to_sign must be signed by *each* private key.
-    In a 2-of-3 transaction, 2 of privkey1, privkey2, and privkey3 must sign each tx_so_sign.
-    
+    In a 2-of-3 transaction, two of [privkey1, privkey2, privkey3] must sign each tx_to_sign
+
     http://dev.blockcypher.com/#multisig-transactions
     """
     assert len(privkey_list) == len(pubkey_list) == len(txs_to_sign)
@@ -1701,7 +1709,12 @@ def make_tx_signatures(txs_to_sign, privkey_list, pubkey_list):
     signatures = []
     for cnt, tx_to_sign in enumerate(txs_to_sign):
         sig = der_encode_sig(*ecdsa_raw_sign(tx_to_sign.rstrip(' \t\r\n\0'), privkey_list[cnt]))
-        assert ecdsa_raw_verify(tx_to_sign, der_decode_sig(sig), pubkey_list[cnt])
+        err_msg = 'Bad Signature: sig %s for tx %s with pubkey %s' % (
+                sig,
+                tx_to_sign,
+                pubkey_list[cnt],
+                )
+        assert ecdsa_raw_verify(tx_to_sign, der_decode_sig(sig), pubkey_list[cnt]), err_msg
         signatures.append(sig)
     return signatures
 
@@ -1710,8 +1723,8 @@ def broadcast_signed_transaction(unsigned_tx, signatures, pubkeys, coin_symbol='
     '''
     Broadcasts the transaction from create_unsigned_tx
     '''
-    assert len(unsigned_tx['tosign']) == len(signatures)
-    assert 'errors' not in unsigned_tx
+
+    assert 'errors' not in unsigned_tx, unsigned_tx
 
     url = '%s/%s/%s/%s/txs/send' % (
             BLOCKCYPHER_DOMAIN,
@@ -1738,13 +1751,14 @@ def broadcast_signed_transaction(unsigned_tx, signatures, pubkeys, coin_symbol='
 def simple_spend(from_privkey, to_address, to_satoshis, change_address=None,
         privkey_is_compressed=True, min_confirmations=0, api_key=None, coin_symbol='btc'):
     '''
-    Simple method to spend from one address to another.
+    Simple method to spend from one single-key address to another.
 
     Signature takes place locally (client-side) after unsigned transaction is verified.
 
     Returns the tx_hash of the newly broadcast tx.
 
-    If no change_address specified, change will be sent back to sender address
+    If no change_address specified, change will be sent back to sender address.
+    Note that this violates the best practice.
 
     To sweep, set to_satoshis=-1
 
@@ -1752,10 +1766,12 @@ def simple_spend(from_privkey, to_address, to_satoshis, change_address=None,
     set privkey_is_compressed=False if using uncompressed addresses.
 
     Note that this currently only supports spending from single key addresses.
-    Future versions may support spending from p2sh addresses (PRs welcome).
     '''
     assert is_valid_coin_symbol(coin_symbol), coin_symbol
     assert type(to_satoshis) is int, to_satoshis
+
+    err_msg = '%s is not single key address' % to_address
+    assert to_address[0] in COIN_SYMBOL_MAPPINGS[coin_symbol]['singlesig_prefix_list'], err_msg
 
     if privkey_is_compressed:
         from_pubkey = compress(privkey_to_pubkey(from_privkey))
@@ -1821,6 +1837,122 @@ def simple_spend(from_privkey, to_address, to_satoshis, change_address=None,
     # sign locally
     tx_signatures = make_tx_signatures(
             txs_to_sign=unsigned_tx['tosign'],
+            privkey_list=privkey_list,
+            pubkey_list=pubkey_list,
+            )
+    logger.info('tx_signatures: %s' % tx_signatures)
+
+    # broadcast TX
+    broadcasted_tx = broadcast_signed_transaction(
+            unsigned_tx=unsigned_tx,
+            signatures=tx_signatures,
+            pubkeys=pubkey_list,
+            coin_symbol=coin_symbol,
+    )
+    logger.info('broadcasted_tx: %s' % broadcasted_tx)
+
+    if 'errors' in broadcasted_tx:
+        print('TX Error(s): Tx May NOT Have Been Broadcast')
+        for error in broadcasted_tx['errors']:
+            print(error['error'])
+        print(broadcasted_tx)
+        return
+
+    return broadcasted_tx['tx']['hash']
+
+
+def simple_spend_p2sh(from_pubkeys, from_privkeys_to_use, to_address, to_satoshis,
+        change_address=None, min_confirmations=0, api_key=None, coin_symbol='btc'):
+    '''
+    Simple method to spend from a p2sh address.
+
+    from_pubkeys is a list of *all* pubkeys for the address in question
+
+    from_privkeys_to_use is a list of all privkeys that will be used to sign the tx (and no more).
+    If the address is a 2-of-3 multisig and you supply 1 (or 3) from_privkeys_to_use this will break.
+
+    Signature takes place locally (client-side) after unsigned transaction is verified.
+
+    Returns the tx_hash of the newly broadcast tx.
+
+    A change_address *must* be specified, except for a sweep (set to_satoshis = -1)
+
+    Note that this currently only supports compressed private keys.
+    '''
+    assert is_valid_coin_symbol(coin_symbol), coin_symbol
+    assert type(to_satoshis) is int, to_satoshis
+
+    if change_address:
+        err_msg = '%s not a valid address for %s' % (change_address, coin_symbol)
+        assert is_valid_address_for_coinsymbol(change_address, coin_symbol), err_msg
+    else:
+        assert to_satoshis == -1, 'you must supply a change address or sweep'
+
+    err_msg = '%s not a valid address for %s' % (to_address, coin_symbol)
+    assert is_valid_address_for_coinsymbol(to_address, coin_symbol), err_msg
+
+    err_msg = '%s is not a p2sh address' % to_address
+    assert to_address[0] in COIN_SYMBOL_MAPPINGS[coin_symbol]['multisig_prefix_list'], err_msg
+
+    script_type = 'multisig-%s-of-%s' % (
+            len(from_privkeys_to_use),
+            len(from_pubkeys),
+            )
+    inputs = [
+            {
+                'pubkeys': from_pubkeys,
+                'script_type': script_type,
+                },
+            ]
+    logger.info('inputs: %s' % inputs)
+    outputs = [{'address': to_address, 'value': to_satoshis}, ]
+    logger.info('outputs: %s' % outputs)
+
+    # will fail loudly if tx doesn't verify client-side
+    unsigned_tx = create_unsigned_tx(
+        inputs=inputs,
+        outputs=outputs,
+        # may build with no change address, but if so will verify change in next step
+        # done for extra security in case of client-side bug in change address generation
+        change_address=change_address,
+        coin_symbol=coin_symbol,
+        min_confirmations=min_confirmations,
+        verify_tosigntx=False,  # will verify in next step
+        include_tosigntx=True,
+        api_key=api_key,
+        )
+    logger.info('unsigned_tx: %s' % unsigned_tx)
+
+    if 'errors' in unsigned_tx:
+        print('TX Error(s): Tx NOT Signed or Broadcast')
+        for error in unsigned_tx['errors']:
+            print(error['error'])
+        # Abandon
+        raise Exception('Build Unsigned TX Error')
+
+    tx_is_correct, err_msg = verify_unsigned_tx(
+            unsigned_tx=unsigned_tx,
+            inputs=inputs,
+            outputs=outputs,
+            sweep_funds=bool(to_satoshis == -1),
+            change_address=change_address,
+            coin_symbol=coin_symbol,
+            )
+    if not tx_is_correct:
+        print(unsigned_tx)  # for debug
+        raise Exception('TX Verification Error: %s' % err_msg)
+
+    txs_to_sign, privkey_list, pubkey_list = [], [], []
+    for cnt, proposed_input in enumerate(unsigned_tx['tx']['inputs']):
+
+        CONTINUE_WWWWWHERE
+
+    logger.info('privkey_list: %s' % privkey_list)
+    logger.info('pubkey_list: %s' % pubkey_list)
+
+    # sign locally
+    tx_signatures = make_tx_signatures(
+            txs_to_sign=txs_to_sign,
             privkey_list=privkey_list,
             pubkey_list=pubkey_list,
             )
