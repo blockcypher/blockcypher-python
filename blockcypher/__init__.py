@@ -76,6 +76,7 @@ from .api import get_input_addresses
 from .api import make_tx_signatures
 from .api import broadcast_signed_transaction
 from .api import simple_spend
+from .api import simple_spend_p2sh
 from .api import embed_data
 from .api import get_metadata
 from .api import put_metadata

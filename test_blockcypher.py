@@ -2,7 +2,7 @@ import unittest
 
 from blockcypher.utils import is_valid_hash
 
-from blockcypher import simple_spend
+from blockcypher import simple_spend, simple_spend_p2sh
 from blockcypher import get_transaction_details
 from blockcypher import get_address_details, get_addresses_details
 from blockcypher import create_unsigned_tx
@@ -280,6 +280,52 @@ class CompressedTXSign(unittest.TestCase):
             elif output_obj['addresses'][0] == self.bcy_faucet_addr:
                 # this is the tx
                 output_obj['value'] == self.to_send_satoshis
+            else:
+                raise Exception('Invalid Output Address: %s' % output_obj['addresses'][0])
+
+    def test_simple_spend_p2sh(self):
+        from_addr = 'Dpuo6iMtoZW3oNsNuALHTEyyw55fBMxiqE'
+        # keys that went into building from_addr
+        all_from_pubkeys = [
+                '022d1d33c917e0c1ca677b8c6d47ee55b59880630afe8290517fc7de640ce257f5',
+                '038a5f1bd7eeb34f53a014f81bfd50869cf6d972ee2bef078f6b67d4c8dd9432b2',
+                '033796355300f6a50602f701fcf06baebf8b160553e100852703a9363522227a53',
+                ]
+        # 2 of 3 of the corresponding keys above
+        from_privkeys_to_use = [
+                '57067d2852b5f92d18d82a09c2b658184eb85a38fe47adb8db85203a42f91e8f',
+                'c4bbc144bc5351288aa46c694a32eceaff739945510cca8bdd924d1c660ff1f4'
+                ]
+
+        tx_hash = simple_spend_p2sh(
+                all_from_pubkeys=all_from_pubkeys,
+                from_privkeys_to_use=from_privkeys_to_use,
+                to_address=self.bcy_faucet_addr,
+                to_satoshis=1,
+                # change addr must be explicit:
+                change_address=from_addr,
+                coin_symbol='bcy',
+                )
+
+        # confirm details (esp that change sent back to sender address)
+        tx_details = get_transaction_details(tx_hash=tx_hash, coin_symbol='bcy')
+
+        for input_obj in tx_details['inputs']:
+            assert len(input_obj['addresses']) == 1, input_obj['addresses']
+            assert input_obj['addresses'][0] == from_addr
+            assert input_obj['script_type'] == 'pay-to-script-hash'
+
+        for output_obj in tx_details['outputs']:
+            assert len(output_obj['addresses']) == 1, input_obj['addresses']
+
+            if output_obj['addresses'][0] == from_addr:
+                # this is change
+                assert output_obj['script_type'] == 'pay-to-script-hash'
+                output_obj['value'] > 0
+            elif output_obj['addresses'][0] == self.bcy_faucet_addr:
+                # this is the tx
+                assert output_obj['script_type'] == 'pay-to-pubkey-hash'
+                output_obj['value'] == 1
             else:
                 raise Exception('Invalid Output Address: %s' % output_obj['addresses'][0])
 

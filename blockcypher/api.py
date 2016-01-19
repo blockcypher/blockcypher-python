@@ -1770,9 +1770,6 @@ def simple_spend(from_privkey, to_address, to_satoshis, change_address=None,
     assert is_valid_coin_symbol(coin_symbol), coin_symbol
     assert type(to_satoshis) is int, to_satoshis
 
-    err_msg = '%s is not single key address' % to_address
-    assert to_address[0] in COIN_SYMBOL_MAPPINGS[coin_symbol]['singlesig_prefix_list'], err_msg
-
     if privkey_is_compressed:
         from_pubkey = compress(privkey_to_pubkey(from_privkey))
     else:
@@ -1828,10 +1825,12 @@ def simple_spend(from_privkey, to_address, to_satoshis, change_address=None,
         raise Exception('TX Verification Error: %s' % err_msg)
 
     privkey_list, pubkey_list = [], []
-    for _ in unsigned_tx['tx']['inputs']:
+    for proposed_input in unsigned_tx['tx']['inputs']:
         privkey_list.append(from_privkey)
         pubkey_list.append(from_pubkey)
-    logger.info('privkey_list: %s' % privkey_list)
+        # paying from a single key should only mean one address per input:
+        assert len(proposed_input['addresses']) == 1, proposed_input['addresses']
+    # logger.info('privkey_list: %s' % privkey_list)
     logger.info('pubkey_list: %s' % pubkey_list)
 
     # sign locally
@@ -1861,12 +1860,12 @@ def simple_spend(from_privkey, to_address, to_satoshis, change_address=None,
     return broadcasted_tx['tx']['hash']
 
 
-def simple_spend_p2sh(from_pubkeys, from_privkeys_to_use, to_address, to_satoshis,
+def simple_spend_p2sh(all_from_pubkeys, from_privkeys_to_use, to_address, to_satoshis,
         change_address=None, min_confirmations=0, api_key=None, coin_symbol='btc'):
     '''
     Simple method to spend from a p2sh address.
 
-    from_pubkeys is a list of *all* pubkeys for the address in question
+    all_from_pubkeys is a list of *all* pubkeys for the address in question.
 
     from_privkeys_to_use is a list of all privkeys that will be used to sign the tx (and no more).
     If the address is a 2-of-3 multisig and you supply 1 (or 3) from_privkeys_to_use this will break.
@@ -1879,6 +1878,7 @@ def simple_spend_p2sh(from_pubkeys, from_privkeys_to_use, to_address, to_satoshi
 
     Note that this currently only supports compressed private keys.
     '''
+
     assert is_valid_coin_symbol(coin_symbol), coin_symbol
     assert type(to_satoshis) is int, to_satoshis
 
@@ -1891,16 +1891,27 @@ def simple_spend_p2sh(from_pubkeys, from_privkeys_to_use, to_address, to_satoshi
     err_msg = '%s not a valid address for %s' % (to_address, coin_symbol)
     assert is_valid_address_for_coinsymbol(to_address, coin_symbol), err_msg
 
-    err_msg = '%s is not a p2sh address' % to_address
-    assert to_address[0] in COIN_SYMBOL_MAPPINGS[coin_symbol]['multisig_prefix_list'], err_msg
+    # TODO: calculate from address from pubkeys
+    # err_msg = '%s is not a p2sh address' % to_address
+    # assert from_address[0] in COIN_SYMBOL_MAPPINGS[coin_symbol]['multisig_prefix_list'], err_msg
+
+    assert type(all_from_pubkeys) in (list, tuple), all_from_pubkeys
+    assert len(all_from_pubkeys) > 1
+
+    assert type(from_privkeys_to_use) in (list, tuple), from_privkeys_to_use
+
+    for from_privkey in from_privkeys_to_use:
+        from_pubkey = compress(privkey_to_pubkey(from_privkey))
+        err_msg = '%s not in %s' % (from_pubkey, all_from_pubkeys)
+        assert from_pubkey in all_from_pubkeys
 
     script_type = 'multisig-%s-of-%s' % (
             len(from_privkeys_to_use),
-            len(from_pubkeys),
+            len(all_from_pubkeys),
             )
     inputs = [
             {
-                'pubkeys': from_pubkeys,
+                'pubkeys': all_from_pubkeys,
                 'script_type': script_type,
                 },
             ]
@@ -1932,7 +1943,7 @@ def simple_spend_p2sh(from_pubkeys, from_privkeys_to_use, to_address, to_satoshi
 
     tx_is_correct, err_msg = verify_unsigned_tx(
             unsigned_tx=unsigned_tx,
-            inputs=inputs,
+            inputs=None,
             outputs=outputs,
             sweep_funds=bool(to_satoshis == -1),
             change_address=change_address,
@@ -1945,9 +1956,20 @@ def simple_spend_p2sh(from_pubkeys, from_privkeys_to_use, to_address, to_satoshi
     txs_to_sign, privkey_list, pubkey_list = [], [], []
     for cnt, proposed_input in enumerate(unsigned_tx['tx']['inputs']):
 
-        CONTINUE_WWWWWHERE
+        # confirm that the input matches the all_from_pubkeys
+        err_msg = 'Invalid input: %s != %s' % (
+                proposed_input['addresses'],
+                all_from_pubkeys,
+                )
+        assert set(proposed_input['addresses']) == set(all_from_pubkeys), err_msg
 
-    logger.info('privkey_list: %s' % privkey_list)
+        # build items to pass to make_tx_signatures
+        for from_privkey in from_privkeys_to_use:
+            txs_to_sign.append(unsigned_tx['tosign'][cnt])
+            privkey_list.append(from_privkey)
+            pubkey_list.append(compress(privkey_to_pubkey(from_privkey)))
+    logger.info('txs_to_sign: %s' % txs_to_sign)
+    # logger.info('privkey_list: %s' % privkey_list)
     logger.info('pubkey_list: %s' % pubkey_list)
 
     # sign locally
