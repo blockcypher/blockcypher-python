@@ -45,12 +45,22 @@ logger.addHandler(ch)
 '''
 
 
+class RateLimitError(RuntimeError):
+    ''' Raised when the library makes too many API calls '''
+
+
+def _assert_not_rate_limited(request):
+    if request.status_code == 429:
+        raise RateLimitError('Status Code 429', request.text)
+
+
 def get_token_info(api_key):
     assert api_key
 
     url = '%s/%s/tokens/%s' % (BLOCKCYPHER_DOMAIN, ENDPOINT_VERSION, api_key)
 
     r = requests.get(url, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     return r.json()
 
@@ -121,6 +131,7 @@ def get_address_details(address, coin_symbol='btc', txn_limit=None, api_key=None
         params['unspentOnly'] = unspent_only
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     return _clean_tx(response_dict=r.json())
 
@@ -158,6 +169,7 @@ def get_addresses_details(address_list, coin_symbol='btc', txn_limit=None, api_k
         params['unspentOnly'] = unspent_only
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     cleaned_dict_list = []
     for response_dict in r.json():
@@ -188,6 +200,7 @@ def get_address_full(address, coin_symbol='btc', txn_limit=None, api_key=None, b
         params['before'] = before_bh
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     response_dict = r.json()
 
@@ -241,6 +254,7 @@ def get_wallet_transactions(wallet_name, api_key, coin_symbol='btc',
         params['confirmations'] = confirmations
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     return _clean_tx(r.json())
 
@@ -266,6 +280,7 @@ def get_address_overview(address, coin_symbol='btc', api_key=None):
         params['token'] = api_key
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     return r.json()
 
@@ -350,6 +365,7 @@ def generate_new_address(coin_symbol='btc', api_key=None):
         params['token'] = api_key
 
     r = requests.post(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     return r.json()
 
@@ -389,6 +405,7 @@ def derive_hd_address(api_key=None, wallet_name=None, num_addresses=1,
         params['count'] = num_addresses
 
     r = requests.post(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     return r.json()
 
@@ -428,6 +445,7 @@ def get_transaction_details(tx_hash, coin_symbol='btc', limit=None,
         params['includeHex'] = 'true'  # boolean True (proper) won't work
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     response_dict = r.json()
 
@@ -483,6 +501,7 @@ def get_transactions_details(tx_hash_list, coin_symbol='btc', limit=None, api_ke
         params['limit'] = limit
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     response_dict_list = r.json()
     cleaned_dict_list = []
@@ -559,6 +578,7 @@ def get_broadcast_transactions(coin_symbol='btc', limit=10, api_key=None):
         params['limit'] = limit
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     response_dict = r.json()
 
@@ -609,6 +629,7 @@ def get_block_overview(block_representation, coin_symbol='btc', txn_limit=None,
         params['txstart'] = txn_offset
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     response_dict = r.json()
 
@@ -644,6 +665,7 @@ def get_blocks_overview(block_representation_list, coin_symbol='btc', txn_limit=
         params['limit'] = txn_limit
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     cleaned_dict_list = []
     for response_dict in r.json():
@@ -767,6 +789,7 @@ def get_blockchain_overview(coin_symbol='btc', api_key=None):
         params['token'] = api_key
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     response_dict = r.json()
 
@@ -863,6 +886,7 @@ def get_forwarding_address_details(destination_address, api_key, callback_url=No
         data['callback_url'] = callback_url
 
     r = requests.post(url, json=data, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     return r.json()
 
@@ -905,6 +929,7 @@ def list_forwarding_addresses(api_key, coin_symbol='btc'):
     params = {'token': api_key}
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     return r.json()
 
@@ -922,6 +947,7 @@ def delete_forwarding_address(payment_id, coin_symbol='btc'):
     logger.info(url)
 
     r = requests.delete(url, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     if r.status_code == 204:
         return True
@@ -962,6 +988,7 @@ def subscribe_to_address_webhook(callback_url, subscription_address, event='tx-c
         data['confidence'] = confidence
 
     r = requests.post(url, json=data, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     response_dict = r.json()
 
@@ -996,6 +1023,7 @@ def subscribe_to_wallet_webhook(callback_url, wallet_name,
             }
 
     r = requests.post(url, json=data, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     response_dict = r.json()
 
@@ -1017,6 +1045,7 @@ def list_webhooks(api_key, coin_symbol='btc'):
     params = {'token': api_key}
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     return r.json()
 
@@ -1039,6 +1068,7 @@ def get_webhook_info(webhook_id, api_key=None, coin_symbol='btc'):
         params = {}
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     response_dict = r.json()
     return response_dict
@@ -1059,6 +1089,7 @@ def unsubscribe_from_webhook(webhook_id, api_key, coin_symbol='btc'):
     logger.info(url)
 
     r = requests.delete(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     # Will return nothing, but we confirm the status code to be sure it worked
     if r.status_code == 204:
@@ -1100,6 +1131,8 @@ def send_faucet_coins(address_to_fund, satoshis, api_key, coin_symbol='bcy'):
         params = {}
 
     r = requests.post(url, json=data, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
+
     return r.json()
 
 
@@ -1143,6 +1176,7 @@ def pushtx(tx_hex, coin_symbol='btc', api_key=None):
         data['token'] = api_key
 
     r = requests.post(url, json=data, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     return r.json()
 
@@ -1170,6 +1204,7 @@ def decodetx(tx_hex, coin_symbol='btc', api_key=None):
         data['token'] = api_key
 
     r = requests.post(url, json=data, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     return r.json()
 
@@ -1189,6 +1224,7 @@ def list_wallet_names(api_key, is_hd_wallet=False, coin_symbol='btc'):
             )
     logger.info(url)
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     return r.json()
 
@@ -1219,6 +1255,7 @@ def create_wallet_from_address(wallet_name, address, api_key, coin_symbol='btc')
     logger.info(url)
 
     r = requests.post(url, json=data, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     return r.json()
 
@@ -1253,6 +1290,7 @@ def create_hd_wallet(wallet_name, xpubkey, api_key, subchain_indices=[], coin_sy
     logger.info(url)
 
     r = requests.post(url, json=data, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     return r.json()
 
@@ -1288,6 +1326,8 @@ def get_wallet_addresses(wallet_name, api_key, is_hd_wallet=False, zero_balance=
         params['used'] = 'false'
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
+
     return r.json()
 
 
@@ -1312,6 +1352,8 @@ def get_wallet_balance(wallet_name, api_key, coin_symbol='btc'):
     logger.info(url)
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
+
     return r.json()
 
 
@@ -1370,6 +1412,8 @@ def add_address_to_wallet(wallet_name, address, api_key, coin_symbol='btc'):
     logger.info(url)
 
     r = requests.post(url, json=data, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
+
     return r.json()
 
 
@@ -1391,6 +1435,7 @@ def remove_address_from_wallet(wallet_name, address, api_key, coin_symbol='btc')
     logger.info(url)
 
     r = requests.delete(url, json=data, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     if r.status_code == 204:
         return True
@@ -1415,6 +1460,8 @@ def delete_wallet(wallet_name, api_key, is_hd_wallet=False, coin_symbol='btc'):
     logger.info(url)
 
     r = requests.delete(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
+
     if r.status_code == 204:
         return True
     else:
@@ -1444,6 +1491,7 @@ def generate_multisig_address(pubkey_list, script_type='multisig-2-of-3', coin_s
             }
 
     r = requests.post(url, json=data, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     return r.json()
 
@@ -1571,6 +1619,7 @@ def create_unsigned_tx(inputs, outputs, change_address=None,
         params['token'] = api_key
 
     r = requests.post(url, json=data, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     unsigned_tx = r.json()
 
@@ -1739,6 +1788,7 @@ def broadcast_signed_transaction(unsigned_tx, signatures, pubkeys, coin_symbol='
     data['pubkeys'] = pubkeys
 
     r = requests.post(url, json=data, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     response_dict = r.json()
 
@@ -2018,6 +2068,7 @@ def embed_data(to_embed, api_key, data_is_hex=True, coin_symbol='btc'):
         data['encoding'] = 'string'
 
     r = requests.post(url, json=data, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     return r.json()
 
@@ -2091,6 +2142,7 @@ def get_metadata(address=None, tx_hash=None, block_hash=None, api_key=None, priv
         params['private'] = 'true'
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     response_dict = r.json()
 
@@ -2127,6 +2179,7 @@ def put_metadata(metadata_dict, address=None, tx_hash=None, block_hash=None, api
         params['private'] = 'true'
 
     r = requests.put(url, json=metadata_dict, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     # Will return nothing, but we confirm the status code to be sure it worked
     if r.status_code == 204:
@@ -2160,6 +2213,7 @@ def delete_metadata(address=None, tx_hash=None, block_hash=None, api_key=None, c
     params = {'token': api_key}
 
     r = requests.delete(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     # Will return nothing, but we confirm the status code to be sure it worked
     if r.status_code == 204:
