@@ -45,12 +45,22 @@ logger.addHandler(ch)
 '''
 
 
+class RateLimitError(RuntimeError):
+    ''' Raised when the library makes too many API calls '''
+
+
+def _assert_not_rate_limited(request):
+    if request.status_code == 429:
+        raise RateLimitError('Status Code 429', request.text)
+
+
 def get_token_info(api_key):
     assert api_key
 
     url = '%s/%s/tokens/%s' % (BLOCKCYPHER_DOMAIN, ENDPOINT_VERSION, api_key)
 
     r = requests.get(url, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     return r.json()
 
@@ -121,6 +131,7 @@ def get_address_details(address, coin_symbol='btc', txn_limit=None, api_key=None
         params['unspentOnly'] = unspent_only
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     return _clean_tx(response_dict=r.json())
 
@@ -158,6 +169,7 @@ def get_addresses_details(address_list, coin_symbol='btc', txn_limit=None, api_k
         params['unspentOnly'] = unspent_only
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     cleaned_dict_list = []
     for response_dict in r.json():
@@ -188,6 +200,7 @@ def get_address_full(address, coin_symbol='btc', txn_limit=None, api_key=None, b
         params['before'] = before_bh
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     response_dict = r.json()
 
@@ -241,6 +254,7 @@ def get_wallet_transactions(wallet_name, api_key, coin_symbol='btc',
         params['confirmations'] = confirmations
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     return _clean_tx(r.json())
 
@@ -266,6 +280,7 @@ def get_address_overview(address, coin_symbol='btc', api_key=None):
         params['token'] = api_key
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     return r.json()
 
@@ -350,6 +365,7 @@ def generate_new_address(coin_symbol='btc', api_key=None):
         params['token'] = api_key
 
     r = requests.post(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     return r.json()
 
@@ -389,6 +405,7 @@ def derive_hd_address(api_key=None, wallet_name=None, num_addresses=1,
         params['count'] = num_addresses
 
     r = requests.post(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     return r.json()
 
@@ -428,6 +445,7 @@ def get_transaction_details(tx_hash, coin_symbol='btc', limit=None,
         params['includeHex'] = 'true'  # boolean True (proper) won't work
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     response_dict = r.json()
 
@@ -483,6 +501,7 @@ def get_transactions_details(tx_hash_list, coin_symbol='btc', limit=None, api_ke
         params['limit'] = limit
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     response_dict_list = r.json()
     cleaned_dict_list = []
@@ -559,6 +578,7 @@ def get_broadcast_transactions(coin_symbol='btc', limit=10, api_key=None):
         params['limit'] = limit
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     response_dict = r.json()
 
@@ -609,6 +629,7 @@ def get_block_overview(block_representation, coin_symbol='btc', txn_limit=None,
         params['txstart'] = txn_offset
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     response_dict = r.json()
 
@@ -644,6 +665,7 @@ def get_blocks_overview(block_representation_list, coin_symbol='btc', txn_limit=
         params['limit'] = txn_limit
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     cleaned_dict_list = []
     for response_dict in r.json():
@@ -767,6 +789,7 @@ def get_blockchain_overview(coin_symbol='btc', api_key=None):
         params['token'] = api_key
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     response_dict = r.json()
 
@@ -863,6 +886,7 @@ def get_forwarding_address_details(destination_address, api_key, callback_url=No
         data['callback_url'] = callback_url
 
     r = requests.post(url, json=data, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     return r.json()
 
@@ -905,6 +929,7 @@ def list_forwarding_addresses(api_key, coin_symbol='btc'):
     params = {'token': api_key}
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     return r.json()
 
@@ -922,6 +947,7 @@ def delete_forwarding_address(payment_id, coin_symbol='btc'):
     logger.info(url)
 
     r = requests.delete(url, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     if r.status_code == 204:
         return True
@@ -962,6 +988,7 @@ def subscribe_to_address_webhook(callback_url, subscription_address, event='tx-c
         data['confidence'] = confidence
 
     r = requests.post(url, json=data, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     response_dict = r.json()
 
@@ -996,6 +1023,7 @@ def subscribe_to_wallet_webhook(callback_url, wallet_name,
             }
 
     r = requests.post(url, json=data, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     response_dict = r.json()
 
@@ -1017,6 +1045,7 @@ def list_webhooks(api_key, coin_symbol='btc'):
     params = {'token': api_key}
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     return r.json()
 
@@ -1039,6 +1068,7 @@ def get_webhook_info(webhook_id, api_key=None, coin_symbol='btc'):
         params = {}
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     response_dict = r.json()
     return response_dict
@@ -1059,6 +1089,7 @@ def unsubscribe_from_webhook(webhook_id, api_key, coin_symbol='btc'):
     logger.info(url)
 
     r = requests.delete(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     # Will return nothing, but we confirm the status code to be sure it worked
     if r.status_code == 204:
@@ -1100,6 +1131,8 @@ def send_faucet_coins(address_to_fund, satoshis, api_key, coin_symbol='bcy'):
         params = {}
 
     r = requests.post(url, json=data, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
+
     return r.json()
 
 
@@ -1143,6 +1176,7 @@ def pushtx(tx_hex, coin_symbol='btc', api_key=None):
         data['token'] = api_key
 
     r = requests.post(url, json=data, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     return r.json()
 
@@ -1170,6 +1204,7 @@ def decodetx(tx_hex, coin_symbol='btc', api_key=None):
         data['token'] = api_key
 
     r = requests.post(url, json=data, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     return r.json()
 
@@ -1189,6 +1224,7 @@ def list_wallet_names(api_key, is_hd_wallet=False, coin_symbol='btc'):
             )
     logger.info(url)
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     return r.json()
 
@@ -1219,6 +1255,7 @@ def create_wallet_from_address(wallet_name, address, api_key, coin_symbol='btc')
     logger.info(url)
 
     r = requests.post(url, json=data, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     return r.json()
 
@@ -1253,6 +1290,7 @@ def create_hd_wallet(wallet_name, xpubkey, api_key, subchain_indices=[], coin_sy
     logger.info(url)
 
     r = requests.post(url, json=data, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     return r.json()
 
@@ -1288,6 +1326,8 @@ def get_wallet_addresses(wallet_name, api_key, is_hd_wallet=False, zero_balance=
         params['used'] = 'false'
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
+
     return r.json()
 
 
@@ -1312,6 +1352,8 @@ def get_wallet_balance(wallet_name, api_key, coin_symbol='btc'):
     logger.info(url)
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
+
     return r.json()
 
 
@@ -1370,6 +1412,8 @@ def add_address_to_wallet(wallet_name, address, api_key, coin_symbol='btc'):
     logger.info(url)
 
     r = requests.post(url, json=data, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
+
     return r.json()
 
 
@@ -1391,6 +1435,7 @@ def remove_address_from_wallet(wallet_name, address, api_key, coin_symbol='btc')
     logger.info(url)
 
     r = requests.delete(url, json=data, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     if r.status_code == 204:
         return True
@@ -1415,6 +1460,8 @@ def delete_wallet(wallet_name, api_key, is_hd_wallet=False, coin_symbol='btc'):
     logger.info(url)
 
     r = requests.delete(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
+
     if r.status_code == 204:
         return True
     else:
@@ -1444,6 +1491,7 @@ def generate_multisig_address(pubkey_list, script_type='multisig-2-of-3', coin_s
             }
 
     r = requests.post(url, json=data, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     return r.json()
 
@@ -1571,6 +1619,7 @@ def create_unsigned_tx(inputs, outputs, change_address=None,
         params['token'] = api_key
 
     r = requests.post(url, json=data, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     unsigned_tx = r.json()
 
@@ -1590,18 +1639,25 @@ def create_unsigned_tx(inputs, outputs, change_address=None,
     return unsigned_tx
 
 
-def verify_unsigned_tx(unsigned_tx, inputs, outputs, sweep_funds=False,
+def verify_unsigned_tx(unsigned_tx, outputs, inputs=None, sweep_funds=False,
         change_address=None, coin_symbol='btc'):
     '''
     Takes an unsigned transaction and what was used to build it (in
     create_unsigned_tx) and verifies that tosign_tx matches what is being
-    signed and what was requestsed to be signed
+    signed and what was requestsed to be signed.
 
     Returns if valid:
         (True, '')
     Returns if invalid:
         (False, 'err_msg')
+
+    Specifically, this checks that the outputs match what we're expecting
+    (bad inputs would fail signature anyway).
+
+    Note: it was a mistake to include `inputs` in verify_unsigned_tx as it by definition is not used.
+    It would be removed but that would break compatibility.
     '''
+
     if not (change_address or sweep_funds):
         err_msg = 'Cannot Verify Without Developer Supplying Change Address (or Sweeping)'
         return False, err_msg
@@ -1669,8 +1725,9 @@ def get_input_addresses(unsigned_tx):
     Depending on how they are generated, unsigned transactions often use
     inputs whose address would be hard to know in advance, hence this step.
 
-    Note: if the same address is used in multiple inputs, it will be returned
-    multiple times.
+    Note:
+    - if the same address is used in multiple inputs, it will be returned multiple times
+    - this funciton does not work for p2sh inputs
     '''
     addresses = []
     for input_obj in unsigned_tx['tx']['inputs']:
@@ -1687,11 +1744,11 @@ def make_tx_signatures(txs_to_sign, privkey_list, pubkey_list):
     Use get_input_addresses() to return a list of addresses.
     Matching those addresses to keys is up to you and how you store your private keys.
     A future version of this library may handle this for you, but it is not trivial.
-    
+
     Note that if spending multisig funds the process is significantly more complicated.
     Each tx_to_sign must be signed by *each* private key.
-    In a 2-of-3 transaction, 2 of privkey1, privkey2, and privkey3 must sign each tx_so_sign.
-    
+    In a 2-of-3 transaction, two of [privkey1, privkey2, privkey3] must sign each tx_to_sign
+
     http://dev.blockcypher.com/#multisig-transactions
     """
     assert len(privkey_list) == len(pubkey_list) == len(txs_to_sign)
@@ -1701,7 +1758,12 @@ def make_tx_signatures(txs_to_sign, privkey_list, pubkey_list):
     signatures = []
     for cnt, tx_to_sign in enumerate(txs_to_sign):
         sig = der_encode_sig(*ecdsa_raw_sign(tx_to_sign.rstrip(' \t\r\n\0'), privkey_list[cnt]))
-        assert ecdsa_raw_verify(tx_to_sign, der_decode_sig(sig), pubkey_list[cnt])
+        err_msg = 'Bad Signature: sig %s for tx %s with pubkey %s' % (
+                sig,
+                tx_to_sign,
+                pubkey_list[cnt],
+                )
+        assert ecdsa_raw_verify(tx_to_sign, der_decode_sig(sig), pubkey_list[cnt]), err_msg
         signatures.append(sig)
     return signatures
 
@@ -1710,8 +1772,8 @@ def broadcast_signed_transaction(unsigned_tx, signatures, pubkeys, coin_symbol='
     '''
     Broadcasts the transaction from create_unsigned_tx
     '''
-    assert len(unsigned_tx['tosign']) == len(signatures)
-    assert 'errors' not in unsigned_tx
+
+    assert 'errors' not in unsigned_tx, unsigned_tx
 
     url = '%s/%s/%s/%s/txs/send' % (
             BLOCKCYPHER_DOMAIN,
@@ -1726,6 +1788,7 @@ def broadcast_signed_transaction(unsigned_tx, signatures, pubkeys, coin_symbol='
     data['pubkeys'] = pubkeys
 
     r = requests.post(url, json=data, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     response_dict = r.json()
 
@@ -1738,13 +1801,14 @@ def broadcast_signed_transaction(unsigned_tx, signatures, pubkeys, coin_symbol='
 def simple_spend(from_privkey, to_address, to_satoshis, change_address=None,
         privkey_is_compressed=True, min_confirmations=0, api_key=None, coin_symbol='btc'):
     '''
-    Simple method to spend from one address to another.
+    Simple method to spend from one single-key address to another.
 
     Signature takes place locally (client-side) after unsigned transaction is verified.
 
     Returns the tx_hash of the newly broadcast tx.
 
-    If no change_address specified, change will be sent back to sender address
+    If no change_address specified, change will be sent back to sender address.
+    Note that this violates the best practice.
 
     To sweep, set to_satoshis=-1
 
@@ -1752,7 +1816,6 @@ def simple_spend(from_privkey, to_address, to_satoshis, change_address=None,
     set privkey_is_compressed=False if using uncompressed addresses.
 
     Note that this currently only supports spending from single key addresses.
-    Future versions may support spending from p2sh addresses (PRs welcome).
     '''
     assert is_valid_coin_symbol(coin_symbol), coin_symbol
     assert type(to_satoshis) is int, to_satoshis
@@ -1812,15 +1875,156 @@ def simple_spend(from_privkey, to_address, to_satoshis, change_address=None,
         raise Exception('TX Verification Error: %s' % err_msg)
 
     privkey_list, pubkey_list = [], []
-    for _ in unsigned_tx['tx']['inputs']:
+    for proposed_input in unsigned_tx['tx']['inputs']:
         privkey_list.append(from_privkey)
         pubkey_list.append(from_pubkey)
-    logger.info('privkey_list: %s' % privkey_list)
+        # paying from a single key should only mean one address per input:
+        assert len(proposed_input['addresses']) == 1, proposed_input['addresses']
+    # logger.info('privkey_list: %s' % privkey_list)
     logger.info('pubkey_list: %s' % pubkey_list)
 
     # sign locally
     tx_signatures = make_tx_signatures(
             txs_to_sign=unsigned_tx['tosign'],
+            privkey_list=privkey_list,
+            pubkey_list=pubkey_list,
+            )
+    logger.info('tx_signatures: %s' % tx_signatures)
+
+    # broadcast TX
+    broadcasted_tx = broadcast_signed_transaction(
+            unsigned_tx=unsigned_tx,
+            signatures=tx_signatures,
+            pubkeys=pubkey_list,
+            coin_symbol=coin_symbol,
+    )
+    logger.info('broadcasted_tx: %s' % broadcasted_tx)
+
+    if 'errors' in broadcasted_tx:
+        print('TX Error(s): Tx May NOT Have Been Broadcast')
+        for error in broadcasted_tx['errors']:
+            print(error['error'])
+        print(broadcasted_tx)
+        return
+
+    return broadcasted_tx['tx']['hash']
+
+
+def simple_spend_p2sh(all_from_pubkeys, from_privkeys_to_use, to_address, to_satoshis,
+        change_address=None, min_confirmations=0, api_key=None, coin_symbol='btc'):
+    '''
+    Simple method to spend from a p2sh address.
+
+    all_from_pubkeys is a list of *all* pubkeys for the address in question.
+
+    from_privkeys_to_use is a list of all privkeys that will be used to sign the tx (and no more).
+    If the address is a 2-of-3 multisig and you supply 1 (or 3) from_privkeys_to_use this will break.
+
+    Signature takes place locally (client-side) after unsigned transaction is verified.
+
+    Returns the tx_hash of the newly broadcast tx.
+
+    A change_address *must* be specified, except for a sweep (set to_satoshis = -1)
+
+    Note that this currently only supports compressed private keys.
+    '''
+
+    assert is_valid_coin_symbol(coin_symbol), coin_symbol
+    assert type(to_satoshis) is int, to_satoshis
+
+    if change_address:
+        err_msg = '%s not a valid address for %s' % (change_address, coin_symbol)
+        assert is_valid_address_for_coinsymbol(change_address, coin_symbol), err_msg
+    else:
+        assert to_satoshis == -1, 'you must supply a change address or sweep'
+
+    err_msg = '%s not a valid address for %s' % (to_address, coin_symbol)
+    assert is_valid_address_for_coinsymbol(to_address, coin_symbol), err_msg
+
+    # TODO: calculate from address from pubkeys
+    # err_msg = '%s is not a p2sh address' % to_address
+    # assert from_address[0] in COIN_SYMBOL_MAPPINGS[coin_symbol]['multisig_prefix_list'], err_msg
+
+    assert type(all_from_pubkeys) in (list, tuple), all_from_pubkeys
+    assert len(all_from_pubkeys) > 1
+
+    assert type(from_privkeys_to_use) in (list, tuple), from_privkeys_to_use
+
+    for from_privkey in from_privkeys_to_use:
+        from_pubkey = compress(privkey_to_pubkey(from_privkey))
+        err_msg = '%s not in %s' % (from_pubkey, all_from_pubkeys)
+        assert from_pubkey in all_from_pubkeys
+
+    script_type = 'multisig-%s-of-%s' % (
+            len(from_privkeys_to_use),
+            len(all_from_pubkeys),
+            )
+    inputs = [
+            {
+                'pubkeys': all_from_pubkeys,
+                'script_type': script_type,
+                },
+            ]
+    logger.info('inputs: %s' % inputs)
+    outputs = [{'address': to_address, 'value': to_satoshis}, ]
+    logger.info('outputs: %s' % outputs)
+
+    # will fail loudly if tx doesn't verify client-side
+    unsigned_tx = create_unsigned_tx(
+        inputs=inputs,
+        outputs=outputs,
+        # may build with no change address, but if so will verify change in next step
+        # done for extra security in case of client-side bug in change address generation
+        change_address=change_address,
+        coin_symbol=coin_symbol,
+        min_confirmations=min_confirmations,
+        verify_tosigntx=False,  # will verify in next step
+        include_tosigntx=True,
+        api_key=api_key,
+        )
+    logger.info('unsigned_tx: %s' % unsigned_tx)
+
+    if 'errors' in unsigned_tx:
+        print('TX Error(s): Tx NOT Signed or Broadcast')
+        for error in unsigned_tx['errors']:
+            print(error['error'])
+        # Abandon
+        raise Exception('Build Unsigned TX Error')
+
+    tx_is_correct, err_msg = verify_unsigned_tx(
+            unsigned_tx=unsigned_tx,
+            inputs=None,
+            outputs=outputs,
+            sweep_funds=bool(to_satoshis == -1),
+            change_address=change_address,
+            coin_symbol=coin_symbol,
+            )
+    if not tx_is_correct:
+        print(unsigned_tx)  # for debug
+        raise Exception('TX Verification Error: %s' % err_msg)
+
+    txs_to_sign, privkey_list, pubkey_list = [], [], []
+    for cnt, proposed_input in enumerate(unsigned_tx['tx']['inputs']):
+
+        # confirm that the input matches the all_from_pubkeys
+        err_msg = 'Invalid input: %s != %s' % (
+                proposed_input['addresses'],
+                all_from_pubkeys,
+                )
+        assert set(proposed_input['addresses']) == set(all_from_pubkeys), err_msg
+
+        # build items to pass to make_tx_signatures
+        for from_privkey in from_privkeys_to_use:
+            txs_to_sign.append(unsigned_tx['tosign'][cnt])
+            privkey_list.append(from_privkey)
+            pubkey_list.append(compress(privkey_to_pubkey(from_privkey)))
+    logger.info('txs_to_sign: %s' % txs_to_sign)
+    # logger.info('privkey_list: %s' % privkey_list)
+    logger.info('pubkey_list: %s' % pubkey_list)
+
+    # sign locally
+    tx_signatures = make_tx_signatures(
+            txs_to_sign=txs_to_sign,
             privkey_list=privkey_list,
             pubkey_list=pubkey_list,
             )
@@ -1864,6 +2068,7 @@ def embed_data(to_embed, api_key, data_is_hex=True, coin_symbol='btc'):
         data['encoding'] = 'string'
 
     r = requests.post(url, json=data, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     return r.json()
 
@@ -1937,6 +2142,7 @@ def get_metadata(address=None, tx_hash=None, block_hash=None, api_key=None, priv
         params['private'] = 'true'
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     response_dict = r.json()
 
@@ -1973,6 +2179,7 @@ def put_metadata(metadata_dict, address=None, tx_hash=None, block_hash=None, api
         params['private'] = 'true'
 
     r = requests.put(url, json=metadata_dict, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     # Will return nothing, but we confirm the status code to be sure it worked
     if r.status_code == 204:
@@ -2006,6 +2213,7 @@ def delete_metadata(address=None, tx_hash=None, block_hash=None, api_key=None, c
     params = {'token': api_key}
 
     r = requests.delete(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    _assert_not_rate_limited(r)
 
     # Will return nothing, but we confirm the status code to be sure it worked
     if r.status_code == 204:

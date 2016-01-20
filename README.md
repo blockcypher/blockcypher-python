@@ -245,7 +245,7 @@ We can also get details on its transaction(s):
  'tx_url': 'https://api.blockcypher.com/v1/btc/main/txs/'}
 ```
 
-Another cool feature is that we can generate a new address keypair server-side:
+Another cool feature is that we can generate a new address keypair server-side, but you should really do this client-side:
 ```
 >>> blockcypher.generate_new_address()
 {'public': '03c87d1bba027204670c975d01e813d4a20ba4f79500802ba0d51ce3393fb86c1f',
@@ -268,3 +268,6 @@ For example, here's the latest Litecoin block height.
 >>> blockcypher.get_latest_block_height(coin_symbol='ltc')
 678686
 ```
+
+#### Pull Requests Welcome
+Please note that all PRs require test coverage in `test_blockcypher.py`.
