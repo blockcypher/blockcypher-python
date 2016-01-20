@@ -12,3 +12,6 @@ class TestTravis(unittest.TestCase):
             raise Exception('We have an env var')
         else:
             raise Exception('We do NOT have an env var')
+
+if __name__ == '__main__':
+    unittest.main(failfast=True)
