@@ -914,7 +914,7 @@ create_forwarding_address = get_forwarding_address
 create_forwarding_address_with_details = get_forwarding_address_details
 
 
-def list_forwarding_addresses(api_key, coin_symbol='btc'):
+def list_forwarding_addresses(api_key, offset=None, coin_symbol='btc'):
     '''
     List the forwarding addresses for a certain api key
     (and on a specific blockchain)
@@ -927,6 +927,9 @@ def list_forwarding_addresses(api_key, coin_symbol='btc'):
     logger.info(url)
 
     params = {'token': api_key}
+
+    if offset:
+        params['start'] = offset
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
     _assert_not_rate_limited(r)
