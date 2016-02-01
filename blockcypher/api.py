@@ -90,7 +90,7 @@ def _clean_block(response_dict):
     return response_dict
 
 
-def get_address_details(address, coin_symbol='btc', txn_limit=None, api_key=None, before_bh=None, after_bh=None, unspent_only=False, confirmations=0):
+def get_address_details(address, coin_symbol='btc', txn_limit=None, api_key=None, before_bh=None, after_bh=None, unspent_only=False, confidence=False, confirmations=0):
     '''
     Takes an address and coin_symbol and returns the address details
 
@@ -98,8 +98,12 @@ def get_address_details(address, coin_symbol='btc', txn_limit=None, api_key=None
       - txn_limit: # transactions to include
       - before_bh: filters response to only include transactions below before
       height in the blockchain.
+      - after_bh: filters response to only include transactions above after
+      height in the blockchain.
       - confirmations: returns the balance and TXRefs that have this number
       of confirmations
+      - unspent_only: filters response to only include unspent TXRefs.
+      - confidence: adds confidence information to unconfirmed TXRefs.
 
     For batching a list of addresses, see get_addresses_details
     '''
@@ -129,6 +133,8 @@ def get_address_details(address, coin_symbol='btc', txn_limit=None, api_key=None
         params['confirmations'] = confirmations
     if unspent_only:
         params['unspentOnly'] = unspent_only
+    if confidence:
+        params['includeConfidence'] = confidence
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
     _assert_not_rate_limited(r)
@@ -136,7 +142,7 @@ def get_address_details(address, coin_symbol='btc', txn_limit=None, api_key=None
     return _clean_tx(response_dict=r.json())
 
 
-def get_addresses_details(address_list, coin_symbol='btc', txn_limit=None, api_key=None, before_bh=None, after_bh=None, unspent_only=False, confirmations=0):
+def get_addresses_details(address_list, coin_symbol='btc', txn_limit=None, api_key=None, before_bh=None, after_bh=None, unspent_only=False, confidence=False, confirmations=0):
     '''
     Batch version of get_address_details
     '''
@@ -167,6 +173,8 @@ def get_addresses_details(address_list, coin_symbol='btc', txn_limit=None, api_k
         params['confirmations'] = confirmations
     if unspent_only:
         params['unspentOnly'] = unspent_only
+    if confidence:
+        params['includeConfidence'] = confidence
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
     _assert_not_rate_limited(r)
@@ -177,7 +185,7 @@ def get_addresses_details(address_list, coin_symbol='btc', txn_limit=None, api_k
     return cleaned_dict_list
 
 
-def get_address_full(address, coin_symbol='btc', txn_limit=None, api_key=None, before_bh=None):
+def get_address_full(address, coin_symbol='btc', txn_limit=None, api_key=None, before_bh=None, after_bh=None, confidence=False, confirmations=0):
 
     assert is_valid_address_for_coinsymbol(
             b58_address=address,
@@ -198,6 +206,12 @@ def get_address_full(address, coin_symbol='btc', txn_limit=None, api_key=None, b
         params['token'] = api_key
     if before_bh:
         params['before'] = before_bh
+    if after_bh:
+        params['after'] = after_bh
+    if confidence:
+        params['includeConfidence'] = confidence
+    if confirmations:
+        params['confirmations'] = confirmations
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
     _assert_not_rate_limited(r)
@@ -219,16 +233,21 @@ def get_address_full(address, coin_symbol='btc', txn_limit=None, api_key=None, b
 
 
 def get_wallet_transactions(wallet_name, api_key, coin_symbol='btc',
-        before_bh=None, txn_limit=None, confirmations=0):
+        before_bh=None, after_bh=None, txn_limit=None, unspent_only=False, confidence=False, confirmations=0):
     '''
     Takes a wallet, api_key, coin_symbol and returns the wallet's details
+
 
     Optional:
       - txn_limit: # transactions to include
       - before_bh: filters response to only include transactions below before
       height in the blockchain.
+      - after_bh: filters response to only include transactions above after
+      height in the blockchain.
       - confirmations: returns the balance and TXRefs that have this number
       of confirmations
+      - unspent_only: filters response to only include unspent TXRefs.
+      - confidence: adds confidence information to unconfirmed TXRefs.
     '''
 
     assert len(wallet_name) <= 25, wallet_name
@@ -250,8 +269,14 @@ def get_wallet_transactions(wallet_name, api_key, coin_symbol='btc',
         params['token'] = api_key
     if before_bh:
         params['before'] = before_bh
+    if after_bh:
+        params['after'] = after_bh
     if confirmations:
         params['confirmations'] = confirmations
+    if unspent_only:
+        params['unspentOnly'] = unspent_only
+    if confidence:
+        params['includeConfidence'] = confidence
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
     _assert_not_rate_limited(r)
