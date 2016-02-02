@@ -9,10 +9,9 @@ from blockcypher import create_unsigned_tx
 
 import os
 
-from time import sleep
-
 
 BC_API_KEY = os.getenv('BC_API_KEY')
+assert BC_API_KEY, 'Blockcypher API KEY Required for Unit Tests'
 
 
 class TestUtils(unittest.TestCase):
@@ -33,12 +32,6 @@ class GetAddressesDetails(unittest.TestCase):
 
     def setUp(self):
         pass
-
-    def tearDown(self):
-        if not BC_API_KEY:
-            # to avoid 429s in case of no API key
-            print('sleeping...')
-            sleep(5)
 
     def test_get_addresses_details(self):
         addresses_details = get_addresses_details(
@@ -80,12 +73,6 @@ class CreateUnsignedTX(unittest.TestCase):
 
     def setUp(self):
         pass
-
-    def tearDown(self):
-        if not BC_API_KEY:
-            # to avoid 429s in case of no API key
-            print('sleeping...')
-            sleep(5)
 
     def test_create_basic_unsigned(self):
         # This address I previously sent funds to but threw out the private key
@@ -140,12 +127,6 @@ class GetAddressDetails(unittest.TestCase):
 
     def setUp(self):
         pass
-
-    def tearDown(self):
-        if not BC_API_KEY:
-            # to avoid 429s in case of no API key
-            print('sleeping...')
-            sleep(5)
 
     def test_fetching_unspents(self):
         # This address I previously sent funds to but threw out the private key
@@ -216,12 +197,6 @@ class CompressedTXSign(unittest.TestCase):
 
         # Generation steps:
         # $ curl -X POST https://api.blockcypher.com/v1/bcy/test/addrs
-
-    def tearDown(self):
-        if not BC_API_KEY:
-            # to avoid 429s in case of no API key
-            print('sleeping...')
-            sleep(5)
 
     def test_simple_spend_hex(self):
         tx_hash = simple_spend(
@@ -367,12 +342,6 @@ class UncompressedTXSign(unittest.TestCase):
         wallet.public_key.get_key(compressed=False)
         wallet.public_key.to_address(compressed=False)
         '''
-
-    def tearDown(self):
-        if not BC_API_KEY:
-            # to avoid 429s in case of no API key
-            print('sleeping...')
-            sleep(5)
 
     def test_simple_spend_hex(self):
         tx_hash = simple_spend(
