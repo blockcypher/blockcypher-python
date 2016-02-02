@@ -90,7 +90,7 @@ def _clean_block(response_dict):
     return response_dict
 
 
-def get_address_details(address, coin_symbol='btc', txn_limit=None, api_key=None, before_bh=None, after_bh=None, unspent_only=False, confidence=False, confirmations=0):
+def get_address_details(address, coin_symbol='btc', txn_limit=None, api_key=None, before_bh=None, after_bh=None, unspent_only=False, show_confidence=False, confirmations=0):
     '''
     Takes an address and coin_symbol and returns the address details
 
@@ -103,7 +103,7 @@ def get_address_details(address, coin_symbol='btc', txn_limit=None, api_key=None
       - confirmations: returns the balance and TXRefs that have this number
       of confirmations
       - unspent_only: filters response to only include unspent TXRefs.
-      - confidence: adds confidence information to unconfirmed TXRefs.
+      - show_confidence: adds confidence information to unconfirmed TXRefs.
 
     For batching a list of addresses, see get_addresses_details
     '''
@@ -111,6 +111,7 @@ def get_address_details(address, coin_symbol='btc', txn_limit=None, api_key=None
     assert is_valid_address_for_coinsymbol(
             b58_address=address,
             coin_symbol=coin_symbol), address
+    assert type(show_confidence) is bool, show_confidence
 
     url = '%s/%s/%s/%s/addrs/%s' % (
             BLOCKCYPHER_DOMAIN,
@@ -133,8 +134,8 @@ def get_address_details(address, coin_symbol='btc', txn_limit=None, api_key=None
         params['confirmations'] = confirmations
     if unspent_only:
         params['unspentOnly'] = unspent_only
-    if confidence:
-        params['includeConfidence'] = confidence
+    if show_confidence:
+        params['includeConfidence'] = 'true'
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
     _assert_not_rate_limited(r)
@@ -142,15 +143,17 @@ def get_address_details(address, coin_symbol='btc', txn_limit=None, api_key=None
     return _clean_tx(response_dict=r.json())
 
 
-def get_addresses_details(address_list, coin_symbol='btc', txn_limit=None, api_key=None, before_bh=None, after_bh=None, unspent_only=False, confidence=False, confirmations=0):
+def get_addresses_details(address_list, coin_symbol='btc', txn_limit=None, api_key=None,
+        before_bh=None, after_bh=None, unspent_only=False, show_confidence=False, confirmations=0):
     '''
-    Batch version of get_address_details
+    Batch version of get_address_details method
     '''
 
     for address in address_list:
         assert is_valid_address_for_coinsymbol(
                 b58_address=address,
                 coin_symbol=coin_symbol), address
+    assert type(show_confidence) is bool, show_confidence
 
     url = '%s/%s/%s/%s/addrs/%s' % (
             BLOCKCYPHER_DOMAIN,
@@ -173,8 +176,8 @@ def get_addresses_details(address_list, coin_symbol='btc', txn_limit=None, api_k
         params['confirmations'] = confirmations
     if unspent_only:
         params['unspentOnly'] = unspent_only
-    if confidence:
-        params['includeConfidence'] = confidence
+    if show_confidence:
+        params['includeConfidence'] = 'true'
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
     _assert_not_rate_limited(r)
@@ -185,11 +188,13 @@ def get_addresses_details(address_list, coin_symbol='btc', txn_limit=None, api_k
     return cleaned_dict_list
 
 
-def get_address_full(address, coin_symbol='btc', txn_limit=None, api_key=None, before_bh=None, after_bh=None, confidence=False, confirmations=0):
+def get_address_full(address, coin_symbol='btc', txn_limit=None, api_key=None,
+        before_bh=None, after_bh=None, show_confidence=False, confirmations=0):
 
     assert is_valid_address_for_coinsymbol(
             b58_address=address,
             coin_symbol=coin_symbol), address
+    assert type(show_confidence) is bool, show_confidence
 
     url = '%s/%s/%s/%s/addrs/%s/full' % (
             BLOCKCYPHER_DOMAIN,
@@ -208,10 +213,10 @@ def get_address_full(address, coin_symbol='btc', txn_limit=None, api_key=None, b
         params['before'] = before_bh
     if after_bh:
         params['after'] = after_bh
-    if confidence:
-        params['includeConfidence'] = confidence
     if confirmations:
         params['confirmations'] = confirmations
+    if show_confidence:
+        params['includeConfidence'] = 'true'
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
     _assert_not_rate_limited(r)
@@ -232,8 +237,8 @@ def get_address_full(address, coin_symbol='btc', txn_limit=None, api_key=None, b
     return response_dict
 
 
-def get_wallet_transactions(wallet_name, api_key, coin_symbol='btc',
-        before_bh=None, after_bh=None, txn_limit=None, unspent_only=False, confidence=False, confirmations=0):
+def get_wallet_transactions(wallet_name, api_key, coin_symbol='btc', before_bh=None,
+        after_bh=None, txn_limit=None, unspent_only=False, show_confidence=False, confirmations=0):
     '''
     Takes a wallet, api_key, coin_symbol and returns the wallet's details
 
@@ -247,12 +252,13 @@ def get_wallet_transactions(wallet_name, api_key, coin_symbol='btc',
       - confirmations: returns the balance and TXRefs that have this number
       of confirmations
       - unspent_only: filters response to only include unspent TXRefs.
-      - confidence: adds confidence information to unconfirmed TXRefs.
+      - show_confidence: adds confidence information to unconfirmed TXRefs.
     '''
 
     assert len(wallet_name) <= 25, wallet_name
     assert api_key
     assert is_valid_coin_symbol(coin_symbol=coin_symbol)
+    assert type(show_confidence) is bool, show_confidence
 
     url = '%s/%s/%s/%s/addrs/%s' % (
             BLOCKCYPHER_DOMAIN,
@@ -275,8 +281,8 @@ def get_wallet_transactions(wallet_name, api_key, coin_symbol='btc',
         params['confirmations'] = confirmations
     if unspent_only:
         params['unspentOnly'] = unspent_only
-    if confidence:
-        params['includeConfidence'] = confidence
+    if show_confidence:
+        params['includeConfidence'] = 'true'
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
     _assert_not_rate_limited(r)
@@ -412,7 +418,7 @@ def derive_hd_address(api_key=None, wallet_name=None, num_addresses=1,
     assert is_valid_coin_symbol(coin_symbol)
     assert api_key, api_key
     assert wallet_name, wallet_name
-    assert type(num_addresses) is int
+    assert type(num_addresses) is int, num_addresses
 
     url = '%s/%s/%s/%s/wallets/hd/%s/addresses/derive' % (
             BLOCKCYPHER_DOMAIN,
@@ -435,17 +441,23 @@ def derive_hd_address(api_key=None, wallet_name=None, num_addresses=1,
     return r.json()
 
 
-def get_transaction_details(tx_hash, coin_symbol='btc', limit=None,
-        tx_input_offset=None, tx_output_offset=None, include_hex=False,
-        confidence_only=False, api_key=None):
+def get_transaction_details(tx_hash, coin_symbol='btc', limit=None, tx_input_offset=None, tx_output_offset=None,
+        include_hex=False, show_confidence=False, confidence_only=False, api_key=None):
     """
     Takes a tx_hash, coin_symbol, and limit and returns the transaction details
 
-    Limit applies to both num inputs and num outputs.
+    Optional:
+      - limit: # inputs/ouputs to include (applies to both)
+      - tx_input_offset: input offset
+      - tx_output_offset: output offset
+      - include_hex: include the raw TX hex
+      - show_confidence: adds confidence information to unconfirmed TXRefs.
+      - confidence_only: show only the confidence statistics and don't return the rest of the endpoint details (faster)
+
     """
 
-    assert is_valid_hash(tx_hash)
-    assert is_valid_coin_symbol(coin_symbol)
+    assert is_valid_hash(tx_hash), tx_hash
+    assert is_valid_coin_symbol(coin_symbol), coin_symbol
 
     url = '%s/%s/%s/%s/txs/%s%s' % (
             BLOCKCYPHER_DOMAIN,
@@ -467,7 +479,9 @@ def get_transaction_details(tx_hash, coin_symbol='btc', limit=None,
     if tx_output_offset:
         params['outStart'] = tx_output_offset
     if include_hex:
-        params['includeHex'] = 'true'  # boolean True (proper) won't work
+        params['includeHex'] = 'true'
+    if show_confidence and not confidence_only:
+        params['includeConfidence'] = 'true'
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
     _assert_not_rate_limited(r)
@@ -559,17 +573,17 @@ def get_num_confirmations(tx_hash, coin_symbol='btc', api_key=None):
 
 def get_confidence(tx_hash, coin_symbol='btc', api_key=None):
     return get_transaction_details(tx_hash=tx_hash, coin_symbol=coin_symbol,
-            confidence_only=True, api_key=api_key).get('confidence')
+            show_confidence=True, api_key=api_key).get('confidence')
 
 
 def get_miner_preference(tx_hash, coin_symbol='btc', api_key=None):
     return get_transaction_details(tx_hash=tx_hash, coin_symbol=coin_symbol,
-            confidence_only=True, api_key=api_key).get('preference')
+            show_confidence=True, api_key=api_key).get('preference')
 
 
 def get_receive_count(tx_hash, coin_symbol='btc', api_key=None):
     return get_transaction_details(tx_hash=tx_hash, coin_symbol=coin_symbol,
-            confidence_only=True, api_key=api_key).get('receive_count')
+            show_confidence=True, api_key=api_key).get('receive_count')
 
 
 def get_satoshis_transacted(tx_hash, coin_symbol='btc', api_key=None):
@@ -618,8 +632,12 @@ def get_broadcast_transaction_hashes(coin_symbol='btc', api_key=None, limit=10):
     '''
     Warning, slow!
     '''
-    transactions = get_broadcast_transactions(coin_symbol=coin_symbol,
-            api_key=api_key, limit=limit)
+    transactions = get_broadcast_transactions(
+            coin_symbol=coin_symbol,
+            api_key=api_key,
+            limit=limit,
+            )
+
     return [tx['hash'] for tx in transactions]
 
 

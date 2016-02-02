@@ -3,7 +3,7 @@ import unittest
 from blockcypher.utils import is_valid_hash
 
 from blockcypher import simple_spend, simple_spend_p2sh
-from blockcypher import get_transaction_details
+from blockcypher import get_broadcast_transactions, get_transaction_details
 from blockcypher import get_address_details, get_addresses_details
 from blockcypher import create_unsigned_tx
 
@@ -125,9 +125,6 @@ class CreateUnsignedTX(unittest.TestCase):
 
 class GetAddressDetails(unittest.TestCase):
 
-    def setUp(self):
-        pass
-
     def test_fetching_unspents(self):
         # This address I previously sent funds to but threw out the private key
         address_details = get_address_details(
@@ -136,6 +133,7 @@ class GetAddressDetails(unittest.TestCase):
                 txn_limit=None,
                 api_key=BC_API_KEY,
                 unspent_only=True,
+                show_confidence=False,  # don't return confidence info
                 # This way the test result never changes:
                 before_bh=592822,
                 )
@@ -155,6 +153,7 @@ class GetAddressDetails(unittest.TestCase):
                 coin_symbol='btc',
                 txn_limit=None,
                 api_key=BC_API_KEY,
+                show_confidence=False,  # don't return confidence info
                 # This way the test result never changes:
                 before_bh=4,
                 )
@@ -172,6 +171,7 @@ class GetAddressDetails(unittest.TestCase):
                 address='1HLoD9E4SDFFPDiYfNYnkBLQ85Y51J3Zb1',
                 coin_symbol='btc',
                 api_key=BC_API_KEY,
+                show_confidence=False,  # don't return confidence info
                 # Exclude first result
                 after_bh=4,
                 txn_limit=1,
@@ -180,6 +180,34 @@ class GetAddressDetails(unittest.TestCase):
         assert len(address_details['txrefs']) == 1
         assert address_details['txrefs'][0]['tx_hash'] != '9b0fc92260312ce44e74ef369f5c66bbb85848f2eddd5a7a1cde251e54ccfdd5'
         assert address_details['txrefs'][0]['block_height'] != 2
+
+
+class GetUnconfirmedTXInfo(unittest.TestCase):
+
+    def test_unconfirmed_tx_confidence(self):
+        # fetch a recent tx hash (assume BTC will always have an unconfirmed TX):
+        recent_tx_hash = get_broadcast_transactions(
+                coin_symbol='btc',
+                api_key=BC_API_KEY,
+                limit=1,
+                )[0]['hash']
+        # get confidence info for it
+        tx_details = get_transaction_details(
+                tx_hash=recent_tx_hash,
+                coin_symbol='btc',
+                limit=1,
+                tx_input_offset=None,
+                tx_output_offset=None,
+                include_hex=False,
+                confidence_only=True,
+                api_key=BC_API_KEY,
+                )
+
+        assert 'receive_count' in tx_details, tx_details
+        assert 'preference' in tx_details, tx_details
+        assert 'age_millis' in tx_details, tx_details
+        assert 'confidence' in tx_details, tx_details
+        assert 0 <= tx_details['confidence'] <= 1, tx_details
 
 
 class CompressedTXSign(unittest.TestCase):
