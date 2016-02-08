@@ -381,7 +381,16 @@ def generate_new_address(coin_symbol='btc', api_key=None):
     https://github.com/sbuss/bitmerchant
     '''
 
+    assert api_key, 'api_key required'
     assert is_valid_coin_symbol(coin_symbol)
+
+    if coin_symbol not in ('btc-testnet', 'bcy'):
+        WARNING_MSG = [
+                'Generating private key details server-side.',
+                'You really should do this client-side.',
+                'See https://github.com/sbuss/bitmerchant for an example.',
+                ]
+        print(' '.join(WARNING_MSG))
 
     url = '%s/%s/%s/%s/addrs' % (
             BLOCKCYPHER_DOMAIN,
@@ -391,9 +400,7 @@ def generate_new_address(coin_symbol='btc', api_key=None):
             )
     logger.info(url)
 
-    params = {}
-    if api_key:
-        params['token'] = api_key
+    params = {'token': api_key}
 
     r = requests.post(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
     _assert_not_rate_limited(r)
@@ -416,7 +423,7 @@ def derive_hd_address(api_key=None, wallet_name=None, num_addresses=1,
     '''
 
     assert is_valid_coin_symbol(coin_symbol)
-    assert api_key, api_key
+    assert api_key, 'api_key required'
     assert wallet_name, wallet_name
     assert type(num_addresses) is int, num_addresses
 
@@ -905,8 +912,7 @@ def _get_payments_url(coin_symbol='btc'):
             )
 
 
-def get_forwarding_address_details(destination_address, api_key, callback_url=None,
-        coin_symbol='btc'):
+def get_forwarding_address_details(destination_address, api_key, callback_url=None, coin_symbol='btc'):
     """
     Give a destination address and return the details of the input address
     that will automatically forward to the destination address
@@ -915,7 +921,7 @@ def get_forwarding_address_details(destination_address, api_key, callback_url=No
     """
 
     assert is_valid_coin_symbol(coin_symbol)
-    assert api_key
+    assert api_key, 'api_key required'
 
     url = _get_payments_url(coin_symbol=coin_symbol)
     logger.info(url)
@@ -942,10 +948,11 @@ def get_forwarding_address(destination_address, api_key, callback_url=None, coin
 
     Note: a blockcypher api_key is required for this method
     """
+    assert api_key, 'api_key required'
 
     resp_dict = get_forwarding_address_details(
-            destination_address,
-            api_key,
+            destination_address=destination_address,
+            api_key=api_key,
             callback_url=callback_url,
             coin_symbol=coin_symbol
             )
@@ -1010,6 +1017,7 @@ def subscribe_to_address_webhook(callback_url, subscription_address, event='tx-c
     '''
     assert is_valid_coin_symbol(coin_symbol)
     assert is_valid_address_for_coinsymbol(subscription_address, coin_symbol)
+    assert api_key, 'api_key required'
 
     url = '%s/%s/%s/%s/hooks' % (
             BLOCKCYPHER_DOMAIN,
@@ -1023,10 +1031,8 @@ def subscribe_to_address_webhook(callback_url, subscription_address, event='tx-c
             'event': event,
             'url': callback_url,
             'address': subscription_address,
+            'token': api_key,
             }
-
-    if api_key:
-        data['token'] = api_key
 
     if event == 'tx-confirmation' and confirmations:
         data['confirmations'] = confirmations
@@ -1051,7 +1057,7 @@ def subscribe_to_wallet_webhook(callback_url, wallet_name,
     '''
     assert is_valid_coin_symbol(coin_symbol)
     assert is_valid_wallet_name(wallet_name), wallet_name
-    assert api_key
+    assert api_key, 'api_key required'
 
     url = '%s/%s/%s/%s/hooks' % (
             BLOCKCYPHER_DOMAIN,
@@ -1155,7 +1161,7 @@ def send_faucet_coins(address_to_fund, satoshis, api_key, coin_symbol='bcy'):
     assert coin_symbol in ('bcy', 'btc-testnet')
     assert is_valid_address_for_coinsymbol(b58_address=address_to_fund, coin_symbol=coin_symbol)
     assert satoshis > 0
-    assert api_key
+    assert api_key, 'api_key required'
 
     url = '%s/%s/%s/%s/faucet' % (
             BLOCKCYPHER_DOMAIN,
@@ -1212,6 +1218,7 @@ def pushtx(tx_hex, coin_symbol='btc', api_key=None):
     '''
 
     assert is_valid_coin_symbol(coin_symbol)
+    assert api_key, 'api_key required'
 
     url = _get_pushtx_url(coin_symbol=coin_symbol)
 
@@ -1236,6 +1243,7 @@ def decodetx(tx_hex, coin_symbol='btc', api_key=None):
     '''
 
     assert is_valid_coin_symbol(coin_symbol)
+    assert api_key, 'api_key required'
 
     url = '%s/%s/%s/%s/txs/decode' % (
             BLOCKCYPHER_DOMAIN,
@@ -1245,9 +1253,10 @@ def decodetx(tx_hex, coin_symbol='btc', api_key=None):
             )
     logger.info(url)
 
-    data = {'tx': tx_hex}
-    if api_key:
-        data['token'] = api_key
+    data = {
+            'tx': tx_hex,
+            'token': api_key,
+            }
 
     r = requests.post(url, json=data, verify=True, timeout=TIMEOUT_IN_SECONDS)
     _assert_not_rate_limited(r)
@@ -1315,7 +1324,7 @@ def create_hd_wallet(wallet_name, xpubkey, api_key, subchain_indices=[], coin_sy
     inferred_coin_symbol = coin_symbol_from_mkey(mkey=xpubkey)
     if inferred_coin_symbol:
         assert inferred_coin_symbol == coin_symbol
-    assert api_key
+    assert api_key, 'api_key required'
     assert len(wallet_name) <= 25, wallet_name
 
     data = {
@@ -1442,7 +1451,7 @@ def get_latest_paths_from_hd_wallet_addresses(wallet_addresses):
 
 def add_address_to_wallet(wallet_name, address, api_key, coin_symbol='btc'):
     assert is_valid_address_for_coinsymbol(address, coin_symbol)
-    assert api_key
+    assert api_key, 'api_key required'
     assert is_valid_wallet_name(wallet_name), wallet_name
 
     data = {'addresses': [address, ]}
@@ -1515,7 +1524,9 @@ def delete_wallet(wallet_name, api_key, is_hd_wallet=False, coin_symbol='btc'):
         return r.json()
 
 
-def generate_multisig_address(pubkey_list, script_type='multisig-2-of-3', coin_symbol='btc'):
+def generate_multisig_address(pubkey_list, script_type='multisig-2-of-3', coin_symbol='btc', api_key=None):
+
+    assert api_key, 'api_key required'
 
     for pubkey in pubkey_list:
         uses_only_hash_chars(pubkey), pubkey
@@ -1534,6 +1545,7 @@ def generate_multisig_address(pubkey_list, script_type='multisig-2-of-3', coin_s
     data = {
             'pubkeys': pubkey_list,
             'script_type': script_type,
+            'token': api_key,
             }
 
     r = requests.post(url, json=data, verify=True, timeout=TIMEOUT_IN_SECONDS)
@@ -1663,6 +1675,8 @@ def create_unsigned_tx(inputs, outputs, change_address=None,
         params['token'] = inputs[0]['wallet_token']
     elif api_key:
         params['token'] = api_key
+    else:
+        raise Exception('No API Token Supplied')
 
     r = requests.post(url, json=data, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
     _assert_not_rate_limited(r)
@@ -1814,12 +1828,13 @@ def make_tx_signatures(txs_to_sign, privkey_list, pubkey_list):
     return signatures
 
 
-def broadcast_signed_transaction(unsigned_tx, signatures, pubkeys, coin_symbol='btc'):
+def broadcast_signed_transaction(unsigned_tx, signatures, pubkeys, coin_symbol='btc', api_key=None):
     '''
     Broadcasts the transaction from create_unsigned_tx
     '''
 
     assert 'errors' not in unsigned_tx, unsigned_tx
+    assert api_key, 'api_key required'
 
     url = '%s/%s/%s/%s/txs/send' % (
             BLOCKCYPHER_DOMAIN,
@@ -1833,7 +1848,9 @@ def broadcast_signed_transaction(unsigned_tx, signatures, pubkeys, coin_symbol='
     data['signatures'] = signatures
     data['pubkeys'] = pubkeys
 
-    r = requests.post(url, json=data, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    params = {'token': api_key}
+
+    r = requests.post(url, params=params, json=data, verify=True, timeout=TIMEOUT_IN_SECONDS)
     _assert_not_rate_limited(r)
 
     response_dict = r.json()
@@ -1865,6 +1882,7 @@ def simple_spend(from_privkey, to_address, to_satoshis, change_address=None,
     '''
     assert is_valid_coin_symbol(coin_symbol), coin_symbol
     assert type(to_satoshis) is int, to_satoshis
+    assert api_key, 'api_key required'
 
     if privkey_is_compressed:
         from_pubkey = compress(privkey_to_pubkey(from_privkey))
@@ -1943,6 +1961,7 @@ def simple_spend(from_privkey, to_address, to_satoshis, change_address=None,
             signatures=tx_signatures,
             pubkeys=pubkey_list,
             coin_symbol=coin_symbol,
+            api_key=api_key,
     )
     logger.info('broadcasted_tx: %s' % broadcasted_tx)
 
@@ -1977,6 +1996,7 @@ def simple_spend_p2sh(all_from_pubkeys, from_privkeys_to_use, to_address, to_sat
 
     assert is_valid_coin_symbol(coin_symbol), coin_symbol
     assert type(to_satoshis) is int, to_satoshis
+    assert api_key, 'api_key required'
 
     if change_address:
         err_msg = '%s not a valid address for %s' % (change_address, coin_symbol)
@@ -2082,6 +2102,7 @@ def simple_spend_p2sh(all_from_pubkeys, from_privkeys_to_use, to_address, to_sat
             signatures=tx_signatures,
             pubkeys=pubkey_list,
             coin_symbol=coin_symbol,
+            api_key=api_key,
     )
     logger.info('broadcasted_tx: %s' % broadcasted_tx)
 
@@ -2097,7 +2118,7 @@ def simple_spend_p2sh(all_from_pubkeys, from_privkeys_to_use, to_address, to_sat
 
 def embed_data(to_embed, api_key, data_is_hex=True, coin_symbol='btc'):
     assert is_valid_coin_symbol(coin_symbol), coin_symbol
-    assert api_key
+    assert api_key, 'api_key required'
 
     url = '%s/%s/%s/%s/txs/data' % (
             BLOCKCYPHER_DOMAIN,

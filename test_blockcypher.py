@@ -6,6 +6,9 @@ from blockcypher import simple_spend, simple_spend_p2sh
 from blockcypher import get_broadcast_transactions, get_transaction_details
 from blockcypher import get_address_details, get_addresses_details
 from blockcypher import create_unsigned_tx
+from blockcypher import generate_new_address, generate_multisig_address
+
+from blockcypher.utils import is_valid_address, uses_only_hash_chars
 
 import os
 
@@ -439,6 +442,33 @@ class UncompressedTXSign(unittest.TestCase):
             else:
                 raise Exception('Invalid Output Address: %s' % output_obj['addresses'][0])
 
+
+class GenerateAddressServerSide(unittest.TestCase):
+
+    def test_generate_single_addr(self):
+        for coin_symbol in ('btc', 'btc-testnet', 'doge', 'ltc', 'bcy'):
+            response_dict = generate_new_address(
+                    coin_symbol=coin_symbol,
+                    api_key=BC_API_KEY,
+                    )
+            assert is_valid_address(response_dict['address']), response_dict
+            assert uses_only_hash_chars(response_dict['private']), response_dict
+            assert uses_only_hash_chars(response_dict['public']), response_dict
+            assert 'wif' in response_dict, response_dict
+
+    def test_generate_multisig_addr(self):
+        # http://www.soroushjp.com/2014/12/20/bitcoin-multisig-the-hard-way-understanding-raw-multisignature-bitcoin-transactions/
+        response_dict = generate_multisig_address(
+                pubkey_list=[
+                    '04a882d414e478039cd5b52a92ffb13dd5e6bd4515497439dffd691a0f12af9575fa349b5694ed3155b136f09e63975a1700c9f4d4df849323dac06cf3bd6458cd',
+                    '046ce31db9bdd543e72fe3039a1f1c047dab87037c36a669ff90e28da1848f640de68c2fe913d363a51154a0c62d7adea1b822d05035077418267b1a1379790187',
+                    '0411ffd36c70776538d079fbae117dc38effafb33304af83ce4894589747aee1ef992f63280567f52f5ba870678b4ab4ff6c8ea600bd217870a8b4f1f09f3a8e83'
+                    ],
+                script_type='multisig-2-of-3',
+                coin_symbol='btc',
+                api_key=BC_API_KEY,
+                )
+        assert response_dict['address'] == '347N1Thc213QqfYCz3PZkjoJpNv5b14kBd', response_dict
 
 if __name__ == '__main__':
     unittest.main(failfast=True)
