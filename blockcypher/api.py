@@ -987,19 +987,22 @@ def list_forwarding_addresses(api_key, offset=None, coin_symbol='btc'):
     return r.json()
 
 
-def delete_forwarding_address(payment_id, coin_symbol='btc'):
+def delete_forwarding_address(payment_id, coin_symbol='btc', api_key=None):
     '''
     Delete a forwarding address on a specific blockchain, using its
     payment id
     '''
 
-    assert payment_id
+    assert payment_id, 'payment_id required'
     assert is_valid_coin_symbol(coin_symbol)
+    assert api_key, 'api_key required'
+
+    params = {'token': api_key}
 
     url = '%s/%s' % (_get_payments_url(coin_symbol=coin_symbol), payment_id)
     logger.info(url)
 
-    r = requests.delete(url, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    r = requests.delete(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
     _assert_not_rate_limited(r)
 
     if r.status_code == 204:
@@ -1128,7 +1131,7 @@ def get_webhook_info(webhook_id, api_key=None, coin_symbol='btc'):
 
 def unsubscribe_from_webhook(webhook_id, api_key, coin_symbol='btc'):
     assert is_valid_coin_symbol(coin_symbol), coin_symbol
-    assert api_key, api_key
+    assert api_key, 'api_key required'
 
     params = {'token': api_key}
     url = '%s/%s/%s/%s/hooks/%s' % (
@@ -1474,7 +1477,7 @@ def add_address_to_wallet(wallet_name, address, api_key, coin_symbol='btc'):
 
 def remove_address_from_wallet(wallet_name, address, api_key, coin_symbol='btc'):
     assert is_valid_address_for_coinsymbol(address, coin_symbol)
-    assert api_key
+    assert api_key, 'api_key required'
     assert is_valid_wallet_name(wallet_name), wallet_name
 
     data = {'addresses': [address, ]}
@@ -1500,7 +1503,7 @@ def remove_address_from_wallet(wallet_name, address, api_key, coin_symbol='btc')
 
 
 def delete_wallet(wallet_name, api_key, is_hd_wallet=False, coin_symbol='btc'):
-    assert api_key
+    assert api_key, 'api_key required'
     assert is_valid_wallet_name(wallet_name), wallet_name
 
     params = {'token': api_key}
@@ -2261,7 +2264,7 @@ def delete_metadata(address=None, tx_hash=None, block_hash=None, api_key=None, c
     Only available for metadata that was embedded privately.
     '''
     assert is_valid_coin_symbol(coin_symbol), coin_symbol
-    assert api_key
+    assert api_key, 'api_key required'
 
     _is_valid_metadata_identifier(
             coin_symbol=coin_symbol,
