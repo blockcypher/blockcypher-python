@@ -1218,10 +1218,10 @@ def pushtx(tx_hex, coin_symbol='btc', api_key=None):
     logger.info(url)
 
     data = {'tx': tx_hex}
-    if api_key:
-        data['token'] = api_key
 
-    r = requests.post(url, json=data, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    params = {'token': api_key}
+
+    r = requests.post(url, json=data, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
     _assert_not_rate_limited(r)
 
     return r.json()
