@@ -926,15 +926,15 @@ def get_forwarding_address_details(destination_address, api_key, callback_url=No
     url = _get_payments_url(coin_symbol=coin_symbol)
     logger.info(url)
 
+    params = {'token': api_key}
     data = {
             'destination': destination_address,
-            'token': api_key,
             }
 
     if callback_url:
         data['callback_url'] = callback_url
 
-    r = requests.post(url, json=data, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    r = requests.post(url, json=data, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
     _assert_not_rate_limited(r)
 
     return r.json()
@@ -1030,11 +1030,11 @@ def subscribe_to_address_webhook(callback_url, subscription_address, event='tx-c
             )
     logger.info(url)
 
+    params = {'token': api_key}
     data = {
             'event': event,
             'url': callback_url,
             'address': subscription_address,
-            'token': api_key,
             }
 
     if event == 'tx-confirmation' and confirmations:
@@ -1042,7 +1042,7 @@ def subscribe_to_address_webhook(callback_url, subscription_address, event='tx-c
     elif event == 'tx-confidence' and confidence:
         data['confidence'] = confidence
 
-    r = requests.post(url, json=data, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    r = requests.post(url, json=data, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
     _assert_not_rate_limited(r)
 
     response_dict = r.json()
@@ -1070,14 +1070,14 @@ def subscribe_to_wallet_webhook(callback_url, wallet_name,
             )
     logger.info(url)
 
+    params = {'token': api_key}
     data = {
             'event': event,
             'url': callback_url,
             'wallet_name': wallet_name,
-            'token': api_key,
             }
 
-    r = requests.post(url, json=data, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    r = requests.post(url, json=data, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
     _assert_not_rate_limited(r)
 
     response_dict = r.json()
@@ -1178,12 +1178,7 @@ def send_faucet_coins(address_to_fund, satoshis, api_key, coin_symbol='bcy'):
             'address': address_to_fund,
             'amount': satoshis,
             }
-    if api_key:
-        params = {
-                'token': api_key,
-                }
-    else:
-        params = {}
+    params = {'token': api_key}
 
     r = requests.post(url, json=data, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
     _assert_not_rate_limited(r)
@@ -1256,12 +1251,13 @@ def decodetx(tx_hex, coin_symbol='btc', api_key=None):
             )
     logger.info(url)
 
+    params = {'token': api_key}
     data = {
             'tx': tx_hex,
             'token': api_key,
             }
 
-    r = requests.post(url, json=data, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    r = requests.post(url, json=data, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
     _assert_not_rate_limited(r)
 
     return r.json()
@@ -1545,13 +1541,13 @@ def generate_multisig_address(pubkey_list, script_type='multisig-2-of-3', coin_s
             )
     logger.info(url)
 
+    params = {'token': api_key}
     data = {
             'pubkeys': pubkey_list,
             'script_type': script_type,
-            'token': api_key,
             }
 
-    r = requests.post(url, json=data, verify=True, timeout=TIMEOUT_IN_SECONDS)
+    r = requests.post(url, json=data, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
     _assert_not_rate_limited(r)
 
     return r.json()
