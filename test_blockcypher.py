@@ -48,6 +48,7 @@ class GetAddressesDetails(unittest.TestCase):
                 api_key=BC_API_KEY,
                 # This way the test result never changes:
                 before_bh=4,
+                include_script=True,
                 )
 
         assert len(addresses_details) == 2
@@ -70,6 +71,8 @@ class GetAddressesDetails(unittest.TestCase):
                 assert addr_obj['txrefs'][0]['tx_output_n'] == 0
             else:
                 assert False, 'Invalid address: %s' % address
+            for txref in addr_obj['txrefs']:
+                assert 'script' in txref, txref
 
 
 class CreateUnsignedTX(unittest.TestCase):
@@ -139,6 +142,7 @@ class GetAddressDetails(unittest.TestCase):
                 show_confidence=False,  # don't return confidence info
                 # This way the test result never changes:
                 before_bh=592822,
+                include_script=True,
                 )
         assert len(address_details['txrefs']) == 1
         assert address_details['txrefs'][0]['tx_hash'] == 'b12c4b0ab466c9bbd05da88b3be1a13229c85a6edd2869e01e6a557c8a5cca2b'
@@ -149,6 +153,8 @@ class GetAddressDetails(unittest.TestCase):
         assert address_details['txrefs'][0]['spent'] is False
         assert address_details['txrefs'][0]['double_spend'] is False
         assert address_details['txrefs'][0]['confirmed'] is not None
+        for txref in address_details['txrefs']:
+            assert 'script' in txref, txref
 
     def test_get_address_details_before(self):
         address_details = get_address_details(

@@ -90,7 +90,7 @@ def _clean_block(response_dict):
     return response_dict
 
 
-def get_address_details(address, coin_symbol='btc', txn_limit=None, api_key=None, before_bh=None, after_bh=None, unspent_only=False, show_confidence=False, confirmations=0):
+def get_address_details(address, coin_symbol='btc', txn_limit=None, api_key=None, before_bh=None, after_bh=None, unspent_only=False, show_confidence=False, confirmations=0, include_script=False):
     '''
     Takes an address and coin_symbol and returns the address details
 
@@ -136,6 +136,8 @@ def get_address_details(address, coin_symbol='btc', txn_limit=None, api_key=None
         params['unspentOnly'] = unspent_only
     if show_confidence:
         params['includeConfidence'] = 'true'
+    if include_script:
+        params['includeScript'] = 'true'
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
     _assert_not_rate_limited(r)
@@ -144,7 +146,8 @@ def get_address_details(address, coin_symbol='btc', txn_limit=None, api_key=None
 
 
 def get_addresses_details(address_list, coin_symbol='btc', txn_limit=None, api_key=None,
-        before_bh=None, after_bh=None, unspent_only=False, show_confidence=False, confirmations=0):
+        before_bh=None, after_bh=None, unspent_only=False, show_confidence=False,
+        confirmations=0, include_script=False):
     '''
     Batch version of get_address_details method
     '''
@@ -178,6 +181,8 @@ def get_addresses_details(address_list, coin_symbol='btc', txn_limit=None, api_k
         params['unspentOnly'] = unspent_only
     if show_confidence:
         params['includeConfidence'] = 'true'
+    if include_script:
+        params['includeScript'] = 'true'
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
     _assert_not_rate_limited(r)
