@@ -133,7 +133,7 @@ def get_address_details(address, coin_symbol='btc', txn_limit=None, api_key=None
     if confirmations:
         params['confirmations'] = confirmations
     if unspent_only:
-        params['unspentOnly'] = unspent_only
+        params['unspentOnly'] = 'true'
     if show_confidence:
         params['includeConfidence'] = 'true'
     if include_script:
@@ -178,7 +178,7 @@ def get_addresses_details(address_list, coin_symbol='btc', txn_limit=None, api_k
     if confirmations:
         params['confirmations'] = confirmations
     if unspent_only:
-        params['unspentOnly'] = unspent_only
+        params['unspentOnly'] = 'true'
     if show_confidence:
         params['includeConfidence'] = 'true'
     if include_script:
@@ -285,7 +285,7 @@ def get_wallet_transactions(wallet_name, api_key, coin_symbol='btc', before_bh=N
     if confirmations:
         params['confirmations'] = confirmations
     if unspent_only:
-        params['unspentOnly'] = unspent_only
+        params['unspentOnly'] = 'true'
     if show_confidence:
         params['includeConfidence'] = 'true'
 
