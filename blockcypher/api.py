@@ -1358,8 +1358,8 @@ def create_hd_wallet(wallet_name, xpubkey, api_key, subchain_indices=[], coin_sy
     return r.json()
 
 
-def get_wallet_addresses(wallet_name, api_key, zero_balance=None, used=None,
-        omit_addresses=False, coin_symbol='btc'):
+def get_wallet_addresses(wallet_name, api_key, is_hd_wallet=False,
+        zero_balance=None, used=None, omit_addresses=False, coin_symbol='btc'):
     '''
     Returns a list of wallet addresses as well as some meta-data
     '''
@@ -1376,6 +1376,7 @@ def get_wallet_addresses(wallet_name, api_key, zero_balance=None, used=None,
             ENDPOINT_VERSION,
             COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
             COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
+            'hd/' if is_hd_wallet else '',  # hack!
             wallet_name,
             )
     logger.info(url)
