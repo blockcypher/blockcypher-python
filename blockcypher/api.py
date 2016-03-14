@@ -242,8 +242,9 @@ def get_address_full(address, coin_symbol='btc', txn_limit=None, api_key=None,
     return response_dict
 
 
-def get_wallet_transactions(wallet_name, api_key, coin_symbol='btc', before_bh=None,
-        after_bh=None, txn_limit=None, unspent_only=False, show_confidence=False, confirmations=0):
+def get_wallet_transactions(wallet_name, api_key, coin_symbol='btc',
+        before_bh=None, after_bh=None, txn_limit=None, omit_addresses=False,
+        unspent_only=False, show_confidence=False, confirmations=0):
     '''
     Takes a wallet, api_key, coin_symbol and returns the wallet's details
 
@@ -264,6 +265,7 @@ def get_wallet_transactions(wallet_name, api_key, coin_symbol='btc', before_bh=N
     assert api_key
     assert is_valid_coin_symbol(coin_symbol=coin_symbol)
     assert type(show_confidence) is bool, show_confidence
+    assert type(omit_addresses) is bool, omit_addresses
 
     url = '%s/%s/%s/%s/addrs/%s' % (
             BLOCKCYPHER_DOMAIN,
@@ -288,6 +290,8 @@ def get_wallet_transactions(wallet_name, api_key, coin_symbol='btc', before_bh=N
         params['unspentOnly'] = 'true'
     if show_confidence:
         params['includeConfidence'] = 'true'
+    if omit_addresses:
+        params['omitWalletAddresses'] = 'true'
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
     _assert_not_rate_limited(r)
@@ -1354,7 +1358,8 @@ def create_hd_wallet(wallet_name, xpubkey, api_key, subchain_indices=[], coin_sy
     return r.json()
 
 
-def get_wallet_addresses(wallet_name, api_key, is_hd_wallet=False, zero_balance=None, used=None, coin_symbol='btc'):
+def get_wallet_addresses(wallet_name, api_key, zero_balance=None, used=None,
+        omit_addresses=False, coin_symbol='btc'):
     '''
     Returns a list of wallet addresses as well as some meta-data
     '''
@@ -1363,6 +1368,7 @@ def get_wallet_addresses(wallet_name, api_key, is_hd_wallet=False, zero_balance=
     assert len(wallet_name) <= 25, wallet_name
     assert zero_balance in (None, True, False)
     assert used in (None, True, False)
+    assert type(omit_addresses) is bool, omit_addresses
 
     params = {'token': api_key}
     url = '%s/%s/%s/%s/wallets/%s%s' % (
@@ -1370,7 +1376,6 @@ def get_wallet_addresses(wallet_name, api_key, is_hd_wallet=False, zero_balance=
             ENDPOINT_VERSION,
             COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_code'],
             COIN_SYMBOL_MAPPINGS[coin_symbol]['blockcypher_network'],
-            'hd/' if is_hd_wallet else '',  # hack!
             wallet_name,
             )
     logger.info(url)
@@ -1383,6 +1388,8 @@ def get_wallet_addresses(wallet_name, api_key, is_hd_wallet=False, zero_balance=
         params['used'] = 'true'
     elif used is False:
         params['used'] = 'false'
+    if omit_addresses:
+        params['omitWalletAddresses'] = 'true'
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
     _assert_not_rate_limited(r)
@@ -1390,7 +1397,7 @@ def get_wallet_addresses(wallet_name, api_key, is_hd_wallet=False, zero_balance=
     return r.json()
 
 
-def get_wallet_balance(wallet_name, api_key, coin_symbol='btc'):
+def get_wallet_balance(wallet_name, api_key, omit_addresses=False, coin_symbol='btc'):
     '''
     This is particularly useful over get_wallet_transactions and
     get_wallet_addresses in cases where you have lots of addresses/transactions.
@@ -1399,8 +1406,12 @@ def get_wallet_balance(wallet_name, api_key, coin_symbol='btc'):
     assert is_valid_coin_symbol(coin_symbol)
     assert api_key
     assert len(wallet_name) <= 25, wallet_name
+    assert type(omit_addresses) is bool, omit_addresses
 
     params = {'token': api_key}
+    if omit_addresses:
+        params['omitWalletAddresses'] = 'true'
+
     url = '%s/%s/%s/%s/addrs/%s/balance' % (
             BLOCKCYPHER_DOMAIN,
             ENDPOINT_VERSION,
@@ -1453,13 +1464,17 @@ def get_latest_paths_from_hd_wallet_addresses(wallet_addresses):
     return latest_paths
 
 
-def add_address_to_wallet(wallet_name, address, api_key, coin_symbol='btc'):
+def add_address_to_wallet(wallet_name, address, api_key, omit_addresses=False, coin_symbol='btc'):
     assert is_valid_address_for_coinsymbol(address, coin_symbol)
     assert api_key, 'api_key required'
     assert is_valid_wallet_name(wallet_name), wallet_name
+    assert type(omit_addresses) is bool, omit_addresses
 
-    data = {'addresses': [address, ]}
     params = {'token': api_key}
+    data = {'addresses': [address, ]}
+
+    if omit_addresses:
+        data['omitWalletAddresses'] = 'true'
 
     url = '%s/%s/%s/%s/wallets/%s/addresses' % (
             BLOCKCYPHER_DOMAIN,

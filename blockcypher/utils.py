@@ -280,7 +280,7 @@ def get_blockcypher_walletname_from_mpub(mpub, subchain_indices=[]):
 
     if subchain_indices:
         mpub += ','.join([str(x) for x in subchain_indices]).encode('utf-8')
-    return sha256(mpub).hexdigest()[:25]
+    return 'X%s' % sha256(mpub).hexdigest()[:24]
 
 
 def is_valid_wallet_name(wallet_name):
