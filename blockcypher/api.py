@@ -193,8 +193,8 @@ def get_addresses_details(address_list, coin_symbol='btc', txn_limit=None, api_k
     return cleaned_dict_list
 
 
-def get_address_full(address, coin_symbol='btc', txn_limit=None, api_key=None,
-        before_bh=None, after_bh=None, show_confidence=False, confirmations=0):
+def get_address_full(address, coin_symbol='btc', txn_limit=None, inout_limit=None,
+        api_key=None, before_bh=None, after_bh=None, show_confidence=False, confirmations=0):
 
     assert is_valid_address_for_coinsymbol(
             b58_address=address,
@@ -222,6 +222,8 @@ def get_address_full(address, coin_symbol='btc', txn_limit=None, api_key=None,
         params['confirmations'] = confirmations
     if show_confidence:
         params['includeConfidence'] = 'true'
+    if inout_limit:
+        params['txlimit'] = inout_limit
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
     _assert_not_rate_limited(r)
