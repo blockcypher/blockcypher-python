@@ -1644,23 +1644,29 @@ def create_unsigned_tx(inputs, outputs, change_address=None,
     outputs_cleaned = []
     sweep_funds = False
     for output in outputs:
+        clean_output = {}
         assert 'value' in output, output
         assert type(output['value']) is int, output['value']
         if output['value'] == -1:
             sweep_funds = True
             assert not change_address, 'Change Address Supplied for Sweep TX'
+        clean_output['value'] = output['value']
 
-        # note that API requires the singleton list 'addresses' which is
+        # no address required for null-data outputs
+        if output.get('script_type') == 'null-data':
+            assert 'script' in output, output
+            clean_output['script_type'] = 'null-data'
+            clean_output['script'] = output['script']
+        # but note that API requires the singleton list 'addresses' which is
         # intentionally hidden away from the user here
-        assert 'address' in output, output
-        assert is_valid_address_for_coinsymbol(
-                b58_address=output['address'],
-                coin_symbol=coin_symbol,
-                )
-        outputs_cleaned.append({
-            'value': output['value'],
-            'addresses': [output['address'], ],
-            })
+        else:
+            assert 'address' in output, output
+            assert is_valid_address_for_coinsymbol(
+                    b58_address=output['address'],
+                    coin_symbol=coin_symbol,
+                    )
+            clean_output['addresses'] = [output['address']]
+        outputs_cleaned.append(clean_output)
 
     if change_address:
         assert is_valid_address_for_coinsymbol(b58_address=change_address,
