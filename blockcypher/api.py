@@ -1654,6 +1654,7 @@ def create_unsigned_tx(inputs, outputs, change_address=None,
 
         # no address required for null-data outputs
         if output.get('script_type') == 'null-data':
+            assert output['value'] == 0
             assert 'script' in output, output
             clean_output['script_type'] = 'null-data'
             clean_output['script'] = output['script']
@@ -1754,7 +1755,7 @@ def verify_unsigned_tx(unsigned_tx, outputs, inputs=None, sweep_funds=False,
         err_msg = 'tosign_tx not in API response:\n%s' % unsigned_tx
         return False, err_msg
 
-    output_addr_list = [x['address'] for x in outputs]
+    output_addr_list = [x['address'] for x in outputs if x.get('address') != None]
     if change_address:
         output_addr_list.append(change_address)
 

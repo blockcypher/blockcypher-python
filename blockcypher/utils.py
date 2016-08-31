@@ -174,26 +174,29 @@ def get_txn_outputs(raw_tx_hex, output_addr_list, coin_symbol):
     outputs = []
     deserialized_tx = deserialize(str(raw_tx_hex))
     for out in deserialized_tx.get('outs', []):
+        output = {'value': out['value']}
 
-        # determine if the address is a pubkey address or a script address
+        # determine if the address is a pubkey address, script address, or op_return
         pubkey_addr = script_to_address(out['script'],
                 vbyte=COIN_SYMBOL_MAPPINGS[coin_symbol]['vbyte_pubkey'])
         script_addr = script_to_address(out['script'],
                 vbyte=COIN_SYMBOL_MAPPINGS[coin_symbol]['vbyte_script'])
+        nulldata = out['script'] if out['script'][0:2] == '6a' else None
         if pubkey_addr in output_addr_set:
             address = pubkey_addr
+            output['address'] = address
         elif script_addr in output_addr_set:
             address = script_addr
+            output['address'] = address
+        elif nulldata:
+            output['script'] = nulldata
+            output['script_type'] = 'null-data'
         else:
             raise Exception('Script %s Does Not Contain a Valid Output Address: %s' % (
                 out['script'],
                 output_addr_set,
                 ))
 
-        output = {
-                'value': out['value'],
-                'address': address,
-                }
         outputs.append(output)
     return outputs
 
@@ -207,7 +210,8 @@ def compress_txn_outputs(txn_outputs):
         {'1abc...': 12345, '1def': 54321, ...}
     '''
     result_dict = {}
-    for txn_output in txn_outputs:
+    outputs = (output for output in txn_outputs if output.get('address'))
+    for txn_output in outputs:
         if txn_output['address'] in result_dict:
             result_dict[txn_output['address']] += txn_output['value']
         else:
