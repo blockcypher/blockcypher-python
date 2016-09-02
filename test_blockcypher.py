@@ -128,6 +128,28 @@ class CreateUnsignedTX(unittest.TestCase):
                 api_key=BC_API_KEY,
                 )
 
+    def test_create_nulldata_unsigned(self):
+        # This address I previously sent funds to but threw out the private key
+        create_unsigned_tx(
+                inputs=[
+                    {'address': 'BwvSPyMWVL1gkp5FZdrGXLpHj2ZJyJYLVB'},
+                    ],
+                outputs=[
+                    # embed some null-data
+                    {
+                        'value': 0,
+                        'script_type': 'null-data',
+                        'script': '6a06010203040506',
+                        },
+                    ],
+                change_address='CFr99841LyMkyX5ZTGepY58rjXJhyNGXHf',
+                include_tosigntx=True,
+                # will test signature returned locally:
+                verify_tosigntx=True,
+                coin_symbol='bcy',
+                api_key=BC_API_KEY,
+                )
+
 
 class GetAddressDetails(unittest.TestCase):
 
