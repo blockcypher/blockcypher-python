@@ -2142,6 +2142,12 @@ def simple_spend_p2sh(all_from_pubkeys, from_privkeys_to_use, to_address, to_sat
         print(broadcasted_tx)
         return
 
+    if 'error' in broadcasted_tx:
+        print('TX Error: Tx May NOT Have Been Broadcast')
+        print(broadcasted_tx['error'])
+        print(broadcasted_tx)
+        return
+
     return broadcasted_tx['tx']['hash']
 
 
