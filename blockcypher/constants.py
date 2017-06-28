@@ -69,6 +69,23 @@ COIN_SYMBOL_ODICT_LIST = [
             'vbyte_script': 22,
             },
         {
+            'coin_symbol': 'dash',
+            'display_name': 'Dash',
+            'display_shortname': 'DASH',
+            'blockcypher_code': 'dash',
+            'blockcypher_network': 'main',
+            'currency_abbrev': 'DASH',
+            'pow': 'x11',
+            'example_address': 'XdZW5Waa1i6D9za3qpFvgiwHzr8aFcXtNP',
+            'address_first_char_list': ('X'),
+            'singlesig_prefix_list': ('X', ),
+            'multisig_prefix_list': ('7', ),
+            'first4_mprv': 'xprv',
+            'first4_mpub': 'xpub',
+            'vbyte_pubkey': 76,
+            'vbyte_script': 16,
+            },
+        {
             'coin_symbol': 'bcy',
             'display_name': 'BlockCypher Testnet',
             'display_shortname': 'BCY Testnet',
@@ -106,7 +123,7 @@ REQUIRED_FIELDS = (
     'vbyte_script',  # script hash version byte
     )
 
-ELIGIBLE_POW_ENTRIES = set(['sha', 'scrypt'])
+ELIGIBLE_POW_ENTRIES = set(['sha', 'scrypt', 'x11'])
 
 # Safety checks on the data
 for coin_symbol_dict in COIN_SYMBOL_ODICT_LIST:

@@ -474,7 +474,7 @@ class UncompressedTXSign(unittest.TestCase):
 class GenerateAddressServerSide(unittest.TestCase):
 
     def test_generate_single_addr(self):
-        for coin_symbol in ('btc', 'btc-testnet', 'doge', 'ltc', 'bcy'):
+        for coin_symbol in ('btc', 'btc-testnet', 'doge', 'dash', 'ltc', 'bcy'):
             response_dict = generate_new_address(
                     coin_symbol=coin_symbol,
                     api_key=BC_API_KEY,

@@ -1,7 +1,7 @@
 blockypher-python
 =============
 
-Official python library for BlockCypher web services. Easily query the blockchain without writing any code. Fast, reliable, and packed with powerful features you won't find in other block explorers. Currently supports bitcoin (including main and testnet), Litecoin, Dogecoin, URO and the blockcypher testnet.
+Official python library for BlockCypher web services. Easily query the blockchain without writing any code. Fast, reliable, and packed with powerful features you won't find in other block explorers. Currently supports bitcoin (including main and testnet), Litecoin, Dogecoin, Dash, URO and the blockcypher testnet.
 
 Designed to be used without having to RTFM.
 
@@ -258,7 +258,7 @@ Another cool feature is that we can generate a new address keypair server-side, 
 ```
 >>> from blockcypher import constants
 >>> constants.COIN_SYMBOL_LIST
-['btc', 'btc-testnet', 'ltc', 'doge', 'bcy']
+['btc', 'btc-testnet', 'ltc', 'doge', 'dash', 'bcy']
 ```
 
 `btc` will always be assumed if nothing else is specified, but all methods support swapping in any of the previous `coin_symbol` entries. Just pass `coin_symbol='foo'` as a keyword argument to the function.
