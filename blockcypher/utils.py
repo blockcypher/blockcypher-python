@@ -392,7 +392,7 @@ def is_valid_bcy_block_representation(block_representation):
 
 
 def is_valid_block_representation(block_representation, coin_symbol):
-    if coin_symbol == 'dash'
+    if coin_symbol == 'dash':
         return True
 
     # TODO: make handling of each coin more unique
