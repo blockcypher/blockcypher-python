@@ -75,7 +75,7 @@ COIN_SYMBOL_ODICT_LIST = [
             'blockcypher_code': 'dash',
             'blockcypher_network': 'main',
             'currency_abbrev': 'DASH',
-            'pow': 'x11',
+            'pow': 'scrypt',
             'example_address': 'XdZW5Waa1i6D9za3qpFvgiwHzr8aFcXtNP',
             'address_first_char_list': ('X'),
             'singlesig_prefix_list': ('X', ),
