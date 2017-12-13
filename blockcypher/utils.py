@@ -406,7 +406,7 @@ def is_valid_block_representation(block_representation, coin_symbol):
             return is_valid_sha_block_representation(block_representation)
     elif coin_symbol in SCRYPT_COINS:
         return is_valid_scrypt_block_representation(block_representation)
-    else
+    else:
         return True
 
 
