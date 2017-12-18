@@ -703,12 +703,12 @@ def get_block_overview(block_representation, coin_symbol='btc', txn_limit=None,
 def get_blocks_overview(block_representation_list, coin_symbol='btc', txn_limit=None, api_key=None):
     '''
     Batch request version of get_blocks_overview
-    assert is_valid_coin_symbol(coin_symbol)
     '''
     for block_representation in block_representation_list:
         assert is_valid_block_representation(
                 block_representation=block_representation,
                 coin_symbol=coin_symbol)
+    assert is_valid_coin_symbol(coin_symbol)
 
     url = '%s/%s/%s/%s/blocks/%s' % (
             BLOCKCYPHER_DOMAIN,
