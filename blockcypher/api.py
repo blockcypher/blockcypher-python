@@ -923,7 +923,7 @@ def _get_payments_url(coin_symbol='btc'):
             )
 
 
-def get_forwarding_address_details(destination_address, api_key, callback_url=None, coin_symbol='btc'):
+def get_forwarding_address_details(destination_address, api_key, callback_url=None, coin_symbol='btc',enable_confirmations=False):
     """
     Give a destination address and return the details of the input address
     that will automatically forward to the destination address
@@ -940,6 +940,7 @@ def get_forwarding_address_details(destination_address, api_key, callback_url=No
     params = {'token': api_key}
     data = {
             'destination': destination_address,
+            'enable_confirations': enable_confirmations,
             }
 
     if callback_url:
@@ -951,7 +952,7 @@ def get_forwarding_address_details(destination_address, api_key, callback_url=No
     return r.json()
 
 
-def get_forwarding_address(destination_address, api_key, callback_url=None, coin_symbol='btc'):
+def get_forwarding_address(destination_address, api_key, callback_url=None, coin_symbol='btc',enable_confirmations=False):
     """
     Give a destination address and return an input address that will
     automatically forward to the destination address. See
@@ -965,7 +966,8 @@ def get_forwarding_address(destination_address, api_key, callback_url=None, coin
             destination_address=destination_address,
             api_key=api_key,
             callback_url=callback_url,
-            coin_symbol=coin_symbol
+            coin_symbol=coin_symbol,
+            enable_confirmations=enable_confirmations,
             )
 
     return resp_dict['input_address']
