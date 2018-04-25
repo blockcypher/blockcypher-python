@@ -940,7 +940,7 @@ def get_forwarding_address_details(destination_address, api_key, callback_url=No
     params = {'token': api_key}
     data = {
             'destination': destination_address,
-            'enable_confirations': enable_confirmations,
+            'enable_confirmations': enable_confirmations,
             }
 
     if callback_url:
