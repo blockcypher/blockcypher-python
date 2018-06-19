@@ -1952,7 +1952,7 @@ def simple_spend_p2sh(all_from_pubkeys, from_privkeys_to_use, to_address, to_sat
     assert isinstance(all_from_pubkeys, (list, tuple))
     assert len(all_from_pubkeys) > 1
 
-    assert isinstance(from_privkeys_to_use, (list, tuple)) from_privkeys_to_use
+    assert isinstance(from_privkeys_to_use, (list, tuple)), from_privkeys_to_use
 
     for from_privkey in from_privkeys_to_use:
         from_pubkey = compress(privkey_to_pubkey(from_privkey))
