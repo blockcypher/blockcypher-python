@@ -1,4 +1,4 @@
-blockypher-python
+blockcypher-python
 =============
 
 Official python library for BlockCypher web services. Easily query the blockchain without writing any code. Fast, reliable, and packed with powerful features you won't find in other block explorers. Currently supports bitcoin (including main and testnet), Litecoin, Dogecoin, Dash, URO and the blockcypher testnet.
