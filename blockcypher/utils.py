@@ -104,7 +104,7 @@ def format_crypto_units(input_quantity, input_type, output_type, coin_symbol=Non
     assert output_type in UNIT_CHOICES, output_type
     if print_cs:
         assert is_valid_coin_symbol(coin_symbol=coin_symbol), coin_symbol
-    assert type(round_digits) is int
+    assert isinstance(round_digits, int)
 
     satoshis_float = to_satoshis(input_quantity=input_quantity, input_type=input_type)
 
@@ -165,7 +165,7 @@ def get_txn_outputs(raw_tx_hex, output_addr_list, coin_symbol):
     # Defensive checks:
     err_msg = 'Library not able to parse %s transactions' % coin_symbol
     assert lib_can_deserialize_cs(coin_symbol), err_msg
-    assert type(output_addr_list) in (list, tuple)
+    assert isinstance(output_addr_list, (list, tuple))
     for output_addr in output_addr_list:
         assert is_valid_address(output_addr), output_addr
 
@@ -178,9 +178,9 @@ def get_txn_outputs(raw_tx_hex, output_addr_list, coin_symbol):
 
         # determine if the address is a pubkey address, script address, or op_return
         pubkey_addr = script_to_address(out['script'],
-                vbyte=COIN_SYMBOL_MAPPINGS[coin_symbol]['vbyte_pubkey'])
+            vbyte=COIN_SYMBOL_MAPPINGS[coin_symbol]['vbyte_pubkey'])
         script_addr = script_to_address(out['script'],
-                vbyte=COIN_SYMBOL_MAPPINGS[coin_symbol]['vbyte_script'])
+            vbyte=COIN_SYMBOL_MAPPINGS[coin_symbol]['vbyte_script'])
         nulldata = out['script'] if out['script'][0:2] == '6a' else None
         if pubkey_addr in output_addr_set:
             address = pubkey_addr
