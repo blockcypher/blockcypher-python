@@ -1585,7 +1585,7 @@ def broadcast_signed_transaction(unsigned_tx, signatures, pubkeys, coin_symbol='
 
 
 def simple_spend(from_privkey, to_address, to_satoshis, change_address=None,
-        privkey_is_compressed=True, min_confirmations=0, api_key=None, coin_symbol='btc'):
+        privkey_is_compressed=True, min_confirmations=0, api_key=None, coin_symbol='btc', fees=None, preference='low'):
     '''
     Simple method to spend from one single-key address to another.
 
@@ -1626,6 +1626,8 @@ def simple_spend(from_privkey, to_address, to_satoshis, change_address=None,
     unsigned_tx = create_unsigned_tx(
         inputs=inputs,
         outputs=outputs,
+        fees=fees,
+        preference=preference,
         # may build with no change address, but if so will verify change in next step
         # done for extra security in case of client-side bug in change address generation
         change_address=change_address,
