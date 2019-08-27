@@ -481,7 +481,7 @@ def get_transactions_details(tx_hash_list, coin_symbol='btc', limit=None, api_ke
                                         api_key=api_key
                                         )]
 
-        url = make_url(coin_symbol, **dict(txs=';'.join(tx_hash_list)))
+    url = make_url(coin_symbol, **dict(txs=';'.join(tx_hash_list)))
 
     params = {}
     if api_key:
