@@ -1,3 +1,4 @@
+from collections import defaultdict
 # Ordered List of Coin Symbol Dictionaries
 COIN_SYMBOL_ODICT_LIST = [
         {
@@ -151,12 +152,15 @@ for coin_symbol_dict in COIN_SYMBOL_ODICT_LIST:
     COIN_CHOICES.append((coin_symbol_dict['coin_symbol'], coin_symbol_dict['display_name']))
 
 # upper-case to be forgiving on user error
-FIRST4_MKEY_CS_MAPPINGS_UPPER = {}
+FIRST4_MKEY_CS_MAPPINGS_UPPER = defaultdict(set)
 for coin_symbol_dict in COIN_SYMBOL_ODICT_LIST:
-    if 'first4_mprv' in coin_symbol_dict:
-        FIRST4_MKEY_CS_MAPPINGS_UPPER[coin_symbol_dict['first4_mprv'].upper()] = coin_symbol_dict['coin_symbol']
-    if 'first4_mpub' in coin_symbol_dict:
-        FIRST4_MKEY_CS_MAPPINGS_UPPER[coin_symbol_dict['first4_mpub'].upper()] = coin_symbol_dict['coin_symbol']
+    first4_mprv = coin_symbol_dict.get('first4_mprv', '').upper()
+    first4_mpub = coin_symbol_dict.get('first4_mpub', '').upper()
+    coin_symbol = coin_symbol_dict['coin_symbol']
+    if first4_mprv:
+        FIRST4_MKEY_CS_MAPPINGS_UPPER[first4_mprv].add(coin_symbol)
+    if first4_mpub:
+        FIRST4_MKEY_CS_MAPPINGS_UPPER[first4_mpub].add(coin_symbol)
 
 # mappings (similar to above but easier retrieval for when order doens't matter)
 # must come last because of popping out

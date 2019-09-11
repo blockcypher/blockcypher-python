@@ -5,7 +5,8 @@ from blockcypher.utils import is_valid_hash
 from blockcypher import simple_spend, simple_spend_p2sh
 from blockcypher import get_broadcast_transactions, get_transaction_details
 from blockcypher import get_address_details, get_addresses_details
-from blockcypher import create_unsigned_tx
+from blockcypher import list_wallet_names
+from blockcypher import create_unsigned_tx, create_hd_wallet, delete_wallet
 from blockcypher import generate_new_address, generate_multisig_address
 
 from blockcypher.utils import is_valid_address, uses_only_hash_chars
@@ -497,6 +498,24 @@ class GenerateAddressServerSide(unittest.TestCase):
                 api_key=BC_API_KEY,
                 )
         assert response_dict['address'] == '347N1Thc213QqfYCz3PZkjoJpNv5b14kBd', response_dict
+
+
+class RegisterHDWallet(unittest.TestCase):
+    def test_register_btc_wallet(self):
+        result = create_hd_wallet(
+            "blockcypher-testsuite-btc",
+            "xpub661MyMwAqRbcGHGJXmM5jX85xJtNmjLgyzs7LpCwBnpfK8SF7TktReXmEt2NzuDhi4NCRanpCRynoewDE6Psuptz7gDW1Uxbfsf56GEfmgo",
+            coin_symbol='btc',
+            api_key=BC_API_KEY
+        )
+        wallets = list_wallet_names(api_key=BC_API_KEY)['wallet_names']
+        self.assertIn('blockcypher-testsuite-btc', wallets)
+        delete_wallet(
+            'blockcypher-testsuite-btc',
+            coin_symbol='btc',
+            api_key=BC_API_KEY,
+            is_hd_wallet=True)
+
 
 if __name__ == '__main__':
     unittest.main(failfast=True)
