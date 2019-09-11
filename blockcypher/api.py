@@ -1264,8 +1264,8 @@ def delete_wallet(wallet_name, api_key, is_hd_wallet=False, coin_symbol='btc'):
     assert is_valid_wallet_name(wallet_name), wallet_name
 
     params = {'token': api_key}
-    wallet = {'hd/' if is_hd_wallet else '': wallet_name}
-    url = make_url(coin_symbol, wallet)
+    wallet = {'wallets/hd/' if is_hd_wallet else 'wallets': wallet_name}
+    url = make_url(coin_symbol, **wallet)
     r = requests.delete(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
     return get_valid_json(r, allow_204=True)
 
