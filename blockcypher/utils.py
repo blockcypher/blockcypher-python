@@ -473,8 +473,10 @@ def is_valid_address_for_coinsymbol(b58_address, coin_symbol):
     '''
     assert is_valid_coin_symbol(coin_symbol)
 
+    # TODO deeper validation of a bech32 address
     if b58_address.startswith(COIN_SYMBOL_MAPPINGS[coin_symbol]['bech32_prefix']):
         return True
+
     if b58_address[0] in COIN_SYMBOL_MAPPINGS[coin_symbol]['address_first_char_list']:
         if is_valid_address(b58_address):
             return True
