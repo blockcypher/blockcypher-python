@@ -459,6 +459,10 @@ def crypto_address_valid(bc):
 
 
 def is_valid_address(b58_address):
+    # TODO deeper validation of a bech32 address
+    if b58_address.startswith('bc1') || b58_address.startswith('ltc1') || b58_address.startswith('tltc1') || b58_address.startswith('tb1'):
+        return True
+
     try:
         return crypto_address_valid(b58_address)
     except:
