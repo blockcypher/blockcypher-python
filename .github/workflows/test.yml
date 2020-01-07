@@ -20,4 +20,4 @@ jobs:
       - name: Install dependencies
         run: python setup.py develop
       - name: Run test
-      - run: python test_blockcypher.py
+        run: python test_blockcypher.py
