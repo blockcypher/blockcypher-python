@@ -9,7 +9,7 @@ jobs:
     strategy:
       matrix:
         python-version: [ '2.x', '3.x' ]
-    name: Python ${{ matrix.python-version }} test
+    name: Python ${{ matrix.python-version }} Tests
     steps:
       - uses: actions/checkout@v1
       - name: Setup python
@@ -21,3 +21,5 @@ jobs:
         run: python setup.py develop
       - name: Run test
         run: python test_blockcypher.py
+        env:
+          BC_API_KEY: ${{ secrets.BC_API_KEY }}
