@@ -22,6 +22,7 @@ from .utils import uses_only_hash_chars
 from .constants import COIN_SYMBOL_MAPPINGS
 
 from dateutil import parser
+from posixpath import join as urljoin
 
 import requests
 
@@ -1858,7 +1859,7 @@ def make_url(coin_symbol, simple_string=False, meta=False, **kwargs):
     if meta:
         url_bits.append('meta')
 
-    url = os.path.join(*url_bits)
+    url = urljoin(*url_bits)
 
     logger.info(url)
     return url
