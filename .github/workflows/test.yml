@@ -1,13 +1,7 @@
 name: Continuous Integration
 
-# Trigger the workflow on push or pull request
-on:
-  push:
-    branches:
-    - master
-  pull_request:
-    branches:
-    - '*'
+# Trigger the workflow on push or pull request on the repo (BC_API_KEY cannot be accessible to forked repo)
+on: [push]
 
 jobs:
   test:
