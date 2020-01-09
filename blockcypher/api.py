@@ -436,9 +436,9 @@ def get_transaction_details(tx_hash, coin_symbol='btc', limit=None, tx_input_off
     if limit:
         params['limit'] = limit
     if tx_input_offset:
-        params['inStart'] = tx_input_offset
+        params['instart'] = tx_input_offset
     if tx_output_offset:
-        params['outStart'] = tx_output_offset
+        params['outstart'] = tx_output_offset
     if include_hex:
         params['includeHex'] = 'true'
     if show_confidence and not confidence_only:
