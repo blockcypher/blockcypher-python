@@ -82,7 +82,7 @@ class CreateUnsignedTX(unittest.TestCase):
 
     def test_create_basic_unsigned(self):
         # This address I previously sent funds to but threw out the private key
-        create_unsigned_tx(
+        result = create_unsigned_tx(
                 inputs=[
                     {'address': 'BwvSPyMWVL1gkp5FZdrGXLpHj2ZJyJYLVB'},
                     ],
@@ -100,10 +100,12 @@ class CreateUnsignedTX(unittest.TestCase):
                 coin_symbol='bcy',
                 api_key=BC_API_KEY,
                 )
+        self.assertNotIn('errors', result)
+
 
     def test_create_ps2h_unsigned(self):
         # This address I previously sent funds to but threw out the private key
-        create_unsigned_tx(
+        result = create_unsigned_tx(
                 inputs=[
                     {
                         'pubkeys': [
@@ -127,10 +129,11 @@ class CreateUnsignedTX(unittest.TestCase):
                 coin_symbol='bcy',
                 api_key=BC_API_KEY,
                 )
+        self.assertNotIn('errors', result)
 
     def test_create_nulldata_unsigned(self):
         # This address I previously sent funds to but threw out the private key
-        create_unsigned_tx(
+        result = create_unsigned_tx(
                 inputs=[
                     {'address': 'BwvSPyMWVL1gkp5FZdrGXLpHj2ZJyJYLVB'},
                     ],
@@ -149,6 +152,45 @@ class CreateUnsignedTX(unittest.TestCase):
                 coin_symbol='bcy',
                 api_key=BC_API_KEY,
                 )
+        self.assertNotIn('errors', result)
+
+    def test_create_from_inputs(self):
+        result = create_unsigned_tx(
+            inputs=[
+                {
+                    'prev_hash': '31746be47c39337b8c054a165da407122725162363e5b9d0b8062cde3ef06f7d',
+                    'output_index': 0
+                },
+                {
+                    'prev_hash': '0affbdc61b86a05944ce0bc167be60106925d631abb38258c5cdc1764002796d',
+                    'output_index': 0
+                },
+                {
+                    'prev_hash': '12f30c25afafcb42171e7052c9596c93a3e81b0d2b9051f8cf25ce44693e24ba',
+                    'output_index': 0
+                },
+                {
+                    'prev_hash': 'fe313e2c309b4f256157ec4ebcf55652eaedb8a16d429df26c5ba205dd40ad27',
+                    'output_index': 0
+                },
+                {
+                    'prev_hash': '74ab2e2fd193df2a7de7db5de92559e814270e740aa5715a952fa16946626545',
+                    'output_index': 0
+                }
+            ],
+            outputs=[
+                {
+                    'value': 1,
+                    'address': 'Dbc9fnf1Kqct7zvfNTiwr6HjvDfPYaFSNg',
+                },
+            ],
+            change_address='CFr99841LyMkyX5ZTGepY58rjXJhyNGXHf',
+            include_tosigntx=True,
+            verify_tosigntx=True,
+            coin_symbol='bcy',
+            api_key=BC_API_KEY,
+        )
+        self.assertNotIn('errors', result)
 
 
 class GetAddressDetails(unittest.TestCase):
