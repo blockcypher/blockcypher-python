@@ -1122,7 +1122,7 @@ def create_hd_wallet(wallet_name, xpubkey, api_key, subchain_indices=[], coin_sy
     '''
     inferred_coin_symbol = coin_symbol_from_mkey(mkey=xpubkey)
     if inferred_coin_symbol:
-        assert inferred_coin_symbol == coin_symbol
+        assert coin_symbol in inferred_coin_symbol
     assert api_key, 'api_key required'
     assert len(wallet_name) <= 25, wallet_name
 
