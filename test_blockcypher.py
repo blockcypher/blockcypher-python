@@ -6,7 +6,7 @@ from blockcypher import simple_spend, simple_spend_p2sh
 from blockcypher import get_broadcast_transactions, get_transaction_details
 from blockcypher import get_address_details, get_addresses_details
 from blockcypher import list_wallet_names
-from blockcypher import create_unsigned_tx, create_hd_wallet, delete_wallet
+from blockcypher import create_unsigned_tx, create_hd_wallet, derive_hd_address, delete_wallet
 from blockcypher import generate_new_address, generate_multisig_address
 
 from blockcypher.utils import is_valid_address, uses_only_hash_chars
@@ -102,7 +102,6 @@ class CreateUnsignedTX(unittest.TestCase):
                 api_key=BC_API_KEY,
                 )
         self.assertNotIn('errors', result)
-
 
     def test_create_ps2h_unsigned(self):
         # This address I previously sent funds to but threw out the private key
@@ -552,6 +551,15 @@ class RegisterHDWallet(unittest.TestCase):
         )
         wallets = list_wallet_names(api_key=BC_API_KEY)['wallet_names']
         self.assertIn('blockcypher-testsuite-btc', wallets)
+        derivation_response = derive_hd_address(
+            api_key=BC_API_KEY,
+            wallet_name="blockcypher-testsuite-btc",
+            num_addresses=1,
+            subchain_index=0,
+            coin_symbol="btc",
+        )
+        self.assertEqual("14a2zs9YhAxEo3xworxiJML47STab1LZMe", derivation_response['chains'][0]['chain_addresses'][0]['address'])
+
         delete_wallet(
             'blockcypher-testsuite-btc',
             coin_symbol='btc',

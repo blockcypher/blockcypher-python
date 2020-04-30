@@ -30,7 +30,7 @@ import logging
 
 try:
     from json.decoder import JSONDecodeError as JSONError
-except ImportError: # pragma: no cover
+except ImportError:  # pragma: no cover
     JSONError = ValueError
 
 
@@ -57,6 +57,7 @@ class RateLimitError(RuntimeError):
     ''' Raised when the library makes too many API calls '''
     pass
 
+
 def get_valid_json(request, allow_204=False):
     if request.status_code == 429:
         raise RateLimitError('Status Code 429', request.text)
@@ -68,6 +69,7 @@ def get_valid_json(request, allow_204=False):
         msg = 'JSON deserialization failed: {}'.format(str(error))
         raise requests.exceptions.ContentDecodingError(msg)
 
+
 def get_token_info(api_key):
     assert api_key
 
@@ -75,6 +77,7 @@ def get_token_info(api_key):
 
     r = requests.get(url, verify=True, timeout=TIMEOUT_IN_SECONDS)
     return get_valid_json(r)
+
 
 def _clean_tx(response_dict):
     ''' Pythonize a blockcypher API response '''
@@ -188,6 +191,7 @@ def get_addresses_details(address_list, coin_symbol='btc', txn_limit=None, api_k
     r = get_valid_json(r)
     return [_clean_tx(response_dict=d) for d in r]
 
+
 def get_address_full(address, coin_symbol='btc', txn_limit=None, inout_limit=None,
         api_key=None, before_bh=None, after_bh=None, show_confidence=False, confirmations=0):
 
@@ -229,6 +233,7 @@ def get_address_full(address, coin_symbol='btc', txn_limit=None, inout_limit=Non
     response_dict['txs'] = txs
 
     return response_dict
+
 
 def get_wallet_transactions(wallet_name, api_key, coin_symbol='btc',
         before_bh=None, after_bh=None, txn_limit=None, omit_addresses=False,
@@ -295,6 +300,7 @@ def get_address_overview(address, coin_symbol='btc', api_key=None):
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
     return get_valid_json(r)
+
 
 def get_total_balance(address, coin_symbol='btc', api_key=None):
     '''
@@ -398,7 +404,7 @@ def derive_hd_address(api_key=None, wallet_name=None, num_addresses=1,
     assert wallet_name, wallet_name
     assert isinstance(num_addresses, int), num_addresses
 
-    url = make_url(coin_symbol, 'wallets/hd', **{wallet_name, 'addresses/derive'})
+    url = make_url(coin_symbol, 'wallets/hd', **{wallet_name: 'addresses/derive'})
     params = {'token': api_key}
     if subchain_index:
         params['subchain_index'] = subchain_index
@@ -427,7 +433,7 @@ def get_transaction_details(tx_hash, coin_symbol='btc', limit=None, tx_input_off
     assert is_valid_hash(tx_hash), tx_hash
     assert is_valid_coin_symbol(coin_symbol), coin_symbol
 
-    added = 'txs/{}{}'.format(tx_hash, '/confidence' if confidence_only else  '')
+    added = 'txs/{}{}'.format(tx_hash, '/confidence' if confidence_only else '')
     url = make_url(coin_symbol, added)
 
     params = {}
@@ -750,7 +756,6 @@ def get_blockchain_overview(coin_symbol='btc', api_key=None):
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
     response_dict = get_valid_json(r)
 
-
     response_dict['time'] = parser.parse(response_dict['time'])
 
     return response_dict
@@ -860,6 +865,7 @@ def get_forwarding_address(destination_address, api_key, callback_url=None, coin
 
     return resp_dict['input_address']
 
+
 # came up with better names after it was already released
 create_forwarding_address = get_forwarding_address
 create_forwarding_address_with_details = get_forwarding_address_details
@@ -901,6 +907,7 @@ def delete_forwarding_address(payment_id, coin_symbol='btc', api_key=None):
 
     r = requests.delete(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
     return get_valid_json(r, allow_204=True)
+
 
 def subscribe_to_address_webhook(callback_url, subscription_address, event='tx-confirmation', confirmations=0, confidence=0.00, coin_symbol='btc', api_key=None):
     '''
@@ -983,6 +990,7 @@ def get_webhook_info(webhook_id, api_key=None, coin_symbol='btc'):
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
     return get_valid_json(r)
 
+
 def unsubscribe_from_webhook(webhook_id, api_key, coin_symbol='btc'):
     assert is_valid_coin_symbol(coin_symbol), coin_symbol
     assert api_key, 'api_key required'
@@ -993,6 +1001,7 @@ def unsubscribe_from_webhook(webhook_id, api_key, coin_symbol='btc'):
 
     r = requests.delete(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
     return get_valid_json(r, allow_204=True)
+
 
 def send_faucet_coins(address_to_fund, satoshis, api_key, coin_symbol='bcy'):
     '''
@@ -1037,6 +1046,7 @@ def _get_pushtx_url(coin_symbol='btc'):
     assert is_valid_coin_symbol(coin_symbol)
     return make_url(coin_symbol, **dict(txs='push'))
 
+
 def pushtx(tx_hex, coin_symbol='btc', api_key=None):
     '''
     Takes a signed transaction hex binary (and coin_symbol) and broadcasts it to the bitcoin network.
@@ -1079,6 +1089,7 @@ def decodetx(tx_hex, coin_symbol='btc', api_key=None):
     r = requests.post(url, json=data, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
     return get_valid_json(r)
 
+
 def list_wallet_names(api_key, is_hd_wallet=False, coin_symbol='btc'):
     ''' Get all the wallets belonging to an API key '''
     assert is_valid_coin_symbol(coin_symbol), coin_symbol
@@ -1091,6 +1102,7 @@ def list_wallet_names(api_key, is_hd_wallet=False, coin_symbol='btc'):
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
     return get_valid_json(r)
+
 
 def create_wallet_from_address(wallet_name, address, api_key, coin_symbol='btc'):
     '''
@@ -1154,7 +1166,7 @@ def get_wallet_addresses(wallet_name, api_key, is_hd_wallet=False,
     assert isinstance(omit_addresses, bool), omit_addresses
 
     params = {'token': api_key}
-    kwargs = {'hd/' if is_hd_wallet else '': wallet_name} # hack!
+    kwargs = {'hd/' if is_hd_wallet else '': wallet_name}  # hack!
     url = make_url(coin_symbol, 'wallets', **kwargs)
 
     if zero_balance is True:
@@ -1191,6 +1203,7 @@ def get_wallet_balance(wallet_name, api_key, omit_addresses=False, coin_symbol='
 
     r = requests.get(url, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
     return get_valid_json(r)
+
 
 def get_latest_paths_from_hd_wallet_addresses(wallet_addresses):
     '''
@@ -1244,6 +1257,7 @@ def add_address_to_wallet(wallet_name, address, api_key, omit_addresses=False, c
     url = make_url(coin_symbol, 'wallets/{}/addresses'.format(wallet_name))
     r = requests.post(url, json=data, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
     return get_valid_json(r)
+
 
 def remove_address_from_wallet(wallet_name, address, api_key, coin_symbol='btc'):
     assert is_valid_address_for_coinsymbol(address, coin_symbol)
@@ -1850,7 +1864,6 @@ def simple_spend_p2sh(all_from_pubkeys, from_privkeys_to_use, to_address, to_sat
     return broadcasted_tx['tx']['hash']
 
 
-
 def make_url(coin_symbol, simple_string=False, meta=False, **kwargs):
     url_bits = [
         BLOCKCYPHER_DOMAIN,
@@ -1873,6 +1886,7 @@ def make_url(coin_symbol, simple_string=False, meta=False, **kwargs):
 
     logger.info(url)
     return url
+
 
 def embed_data(to_embed, api_key, data_is_hex=True, coin_symbol='btc'):
     assert is_valid_coin_symbol(coin_symbol), coin_symbol
@@ -1964,6 +1978,7 @@ def put_metadata(metadata_dict, address=None, tx_hash=None, block_hash=None, api
 
     r = requests.put(url, json=metadata_dict, params=params, verify=True, timeout=TIMEOUT_IN_SECONDS)
     return get_valid_json(r, allow_204=True)
+
 
 def delete_metadata(address=None, tx_hash=None, block_hash=None, api_key=None, coin_symbol='btc'):
     '''
