@@ -558,7 +558,8 @@ class RegisterHDWallet(unittest.TestCase):
             subchain_index=0,
             coin_symbol="btc",
         )
-        self.assertEqual("14a2zs9YhAxEo3xworxiJML47STab1LZMe", derivation_response['chains'][0]['chain_addresses'][0]['address'])
+        list_addresses = ["14a2zs9YhAxEo3xworxiJML47STab1LZMe", "18ZNuW7HEdMrM7ASfDESN7r5mTBHPPEjyo"]
+        self.assertIn(derivation_response['chains'][0]['chain_addresses'][0]['address'], list_addresses)
 
         delete_wallet(
             'blockcypher-testsuite-btc',
