@@ -1,4 +1,5 @@
 import re
+from decimal import Decimal
 
 from .constants import SHA_COINS, SCRYPT_COINS, COIN_SYMBOL_SET, COIN_SYMBOL_MAPPINGS, FIRST4_MKEY_CS_MAPPINGS_UPPER, UNIT_CHOICES, UNIT_MAPPINGS
 from .crypto import script_to_address
@@ -30,7 +31,7 @@ def to_satoshis(input_quantity, input_type):
 
     # convert to satoshis
     if input_type in ('btc', 'mbtc', 'bit'):
-        satoshis = float(input_quantity) * float(UNIT_MAPPINGS[input_type]['satoshis_per'])
+        satoshis = Decimal(input_quantity) * Decimal(UNIT_MAPPINGS[input_type]['satoshis_per'])
     elif input_type == 'satoshi':
         satoshis = input_quantity
     else:
@@ -42,7 +43,7 @@ def to_satoshis(input_quantity, input_type):
 def from_satoshis(input_satoshis, output_type):
     # convert to output_type,
     if output_type in ('btc', 'mbtc', 'bit'):
-        return input_satoshis / float(UNIT_MAPPINGS[output_type]['satoshis_per'])
+        return Decimal(input_satoshis) / Decimal(UNIT_MAPPINGS[output_type]['satoshis_per'])
     elif output_type == 'satoshi':
         return int(input_satoshis)
     else:
@@ -106,15 +107,15 @@ def format_crypto_units(input_quantity, input_type, output_type, coin_symbol=Non
         assert is_valid_coin_symbol(coin_symbol=coin_symbol), coin_symbol
     assert isinstance(round_digits, int)
 
-    satoshis_float = to_satoshis(input_quantity=input_quantity, input_type=input_type)
+    satoshis = to_satoshis(input_quantity=input_quantity, input_type=input_type)
 
     if round_digits:
-        satoshis_float = round(satoshis_float, -1*round_digits)
+        satoshis = round(satoshis, -1*round_digits)
 
     output_quantity = from_satoshis(
-            input_satoshis=satoshis_float,
+            input_satoshis=satoshis,
             output_type=output_type,
-            )
+    )
 
     if output_type == 'bit' and round_digits >= 2:
         pass
@@ -293,7 +294,7 @@ def is_valid_wallet_name(wallet_name):
 
 
 def btc_to_satoshis(btc):
-    return int(float(btc) * UNIT_MAPPINGS['btc']['satoshis_per'])
+    return int(Decimal(btc) * UNIT_MAPPINGS['btc']['satoshis_per'])
 
 
 def uses_only_hash_chars(string):
