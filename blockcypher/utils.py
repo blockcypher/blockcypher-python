@@ -1,6 +1,6 @@
 import re
 
-from .constants import SHA_COINS, SCRYPT_COINS, COIN_SYMBOL_SET, COIN_SYMBOL_MAPPINGS, FIRST4_MKEY_CS_MAPPINGS_UPPER, UNIT_CHOICES, UNIT_MAPPINGS
+from .constants import SHA_COINS, SCRYPT_COINS, ETHASH_COINS, COIN_SYMBOL_SET, COIN_SYMBOL_MAPPINGS, FIRST4_MKEY_CS_MAPPINGS_UPPER, UNIT_CHOICES, UNIT_MAPPINGS
 from .crypto import script_to_address
 
 from bitcoin import safe_from_hex, deserialize
@@ -24,33 +24,40 @@ def format_output(num, output_type):
         raise Exception('Invalid Unit Choice: %s' % output_type)
 
 
-def to_satoshis(input_quantity, input_type):
-    ''' convert to satoshis, no rounding '''
+def to_base_unit(input_quantity, input_type):
+    ''' convert to satoshis or wei, no rounding '''
     assert input_type in UNIT_CHOICES, input_type
 
     # convert to satoshis
     if input_type in ('btc', 'mbtc', 'bit'):
-        satoshis = float(input_quantity) * float(UNIT_MAPPINGS[input_type]['satoshis_per'])
-    elif input_type == 'satoshi':
-        satoshis = input_quantity
+        base_unit = float(input_quantity) * float(UNIT_MAPPINGS[input_type]['satoshis_per'])
+    elif input_type in ('ether', 'gwei'):
+        base_unit = float(input_quantity) * float(UNIT_MAPPINGS[input_type]['wei_per'])
+    elif input_type in ['satoshi', 'wei']:
+        base_unit = input_quantity
     else:
         raise Exception('Invalid Unit Choice: %s' % input_type)
 
-    return int(satoshis)
+    return int(base_unit)
 
 
-def from_satoshis(input_satoshis, output_type):
+def from_base_unit(input_base, output_type):
     # convert to output_type,
     if output_type in ('btc', 'mbtc', 'bit'):
-        return input_satoshis / float(UNIT_MAPPINGS[output_type]['satoshis_per'])
-    elif output_type == 'satoshi':
-        return int(input_satoshis)
+        return input_base / float(UNIT_MAPPINGS[output_type]['satoshis_per'])
+    elif output_type in ('ether', 'gwei'):
+        return input_base / float(UNIT_MAPPINGS[output_type]['wei_per'])
+    elif output_type in ['satoshi', 'wei']:
+        return int(input_base)
     else:
         raise Exception('Invalid Unit Choice: %s' % output_type)
 
 
 def satoshis_to_btc(satoshis):
-    return from_satoshis(input_satoshis=satoshis, output_type='btc')
+    return from_base_unit(input_base=satoshis, output_type='btc')
+
+def wei_to_ether(wei):
+    return from_base_unit(input_base=wei, output_type='ether')
 
 
 def get_curr_symbol(coin_symbol, output_type):
@@ -106,13 +113,13 @@ def format_crypto_units(input_quantity, input_type, output_type, coin_symbol=Non
         assert is_valid_coin_symbol(coin_symbol=coin_symbol), coin_symbol
     assert isinstance(round_digits, int)
 
-    satoshis_float = to_satoshis(input_quantity=input_quantity, input_type=input_type)
+    base_unit_float = to_base_unit(input_quantity=input_quantity, input_type=input_type)
 
     if round_digits:
-        satoshis_float = round(satoshis_float, -1*round_digits)
+        base_unit_float = round(base_unit_float, -1*round_digits)
 
-    output_quantity = from_satoshis(
-            input_satoshis=satoshis_float,
+    output_quantity = from_base_unit(
+            input_base=base_unit_float,
             output_type=output_type,
             )
 
@@ -124,7 +131,7 @@ def format_crypto_units(input_quantity, input_type, output_type, coin_symbol=Non
         # add thousands separator and appropriate # of decimals
         output_quantity_formatted = format_output(num=output_quantity, output_type=output_type)
 
-    if safe_trimming and output_type not in ('satoshi', 'bit'):
+    if safe_trimming and output_type not in ('satoshi', 'wei', 'bit'):
         output_quantity_formatted = safe_trim(qty_as_string=output_quantity_formatted)
 
     if print_cs:
@@ -167,7 +174,7 @@ def get_txn_outputs(raw_tx_hex, output_addr_list, coin_symbol):
     assert lib_can_deserialize_cs(coin_symbol), err_msg
     assert isinstance(output_addr_list, (list, tuple))
     for output_addr in output_addr_list:
-        assert is_valid_address(output_addr), output_addr
+        assert is_valid_address_for_coinsymbol(output_addr, coin_symbol), output_addr
 
     output_addr_set = set(output_addr_list)  # speed optimization
 
@@ -371,6 +378,10 @@ def is_valid_scrypt_block_hash(block_hash):
     " Unfortunately this is indistiguishable from a regular hash "
     return is_valid_hash(block_hash)
 
+def is_valid_ethash_block_hash(block_hash):
+    " Unfortunately this is indistiguishable from a regular hash "
+    return is_valid_hash(block_hash)
+
 
 def is_valid_sha_block_representation(block_representation):
     return is_valid_block_num(block_representation) or is_valid_sha_block_hash(block_representation)
@@ -403,6 +414,8 @@ def is_valid_block_representation(block_representation, coin_symbol):
             return is_valid_sha_block_representation(block_representation)
     elif coin_symbol in SCRYPT_COINS:
         return is_valid_scrypt_block_representation(block_representation)
+    elif coin_symbol in ETHASH_COINS:
+        return is_valid_ethash_block_representation(block_representation)
     else:
         return True
 
@@ -469,6 +482,14 @@ def is_valid_address(b58_address):
         # handle edge cases like an address too long to decode
         return False
 
+def is_valid_eth_address(addr):
+    if addr.startswith('0x'):
+        addr = addr[2:].strip()
+
+    if len(addr) != 40:
+        return False
+
+    return uses_only_hash_chars(string)
 
 def is_valid_address_for_coinsymbol(b58_address, coin_symbol):
     '''
@@ -480,6 +501,9 @@ def is_valid_address_for_coinsymbol(b58_address, coin_symbol):
     # TODO deeper validation of a bech32 address
     if b58_address.startswith(COIN_SYMBOL_MAPPINGS[coin_symbol]['bech32_prefix']):
         return True
+
+    if coin_symbol == 'eth':
+        return is_valid_eth_address(b58_address)
 
     if b58_address[0] in COIN_SYMBOL_MAPPINGS[coin_symbol]['address_first_char_list']:
         if is_valid_address(b58_address):

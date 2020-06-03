@@ -20,6 +20,24 @@ COIN_SYMBOL_ODICT_LIST = [
             'vbyte_script': 5,
             },
         {
+            'coin_symbol': 'eth',
+            'display_name': 'Ethereum',
+            'display_shortname': 'ETH',
+            'blockcypher_code': 'eth',
+            'blockcypher_network': 'main',
+            'currency_abbrev': 'ETH',
+            'pow': 'ethash',
+            'example_address': '0x9fece73db33be7b9a3d30b89fcc6a3f8e2bcf514',
+            'address_first_char_list': ('0'),
+            'singlesig_prefix_list': ('0', ),
+            'multisig_prefix_list': ('0', ),
+            'bech32_prefix': 'none',
+            'first4_mprv': 'none',
+            'first4_mpub': 'none',
+            'vbyte_pubkey': 0,
+            'vbyte_script': 0,
+            },
+        {
             'coin_symbol': 'btc-testnet',
             'display_name': 'Bitcoin Testnet',
             'display_shortname': 'BTC Testnet',
@@ -130,7 +148,7 @@ REQUIRED_FIELDS = (
     'vbyte_script',  # script hash version byte
     )
 
-ELIGIBLE_POW_ENTRIES = set(['sha', 'scrypt', 'x11'])
+ELIGIBLE_POW_ENTRIES = set(['sha', 'scrypt', 'x11', 'ethash'])
 
 # Safety checks on the data
 for coin_symbol_dict in COIN_SYMBOL_ODICT_LIST:
@@ -145,6 +163,7 @@ COIN_SYMBOL_LIST = [x['coin_symbol'] for x in COIN_SYMBOL_ODICT_LIST]
 COIN_SYMBOL_SET = set(COIN_SYMBOL_LIST)
 SHA_COINS = [x['coin_symbol'] for x in COIN_SYMBOL_ODICT_LIST if x['pow'] == 'sha']
 SCRYPT_COINS = [x['coin_symbol'] for x in COIN_SYMBOL_ODICT_LIST if x['pow'] == 'scrypt']
+ETHASH_COINS = [x['coin_symbol'] for x in COIN_SYMBOL_ODICT_LIST if x['pow'] == 'ethash']
 
 # For django-style lists (with "best" order)
 COIN_CHOICES = []
@@ -187,8 +206,22 @@ UNIT_CHOICE_ODICT_LIST = [
             'satoshis_per': 10**2,
             },
         {
-            'display_name': 'satoshi',
             'unit': 'satoshi',
+            'display_name': 'satoshi',
+            },
+        {
+            'unit': 'ether',
+            'display_name': 'Ether',
+            'wei_per': 10**18,
+            },
+        {
+            'unit': 'gwei',
+            'display_name': 'GWei',
+            'wei_per': 10**9,
+            },
+        {
+            'unit': 'wei',
+            'display_name': 'Wei',
             },
         ]
 

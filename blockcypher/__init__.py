@@ -82,7 +82,9 @@ from .api import get_metadata
 from .api import put_metadata
 from .api import delete_metadata
 
-from .utils import from_satoshis
+from .utils import from_base_unit
 from .utils import satoshis_to_btc
+from .utils import wei_to_ether
 from .utils import is_valid_hash
 from .utils import is_valid_address
+from .utils import is_valid_eth_address
