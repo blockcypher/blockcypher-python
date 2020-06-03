@@ -184,6 +184,7 @@ class CreateUnsignedTX(unittest.TestCase):
                     'address': 'Dbc9fnf1Kqct7zvfNTiwr6HjvDfPYaFSNg',
                 },
             ],
+            preference="low",
             change_address='CFr99841LyMkyX5ZTGepY58rjXJhyNGXHf',
             include_tosigntx=True,
             verify_tosigntx=True,
