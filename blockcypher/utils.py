@@ -367,7 +367,7 @@ def is_valid_block_num(block_num):
         return False
 
     # hackey approximation
-    return 0 <= bn_as_int <= 10**8
+    return 0 <= bn_as_int <= 10**9
 
 
 def is_valid_sha_block_hash(block_hash):
@@ -390,6 +390,8 @@ def is_valid_sha_block_representation(block_representation):
 def is_valid_scrypt_block_representation(block_representation):
     return is_valid_block_num(block_representation) or is_valid_scrypt_block_hash(block_representation)
 
+def is_valid_ethash_block_representation(block_representation):
+    return is_valid_block_num(block_representation) or is_valid_ethash_block_hash(block_representation)
 
 def is_valid_bcy_block_representation(block_representation):
     block_representation = str(block_representation)
@@ -489,7 +491,7 @@ def is_valid_eth_address(addr):
     if len(addr) != 40:
         return False
 
-    return uses_only_hash_chars(string)
+    return uses_only_hash_chars(addr)
 
 def is_valid_address_for_coinsymbol(b58_address, coin_symbol):
     '''
