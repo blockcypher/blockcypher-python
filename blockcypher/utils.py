@@ -239,7 +239,7 @@ def get_txn_outputs_dict(raw_tx_hex, output_addr_list, coin_symbol):
 def compress_txn_inputs(txn_inputs):
     result_dict = {}
     for txn_input in txn_inputs:
-        if 'addresses' in txn_input:
+        if 'addresses' in txn_input and 'output_value' in txn_input:
             # coinbase tx has no address
             address = txn_input['addresses'][0]
             if address in result_dict:

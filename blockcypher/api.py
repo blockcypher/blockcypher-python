@@ -784,12 +784,18 @@ def get_blockchain_fee_estimates(coin_symbol='btc', api_key=None):
     Returns high, medium, and low fee estimates for a given blockchain.
     """
     overview = get_blockchain_overview(coin_symbol=coin_symbol, api_key=api_key)
-    return {
-            'high_fee_per_kb': overview['high_fee_per_kb'],
-            'medium_fee_per_kb': overview['medium_fee_per_kb'],
-            'low_fee_per_kb': overview['low_fee_per_kb'],
-            }
-
+    if coin_symbol == 'eth':
+        return {
+                'high_fee_per_kb': overview['high_gas_price'],
+                'medium_fee_per_kb': overview['medium_gas_price'],
+                'low_fee_per_kb': overview['low_gas_price'],
+                }
+    else:
+        return {
+                'high_fee_per_kb': overview['high_fee_per_kb'],
+                'medium_fee_per_kb': overview['medium_fee_per_kb'],
+                'low_fee_per_kb': overview['low_fee_per_kb'],
+                }
 
 def get_blockchain_high_fee(coin_symbol='btc', api_key=None):
     """
