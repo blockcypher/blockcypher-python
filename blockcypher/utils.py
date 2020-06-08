@@ -18,6 +18,8 @@ def format_output(num, output_type):
         return '{0:,.5f}'.format(num)
     elif output_type == 'bit':
         return '{0:,.2f}'.format(num)
+    elif output_type == 'gwei':
+        return '{0:,.9f}'.format(num)
     elif output_type in ['satoshi', 'wei']:
         return '{:,}'.format(int(num))
     elif output_type == 'ether':
@@ -72,9 +74,11 @@ def get_curr_symbol(coin_symbol, output_type):
     elif output_type == 'satoshi':
         return 'satoshis'
     elif output_type == 'ether':
-        return 'ethers'
+        return 'Ethers'
+    elif output_type == 'gwei':
+        return 'GWeis'
     elif output_type == 'wei':
-        return 'weis'
+        return 'Weis'
     else:
         raise Exception('Invalid Unit Choice: %s' % output_type)
 
