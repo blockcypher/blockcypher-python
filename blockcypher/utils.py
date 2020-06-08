@@ -71,6 +71,10 @@ def get_curr_symbol(coin_symbol, output_type):
         return 'bits'
     elif output_type == 'satoshi':
         return 'satoshis'
+    elif output_type == 'ether':
+        return 'ethers'
+    elif output_type == 'wei':
+        return 'weis'
     else:
         raise Exception('Invalid Unit Choice: %s' % output_type)
 
