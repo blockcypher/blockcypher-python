@@ -20,7 +20,7 @@ def format_output(num, output_type):
         return '{0:,.2f}'.format(num)
     elif output_type in ['satoshi', 'wei']:
         return '{:,}'.format(int(num))
-    elif output_type = 'ether':
+    elif output_type == 'ether':
         return '{0:,.18f}'.format(num)
     else:
         raise Exception('Invalid Unit Choice: %s' % output_type)
