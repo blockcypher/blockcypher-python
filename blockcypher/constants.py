@@ -100,7 +100,7 @@ COIN_SYMBOL_ODICT_LIST = [
             'currency_abbrev': 'DASH',
             'pow': 'scrypt',
             'example_address': 'XdZW5Waa1i6D9za3qpFvgiwHzr8aFcXtNP',
-            'address_first_char_list': ('X'),
+            'address_first_char_list': ('X', '7'),
             'singlesig_prefix_list': ('X', ),
             'multisig_prefix_list': ('7', ),
             'bech32_prefix': 'xyz',
