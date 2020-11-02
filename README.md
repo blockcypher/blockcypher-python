@@ -270,7 +270,7 @@ For example, here's the latest Litecoin block height.
 ```
 
 #### More examples
-See the official blockcypher docs at http://dev.blockcypher.com/?python#
+See the official blockcypher docs at https://blockcypher.com/dev/bitcoin?python#
 
 #### Pull Requests Welcome
 Please note that all PRs require test coverage in `test_blockcypher.py`.
