@@ -308,7 +308,7 @@ def get_total_balance(address, coin_symbol='btc', api_key=None):
     in satoshi.
     '''
     return get_address_overview(address=address,
-            coin_symbol=coin_symbol)['final_balance']
+            coin_symbol=coin_symbol, api_key=api_key)['final_balance']
 
 
 def get_unconfirmed_balance(address, coin_symbol='btc', api_key=None):
@@ -317,7 +317,7 @@ def get_unconfirmed_balance(address, coin_symbol='btc', api_key=None):
     in satoshi.
     '''
     return get_address_overview(address=address,
-            coin_symbol=coin_symbol)['unconfirmed_balance']
+            coin_symbol=coin_symbol, api_key=api_key)['unconfirmed_balance']
 
 
 def get_confirmed_balance(address, coin_symbol='btc', api_key=None):
@@ -326,7 +326,7 @@ def get_confirmed_balance(address, coin_symbol='btc', api_key=None):
     in satoshi.
     '''
     return get_address_overview(address=address,
-            coin_symbol=coin_symbol)['balance']
+            coin_symbol=coin_symbol, api_key=api_key)['balance']
 
 
 def get_num_confirmed_transactions(address, coin_symbol='btc', api_key=None):
@@ -334,7 +334,7 @@ def get_num_confirmed_transactions(address, coin_symbol='btc', api_key=None):
     Only transactions that have made it into a block (confirmations > 0)
     '''
     return get_address_overview(address=address,
-            coin_symbol=coin_symbol)['n_tx']
+            coin_symbol=coin_symbol, api_key=api_key)['n_tx']
 
 
 def get_num_unconfirmed_transactions(address, coin_symbol='btc', api_key=None):
@@ -342,7 +342,7 @@ def get_num_unconfirmed_transactions(address, coin_symbol='btc', api_key=None):
     Only transactions that have note made it into a block (confirmations == 0)
     '''
     return get_address_overview(address=address,
-            coin_symbol=coin_symbol)['unconfirmed_n_tx']
+            coin_symbol=coin_symbol, api_key=api_key)['unconfirmed_n_tx']
 
 
 def get_total_num_transactions(address, coin_symbol='btc', api_key=None):
@@ -350,7 +350,7 @@ def get_total_num_transactions(address, coin_symbol='btc', api_key=None):
     All transaction, regardless if they have made it into any blocks
     '''
     return get_address_overview(address=address,
-            coin_symbol=coin_symbol)['final_n_tx']
+            coin_symbol=coin_symbol, api_key=api_key)['final_n_tx']
 
 
 def generate_new_address(coin_symbol='btc', api_key=None):
