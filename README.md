@@ -37,7 +37,7 @@ How much bitcoin (in satoshis) is currently sitting in the Bitcoin Foundation Ad
 
 Satoshis are a bit hard to inuit. How much is that in BTC?
 ```
->>> blockcypher.from_satoshis(5850576658, 'btc')
+>>> blockcypher.from_base_unit(5850576658, 'btc')
 58.50576658
 ```
 ~58.5 BTC, not bad.
