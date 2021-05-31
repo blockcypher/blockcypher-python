@@ -1400,9 +1400,17 @@ def create_unsigned_tx(inputs, outputs, change_address=None,
         # no address required for null-data outputs
         if output.get('script_type') == 'null-data':
             assert output['value'] == 0
-            assert 'script' in output, output
-            clean_output['script_type'] = 'null-data'
-            clean_output['script'] = output['script']
+            if 'script' in output:
+                clean_output['script_type'] = 'null-data'
+                clean_output['script'] = output['script']
+            elif 'data_hex' in output:
+                clean_output['script_type'] = 'null-data'
+                clean_output['data_hex'] = output['data_hex']
+            elif 'data_string' in output:
+                clean_output['script_type'] = 'null-data'
+                clean_output['data_string'] = output['data_string']
+            else:
+                raise Exception('Invalid OP_RETURN')
         # but note that API requires the singleton list 'addresses' which is
         # intentionally hidden away from the user here
         else:
