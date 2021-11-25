@@ -71,7 +71,7 @@ COIN_SYMBOL_ODICT_LIST = [
             'first4_mprv': 'Ltpv',
             'first4_mpub': 'Ltub',
             'vbyte_pubkey': 48,
-            'vbyte_script': 5,
+            'vbyte_script': 50,
             },
         {
             'coin_symbol': 'doge',
