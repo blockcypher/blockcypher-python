@@ -158,15 +158,7 @@ class CreateUnsignedTX(unittest.TestCase):
         result = create_unsigned_tx(
             inputs=[
                 {
-                    'prev_hash': 'b56c936ec5512e03761b3ef7614d00fa54d6931abe6903efa6f8792dc3305a69',
-                    'output_index': 0
-                },
-                {
-                    'prev_hash': 'fe313e2c309b4f256157ec4ebcf55652eaedb8a16d429df26c5ba205dd40ad27',
-                    'output_index': 0
-                },
-                {
-                    'prev_hash': '12f30c25afafcb42171e7052c9596c93a3e81b0d2b9051f8cf25ce44693e24ba',
+                    'prev_hash': '31746be47c39337b8c054a165da407122725162363e5b9d0b8062cde3ef06f7d',
                     'output_index': 0
                 },
                 {
@@ -174,7 +166,15 @@ class CreateUnsignedTX(unittest.TestCase):
                     'output_index': 0
                 },
                 {
-                    'prev_hash': '31746be47c39337b8c054a165da407122725162363e5b9d0b8062cde3ef06f7d',
+                    'prev_hash': '12f30c25afafcb42171e7052c9596c93a3e81b0d2b9051f8cf25ce44693e24ba',
+                    'output_index': 0
+                },
+                {
+                    'prev_hash': 'fe313e2c309b4f256157ec4ebcf55652eaedb8a16d429df26c5ba205dd40ad27',
+                    'output_index': 0
+                },
+                {
+                    'prev_hash': '74ab2e2fd193df2a7de7db5de92559e814270e740aa5715a952fa16946626545',
                     'output_index': 0
                 }
             ],
