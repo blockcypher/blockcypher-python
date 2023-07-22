@@ -1624,7 +1624,7 @@ def broadcast_signed_transaction(unsigned_tx, signatures, pubkeys, coin_symbol='
 
 
 def simple_spend(from_privkey, to_address, to_satoshis, change_address=None,
-        privkey_is_compressed=True, min_confirmations=0, api_key=None, coin_symbol='btc'):
+        privkey_is_compressed=True, min_confirmations=0, api_key=None, coin_symbol='btc', preference: str = 'low'):
     '''
     Simple method to spend from one single-key address to another.
 
@@ -1639,6 +1639,9 @@ def simple_spend(from_privkey, to_address, to_satoshis, change_address=None,
 
     Compressed public keys (and their corresponding addresses) have been the standard since v0.6,
     set privkey_is_compressed=False if using uncompressed addresses.
+
+    Fees preferences can be set as strings with value 'low', 'medium', 'zero' or 'high'.
+    Transaction with zero fees are unlikely to be added to a block. This value was
 
     Note that this currently only supports spending from single key addresses.
     '''
@@ -1673,6 +1676,7 @@ def simple_spend(from_privkey, to_address, to_satoshis, change_address=None,
         verify_tosigntx=False,  # will verify in next step
         include_tosigntx=True,
         api_key=api_key,
+        preference=preference if preference in ('high', 'medium', 'low', 'zero') else 'low'
         )
     logger.info('unsigned_tx: %s' % unsigned_tx)
 
