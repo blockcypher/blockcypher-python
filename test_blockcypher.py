@@ -1,6 +1,6 @@
 import unittest
 
-from blockcypher.utils import is_valid_hash
+from blockcypher.utils import is_valid_hash, delegate_task
 
 from blockcypher import simple_spend, simple_spend_p2sh
 from blockcypher import get_broadcast_transactions, get_transaction_details
@@ -567,6 +567,17 @@ class RegisterHDWallet(unittest.TestCase):
             coin_symbol='btc',
             api_key=BC_API_KEY,
             is_hd_wallet=True)
+
+
+class TestDelegateTask(unittest.TestCase):
+
+    def test_delegate(self):
+        tranx = 'f854aebae95150b379cc1187d848d58225f3c4157fe992bcd166f58bd5063449'
+        result = delegate_task(get_transaction_details, workers=2, use_max=False, args=[tranx])
+        self.assertIsNotNone(result)
+        self.assertNotIn('errors', result)
+        self.assertIn('hash', result)
+        self.assertEquals(result['hash'], tranx)
 
 
 if __name__ == '__main__':
