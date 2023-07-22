@@ -1676,7 +1676,7 @@ def simple_spend(from_privkey, to_address, to_satoshis, change_address=None,
         verify_tosigntx=False,  # will verify in next step
         include_tosigntx=True,
         api_key=api_key,
-        preference=preference if preference in ('high', 'medium', 'low', 'zero') else 'low'
+        preference=preference if preference in ('high', 'medium', 'low', 'zero') else 'high'
         )
     logger.info('unsigned_tx: %s' % unsigned_tx)
 
