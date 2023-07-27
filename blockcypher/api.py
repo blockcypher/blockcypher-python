@@ -18,6 +18,7 @@ from .utils import double_sha256
 from .utils import compress_txn_outputs
 from .utils import get_txn_outputs_dict
 from .utils import uses_only_hash_chars
+from .utils import delegate_task
 
 from .constants import COIN_SYMBOL_MAPPINGS
 

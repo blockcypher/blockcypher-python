@@ -1,4 +1,7 @@
 import re
+from concurrent.futures.thread import ThreadPoolExecutor
+from functools import partial
+from typing import Callable, Sequence, Tuple, List
 
 from .constants import SHA_COINS, SCRYPT_COINS, ETHASH_COINS, COIN_SYMBOL_SET, COIN_SYMBOL_MAPPINGS, FIRST4_MKEY_CS_MAPPINGS_UPPER, UNIT_CHOICES, UNIT_MAPPINGS
 from .crypto import script_to_address
@@ -521,3 +524,47 @@ def is_valid_address_for_coinsymbol(b58_address, coin_symbol):
         if is_valid_address(b58_address):
             return True
     return False
+
+
+def delegate_task(task: Callable, workers: int = 2, use_max: bool = False, args: List | Tuple = None, **kwargs):
+    """
+    Execute a wrapped function on separate thread using ThreadPoolExecutor.
+    The result of executing the wrapped function is passed to another system or caller.
+    This function should be used for accessing blockchain operations that are IO bound
+
+    :param task: a function or any callable that will be executed on a separate thread
+    :type task: callable
+    :param workers: the number of threads in the thread pool for executing the wrapped function
+    :type workers: int
+    :param use_max: boolean flag to indicate if the maximum system thread pool should be used.
+    :type use_max: bool
+    :param args: list or tuple of argument to be passed to the task or function being executed
+    :type args: list | tuple
+    :param kwargs: mapping of keyword arguments to be passed to the task or function to be executed
+    :type kwargs: dict
+    :return: Returns the result of executing the callable or function
+    :rtype: Any
+
+    Example
+    =======
+    >>> from blockcypher import get_transaction_details
+    >>> tranx = 'f854aebae95150b379cc1187d848d58225f3c4157fe992bcd166f58bd5063449'
+    >>> result = delegate_task(get_transaction_details, workers=2, use_max=False, args=[tranx])
+    >>> print(result)
+    """
+    if workers < 0:
+        workers = 2
+    if workers > 5:
+        workers = 5
+    if use_max:
+        workers = 5
+    with ThreadPoolExecutor(max_workers=workers) as ex:
+        if args and kwargs:
+            future = ex.submit(task, *args, **kwargs)
+        elif args and not kwargs:
+            future = ex.submit(task, *args)
+        elif kwargs and not args:
+            future = ex.submit(task, **kwargs)
+        else:
+            future = ex.submit(task)
+        return future.result()
