@@ -1,4 +1,9 @@
 import re
+
+from collections import OrderedDict
+from decimal import Decimal
+from hashlib import sha256
+
 from concurrent.futures.thread import ThreadPoolExecutor
 from functools import partial
 from typing import Callable, Sequence, Tuple, List
@@ -6,10 +11,12 @@ from typing import Callable, Sequence, Tuple, List
 from .constants import SHA_COINS, SCRYPT_COINS, ETHASH_COINS, COIN_SYMBOL_SET, COIN_SYMBOL_MAPPINGS, FIRST4_MKEY_CS_MAPPINGS_UPPER, UNIT_CHOICES, UNIT_MAPPINGS
 from .crypto import script_to_address
 
+
 from bitcoin import safe_from_hex, deserialize
 
-from collections import OrderedDict
-from hashlib import sha256
+from .constants import SHA_COINS, SCRYPT_COINS, ETHASH_COINS, COIN_SYMBOL_SET, COIN_SYMBOL_MAPPINGS, \
+    FIRST4_MKEY_CS_MAPPINGS_UPPER, UNIT_CHOICES, UNIT_MAPPINGS
+from .crypto import script_to_address
 
 HEX_CHARS_RE = re.compile('^[0-9a-f]*$')
 
@@ -35,11 +42,21 @@ def to_base_unit(input_quantity, input_type):
     ''' convert to satoshis or wei, no rounding '''
     assert input_type in UNIT_CHOICES, input_type
 
+    if isinstance(input_quantity, (int, float, Decimal)):
+        input_quantity = Decimal(input_quantity)
+    elif isinstance(input_quantity, str):
+        if re.match(r'^[+-]?(?:\d*\.)?\d+$', input_quantity):
+            input_quantity = Decimal(input_quantity)
+        else:
+            raise TypeError('Provided value (%s) cannot be parsed to numerical type %s' % input_quantity)
+    else:
+        raise TypeError('Expected quantity to be data of type int, float, or Decimal but got %s' % type(input_quantity))
+
     # convert to satoshis
     if input_type in ('btc', 'mbtc', 'bit'):
-        base_unit = float(input_quantity) * float(UNIT_MAPPINGS[input_type]['satoshis_per'])
+        base_unit = input_quantity * Decimal(UNIT_MAPPINGS[input_type]['satoshis_per'])
     elif input_type in ('ether', 'gwei'):
-        base_unit = float(input_quantity) * float(UNIT_MAPPINGS[input_type]['wei_per'])
+        base_unit = input_quantity * Decimal(UNIT_MAPPINGS[input_type]['wei_per'])
     elif input_type in ['satoshi', 'wei']:
         base_unit = input_quantity
     else:
@@ -51,17 +68,18 @@ def to_base_unit(input_quantity, input_type):
 def from_base_unit(input_base, output_type):
     # convert to output_type,
     if output_type in ('btc', 'mbtc', 'bit'):
-        return input_base / float(UNIT_MAPPINGS[output_type]['satoshis_per'])
+        return Decimal(input_base) / Decimal(UNIT_MAPPINGS[output_type]['satoshis_per'])
     elif output_type in ('ether', 'gwei'):
-        return input_base / float(UNIT_MAPPINGS[output_type]['wei_per'])
+        return Decimal(input_base) / Decimal(UNIT_MAPPINGS[output_type]['wei_per'])
     elif output_type in ['satoshi', 'wei']:
-        return int(input_base)
+        return Decimal(input_base)
     else:
         raise Exception('Invalid Unit Choice: %s' % output_type)
 
 
 def satoshis_to_btc(satoshis):
     return from_base_unit(input_base=satoshis, output_type='btc')
+
 
 def wei_to_ether(wei):
     return from_base_unit(input_base=wei, output_type='ether')
@@ -105,7 +123,8 @@ def safe_trim(qty_as_string):
     return qty_formatted
 
 
-def format_crypto_units(input_quantity, input_type, output_type, coin_symbol=None, print_cs=False, safe_trimming=False, round_digits=0):
+def format_crypto_units(input_quantity, input_type, output_type, coin_symbol=None, print_cs=False, safe_trimming=False,
+                        round_digits=0):
     '''
     Take an input like 11002343 satoshis and convert it to another unit (e.g. BTC) and format it with appropriate units
 
@@ -129,12 +148,12 @@ def format_crypto_units(input_quantity, input_type, output_type, coin_symbol=Non
     base_unit_float = to_base_unit(input_quantity=input_quantity, input_type=input_type)
 
     if round_digits:
-        base_unit_float = round(base_unit_float, -1*round_digits)
+        base_unit_float = round(base_unit_float, -1 * round_digits)
 
     output_quantity = from_base_unit(
-            input_base=base_unit_float,
-            output_type=output_type,
-            )
+        input_base=base_unit_float,
+        output_type=output_type,
+    )
 
     if output_type == 'bit' and round_digits >= 2:
         pass
@@ -149,9 +168,9 @@ def format_crypto_units(input_quantity, input_type, output_type, coin_symbol=Non
 
     if print_cs:
         curr_symbol = get_curr_symbol(
-                coin_symbol=coin_symbol,
-                output_type=output_type,
-                )
+            coin_symbol=coin_symbol,
+            output_type=output_type,
+        )
         output_quantity_formatted += ' %s' % curr_symbol
     return output_quantity_formatted
 
@@ -198,9 +217,9 @@ def get_txn_outputs(raw_tx_hex, output_addr_list, coin_symbol):
 
         # determine if the address is a pubkey address, script address, or op_return
         pubkey_addr = script_to_address(out['script'],
-            vbyte=COIN_SYMBOL_MAPPINGS[coin_symbol]['vbyte_pubkey'])
+                                        vbyte=COIN_SYMBOL_MAPPINGS[coin_symbol]['vbyte_pubkey'])
         script_addr = script_to_address(out['script'],
-            vbyte=COIN_SYMBOL_MAPPINGS[coin_symbol]['vbyte_script'])
+                                        vbyte=COIN_SYMBOL_MAPPINGS[coin_symbol]['vbyte_script'])
         nulldata = out['script'] if out['script'][0:2] == '6a' else None
         if pubkey_addr in output_addr_set:
             address = pubkey_addr
@@ -215,7 +234,7 @@ def get_txn_outputs(raw_tx_hex, output_addr_list, coin_symbol):
             raise Exception('Script %s Does Not Contain a Valid Output Address: %s' % (
                 out['script'],
                 output_addr_set,
-                ))
+            ))
 
         outputs.append(output)
     return outputs
@@ -241,12 +260,12 @@ def compress_txn_outputs(txn_outputs):
 
 def get_txn_outputs_dict(raw_tx_hex, output_addr_list, coin_symbol):
     return compress_txn_outputs(
-            txn_outputs=get_txn_outputs(
-                raw_tx_hex=raw_tx_hex,
-                output_addr_list=output_addr_list,
-                coin_symbol=coin_symbol,
-                )
-            )
+        txn_outputs=get_txn_outputs(
+            raw_tx_hex=raw_tx_hex,
+            output_addr_list=output_addr_list,
+            coin_symbol=coin_symbol,
+        )
+    )
 
 
 def compress_txn_inputs(txn_inputs):
@@ -313,7 +332,7 @@ def is_valid_wallet_name(wallet_name):
 
 
 def btc_to_satoshis(btc):
-    return int(float(btc) * UNIT_MAPPINGS['btc']['satoshis_per'])
+    return int(Decimal(btc) * Decimal(UNIT_MAPPINGS['btc']['satoshis_per']))
 
 
 def uses_only_hash_chars(string):
@@ -351,14 +370,14 @@ def flatten_txns_by_hash(tx_list, nesting=True):
 
         else:
             nested_cleaned_txs[tx_hash] = {
-                    'txns_satoshis_list': [satoshis, ],
-                    'satoshis_net': satoshis,
-                    'received_at': tx.get('received'),
-                    'confirmed_at': tx.get('confirmed'),
-                    'confirmations': tx.get('confirmations', 0),
-                    'block_height': tx.get('block_height'),
-                    'double_spend': tx.get('double_spend', False),
-                    }
+                'txns_satoshis_list': [satoshis, ],
+                'satoshis_net': satoshis,
+                'received_at': tx.get('received'),
+                'confirmed_at': tx.get('confirmed'),
+                'confirmations': tx.get('confirmations', 0),
+                'block_height': tx.get('block_height'),
+                'double_spend': tx.get('double_spend', False),
+            }
     if nesting:
         return nested_cleaned_txs
     else:
@@ -380,7 +399,7 @@ def is_valid_block_num(block_num):
         return False
 
     # hackey approximation
-    return 0 <= bn_as_int <= 10**9
+    return 0 <= bn_as_int <= 10 ** 9
 
 
 def is_valid_sha_block_hash(block_hash):
@@ -390,6 +409,7 @@ def is_valid_sha_block_hash(block_hash):
 def is_valid_scrypt_block_hash(block_hash):
     " Unfortunately this is indistiguishable from a regular hash "
     return is_valid_hash(block_hash)
+
 
 def is_valid_ethash_block_hash(block_hash):
     " Unfortunately this is indistiguishable from a regular hash "
@@ -403,8 +423,10 @@ def is_valid_sha_block_representation(block_representation):
 def is_valid_scrypt_block_representation(block_representation):
     return is_valid_block_num(block_representation) or is_valid_scrypt_block_hash(block_representation)
 
+
 def is_valid_ethash_block_representation(block_representation):
     return is_valid_block_num(block_representation) or is_valid_ethash_block_hash(block_representation)
+
 
 def is_valid_bcy_block_representation(block_representation):
     block_representation = str(block_representation)
@@ -450,6 +472,7 @@ def coin_symbol_from_mkey(mkey):
     '''
     return FIRST4_MKEY_CS_MAPPINGS_UPPER.get(mkey[:4].upper())
 
+
 # Addresses #
 
 # Copied 2014-09-24 from http://rosettacode.org/wiki/Bitcoin/address_validation#Python
@@ -488,7 +511,8 @@ def crypto_address_valid(bc):
 
 def is_valid_address(b58_address):
     # TODO deeper validation of a bech32 address
-    if b58_address.startswith('bc1') or b58_address.startswith('ltc1') or b58_address.startswith('tltc1') or b58_address.startswith('tb1'):
+    if b58_address.startswith('bc1') or b58_address.startswith('ltc1') or b58_address.startswith(
+            'tltc1') or b58_address.startswith('tb1'):
         return True
 
     try:
@@ -496,6 +520,7 @@ def is_valid_address(b58_address):
     except:
         # handle edge cases like an address too long to decode
         return False
+
 
 def is_valid_eth_address(addr):
     if addr.startswith('0x'):
@@ -505,6 +530,7 @@ def is_valid_eth_address(addr):
         return False
 
     return uses_only_hash_chars(addr)
+
 
 def is_valid_address_for_coinsymbol(b58_address, coin_symbol):
     '''

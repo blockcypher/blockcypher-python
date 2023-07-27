@@ -7,7 +7,11 @@ from blockcypher import get_address_details, get_addresses_details
 from blockcypher import get_broadcast_transactions, get_transaction_details
 from blockcypher import list_wallet_names
 from blockcypher import simple_spend, simple_spend_p2sh
+
+from blockcypher.utils import is_valid_address, uses_only_hash_chars, to_base_unit, from_base_unit, format_crypto_units
+
 from blockcypher.utils import is_valid_address, uses_only_hash_chars
+
 from blockcypher.utils import is_valid_hash
 
 BC_API_KEY = os.getenv('BC_API_KEY')
@@ -26,6 +30,26 @@ class TestUtils(unittest.TestCase):
 
     def test_invalid_hash(self):
         assert not is_valid_hash(self.invalid_hash), self.invalid_hash
+
+    def test_to_base_unit(self):
+        a = to_base_unit('0.4578', 'btc')
+        b = to_base_unit('457.80', 'mbtc')
+        assert a == b
+
+    def test_from_base_unit(self):
+        a = from_base_unit(12178001, 'mbtc')
+        b = from_base_unit(12178001, 'btc')
+        print(f'mBTC: {a}')
+        print(f'BTC: {b}')
+        assert a
+        assert b
+
+    def test_format_crypto_units(self):
+        a = format_crypto_units(123, 'mbtc', 'btc')
+        b = format_crypto_units(123, 'mbtc', 'btc', coin_symbol='btc', print_cs=True)
+        print(f'Formatted output: {a}')
+        print(f'Formatted output with symbol: {b}')
+        assert a
 
 
 class GetAddressesDetails(unittest.TestCase):
