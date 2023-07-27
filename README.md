@@ -5,7 +5,7 @@ Official python library for BlockCypher web services. Easily query the blockchai
 
 Designed to be used without having to RTFM.
 
-More features and support for more endpoints coming soon. Should support python 2.6+ and python3.x, but hasn't been thoroughly tested on 2.6+. Native support for datetime conversions. Issues and pull requests much appreciated!
+More features and support for more endpoints are on the way. Python 3.x should be supported, but it hasn't been properly tested on 2.6+, which is no longer supported. Datetime conversions are supported natively. Issues and pull requests are much welcomed!
 
 ![](https://github.com/blockcypher/blockcypher-python/workflows/Continuous%20Integration/badge.svg)
 
