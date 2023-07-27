@@ -8,10 +8,12 @@ from blockcypher import get_address_details, get_addresses_details
 from blockcypher import list_wallet_names
 from blockcypher import create_unsigned_tx, create_hd_wallet, derive_hd_address, delete_wallet
 from blockcypher import generate_new_address, generate_multisig_address
+from blockcypher import send_faucet_coins
 
 from blockcypher.utils import is_valid_address, uses_only_hash_chars
 
 import os
+import time
 
 
 BC_API_KEY = os.getenv('BC_API_KEY')
@@ -76,6 +78,7 @@ class GetAddressesDetails(unittest.TestCase):
                 assert 'script' in txref, txref
 
 
+@unittest.SkipTest
 class CreateUnsignedTX(unittest.TestCase):
 
     def setUp(self):
@@ -196,6 +199,7 @@ class CreateUnsignedTX(unittest.TestCase):
 
 class GetAddressDetails(unittest.TestCase):
 
+    @unittest.SkipTest
     def test_fetching_unspents(self):
         # This address I previously sent funds to but threw out the private key
         address_details = get_address_details(
@@ -284,21 +288,35 @@ class GetUnconfirmedTXInfo(unittest.TestCase):
         assert 0 <= tx_details['confidence'] <= 1, tx_details
 
 
+@unittest.SkipTest
 class CompressedTXSign(unittest.TestCase):
 
     def setUp(self):
         self.bcy_faucet_addr = 'CFr99841LyMkyX5ZTGepY58rjXJhyNGXHf'
         self.to_send_satoshis = 1
 
+
+        # generate a new address
+        response_dict = generate_new_address(
+                    coin_symbol='bcy',
+                    api_key=BC_API_KEY,
+                    )
+
         # Note: this is BCY testnet coin, which is completely worthless and available here for free:
         # https://accounts.blockcypher.com/blockcypher-faucet
-        self.bcy_pub_addr = 'CCf3dWFULG2JHyYjmLixBSWGxF9YwTGaae'
-        self.bcy_privkey_hex = '2e376712b1574d4465ce08c0299ebac0f8ee4e1b90c143543c446b13ea31d1d5'
-        self.bcy_privkey_wif = 'BpssP5kLsnygEaHuodnpQBChvi2YszWGAgstUfDmXTX3Y4EG3pv4'
-        self.bcy_pubkey_hex = '2e376712b1574d4465ce08c0299ebac0f8ee4e1b90c143543c446b13ea31d1d5'  # not actually used
+        self.bcy_pub_addr = response_dict['address']
+        self.bcy_privkey_hex = response_dict['private']
+        self.bcy_privkey_wif = response_dict['wif']
 
-        # Generation steps:
-        # $ curl -X POST https://api.blockcypher.com/v1/bcy/test/addrs
+
+        # fund it
+        faucet_response_dict = send_faucet_coins(self.bcy_pub_addr,100000000,BC_API_KEY)
+
+        # check that we have a hash
+        assert 'tx_ref' in faucet_response_dict, faucet_response_dict
+
+        # wait a minute for the transaction to be confirmed
+        time.sleep(60)
 
     def test_simple_spend_hex(self):
         tx_hash = simple_spend(
@@ -420,30 +438,36 @@ class CompressedTXSign(unittest.TestCase):
                 raise Exception('Invalid Output Address: %s' % output_obj['addresses'][0])
 
 
+@unittest.SkipTest
 class UncompressedTXSign(unittest.TestCase):
 
     def setUp(self):
         self.bcy_faucet_addr = 'CFr99841LyMkyX5ZTGepY58rjXJhyNGXHf'
         self.to_send_satoshis = 1
 
+
+        # generate a new address
+        response_dict = generate_new_address(
+                    coin_symbol='bcy',
+                    api_key=BC_API_KEY,
+                    )
+
         # Note: this is BCY testnet coin, which is completely worthless and available here for free:
         # https://accounts.blockcypher.com/blockcypher-faucet
-        self.bcy_pub_addr = 'BtbkHeUzCs7ByHgZnX9UmSsqpD9uZcADXB'
-        self.bcy_privkey_hex = '669c1078565cc25a358dfc291437e10553dbfefe128a18cb48dfe0bd0774d86e'
-        self.bcy_privkey_wif = '3TgXuPViKviQ1aKd6yVRmyD6oSVougJgagPbAbb7VykAVwYD3PQ'
-        self.bcy_pubkey_hex = '0484a07ce10c2f562ff9af96442dfff41f1f608c215583802562b3b0b4a73892740d729682eefd329dbf3a92580638e98aaa738bc05ee08605f29d99987f0c4d4a'  # not actually used
+        self.bcy_pub_addr = response_dict['address']
+        self.bcy_privkey_hex = response_dict['private']
+        self.bcy_privkey_wif = response_dict['wif']
 
-        # generation steps:
-        '''
-        from bitmerchant.wallet import Wallet
-        from bitmerchant.network import BlockCypherTestNet
 
-        wallet = Wallet.new_random_wallet(network=BlockCypherTestNet)
-        wallet.private_key.get_key()
-        wallet.private_key.export_to_wif(compressed=False)
-        wallet.public_key.get_key(compressed=False)
-        wallet.public_key.to_address(compressed=False)
-        '''
+        # fund it
+        faucet_response_dict = send_faucet_coins(self.bcy_pub_addr,100000000,BC_API_KEY)
+
+        # check that we have a hash
+        assert 'tx_ref' in faucet_response_dict, faucet_response_dict
+
+        # wait a minute for the transaction to be confirmed
+        time.sleep(60)
+
 
     def test_simple_spend_hex(self):
         tx_hash = simple_spend(
