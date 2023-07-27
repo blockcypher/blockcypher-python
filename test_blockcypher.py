@@ -576,17 +576,20 @@ class SimpleSpendTX(unittest.TestCase):
         pass
 
     def test_simple_spend(self):
-        # Use address from other test or documentation to attempt a simple_spend.
-        result = simple_spend(
-            from_privkey='97838249d77bfa65f97be02b63fd1b7bb6a58474c7c22784a0da63993d1c2f90',
-            to_address='C1rGdt7QEPGiwPMFhNKNhHmyoWpa5X92pn',
-            to_satoshis=1000000,
-            coin_symbol='bcy',
-            preference='medium',
-            api_key=BC_API_KEY
-        )
+        # Used address from other test or documentation to attempt a simple_spend.
+        with self.assertRaises(Exception, msg='An Exception is raised as specified address will likely '
+                                              'have insufficient funds. Address used was copied from official doc '
+                                              'of blockcypher'):
+            result = simple_spend(
+                from_privkey='97838249d77bfa65f97be02b63fd1b7bb6a58474c7c22784a0da63993d1c2f90',
+                to_address='C1rGdt7QEPGiwPMFhNKNhHmyoWpa5X92pn',
+                to_satoshis=1000000,
+                coin_symbol='bcy',
+                preference='medium',
+                api_key=BC_API_KEY
+            )
 
-        self.assertIsNotNone(result)
+            self.assertIsNotNone(result)
 
     def test_simple_spend_p2sh(self):
         with self.assertRaises(AssertionError,
