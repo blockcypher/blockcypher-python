@@ -18,6 +18,7 @@ from .utils import double_sha256
 from .utils import compress_txn_outputs
 from .utils import get_txn_outputs_dict
 from .utils import uses_only_hash_chars
+from .utils import delegate_task
 
 from .constants import COIN_SYMBOL_MAPPINGS
 
@@ -1624,7 +1625,7 @@ def broadcast_signed_transaction(unsigned_tx, signatures, pubkeys, coin_symbol='
 
 
 def simple_spend(from_privkey, to_address, to_satoshis, change_address=None,
-        privkey_is_compressed=True, min_confirmations=0, api_key=None, coin_symbol='btc'):
+        privkey_is_compressed=True, min_confirmations=0, api_key=None, coin_symbol='btc', preference: str = 'high'):
     '''
     Simple method to spend from one single-key address to another.
 
@@ -1639,6 +1640,9 @@ def simple_spend(from_privkey, to_address, to_satoshis, change_address=None,
 
     Compressed public keys (and their corresponding addresses) have been the standard since v0.6,
     set privkey_is_compressed=False if using uncompressed addresses.
+
+    Fee preferences can be passed as strings with the values 'low', 'medium', or 'high'.
+    Transaction with zero fees are unlikely to be added to a block and hence removed from choices.
 
     Note that this currently only supports spending from single key addresses.
     '''
@@ -1673,6 +1677,7 @@ def simple_spend(from_privkey, to_address, to_satoshis, change_address=None,
         verify_tosigntx=False,  # will verify in next step
         include_tosigntx=True,
         api_key=api_key,
+        preference=preference if preference in ('high', 'medium', 'low') else 'high'
         )
     logger.info('unsigned_tx: %s' % unsigned_tx)
 
@@ -1738,7 +1743,7 @@ def simple_spend(from_privkey, to_address, to_satoshis, change_address=None,
 
 
 def simple_spend_p2sh(all_from_pubkeys, from_privkeys_to_use, to_address, to_satoshis,
-        change_address=None, min_confirmations=0, api_key=None, coin_symbol='btc'):
+        change_address=None, min_confirmations=0, api_key=None, coin_symbol='btc', preference: str = 'high'):
     '''
     Simple method to spend from a p2sh address.
 
@@ -1746,6 +1751,9 @@ def simple_spend_p2sh(all_from_pubkeys, from_privkeys_to_use, to_address, to_sat
 
     from_privkeys_to_use is a list of all privkeys that will be used to sign the tx (and no more).
     If the address is a 2-of-3 multisig and you supply 1 (or 3) from_privkeys_to_use this will break.
+
+    Fee preferences can be passed as strings with the values 'low', 'medium', or 'high'.
+    Transaction with zero fees are unlikely to be added to a block and hence removed from choices.
 
     Signature takes place locally (client-side) after unsigned transaction is verified.
 
@@ -1809,6 +1817,7 @@ def simple_spend_p2sh(all_from_pubkeys, from_privkeys_to_use, to_address, to_sat
         verify_tosigntx=False,  # will verify in next step
         include_tosigntx=True,
         api_key=api_key,
+        preference=preference if preference in ('high', 'medium', 'low') else 'high'
         )
     logger.info('unsigned_tx: %s' % unsigned_tx)
 

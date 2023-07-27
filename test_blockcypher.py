@@ -7,7 +7,11 @@ from blockcypher import get_address_details, get_addresses_details
 from blockcypher import get_broadcast_transactions, get_transaction_details
 from blockcypher import list_wallet_names
 from blockcypher import simple_spend, simple_spend_p2sh
+
 from blockcypher.utils import is_valid_address, uses_only_hash_chars, to_base_unit, from_base_unit, format_crypto_units
+
+from blockcypher.utils import is_valid_address, uses_only_hash_chars
+
 from blockcypher.utils import is_valid_hash
 
 BC_API_KEY = os.getenv('BC_API_KEY')
@@ -588,6 +592,44 @@ class RegisterHDWallet(unittest.TestCase):
             coin_symbol='btc',
             api_key=BC_API_KEY,
             is_hd_wallet=True)
+
+
+class SimpleSpendTX(unittest.TestCase):
+
+    def setUp(self):
+        pass
+
+    def test_simple_spend(self):
+        # Used address from other test or documentation to attempt a simple_spend.
+        with self.assertRaises(Exception, msg='An Exception is raised as specified address will likely '
+                                              'have insufficient funds. Address used was copied from official doc '
+                                              'of blockcypher'):
+            result = simple_spend(
+                from_privkey='97838249d77bfa65f97be02b63fd1b7bb6a58474c7c22784a0da63993d1c2f90',
+                to_address='C1rGdt7QEPGiwPMFhNKNhHmyoWpa5X92pn',
+                to_satoshis=1000000,
+                coin_symbol='bcy',
+                preference='medium',
+                api_key=BC_API_KEY
+            )
+
+            self.assertIsNotNone(result)
+
+    def test_simple_spend_p2sh(self):
+        with self.assertRaises(AssertionError,
+                               msg='Raises an error as the `change_address`, `all_from_pubkeys`, '
+                                   'and `from_privkeys_to_use` are set to empty values.'):
+            result = simple_spend_p2sh(
+                all_from_pubkeys=[],
+                from_privkeys_to_use=[],
+                change_address=None,
+                min_confirmations=0,
+                to_address='C1rGdt7QEPGiwPMFhNKNhHmyoWpa5X92pn',
+                to_satoshis=1000000,
+                coin_symbol='bcy',
+                preference='medium',
+                api_key=BC_API_KEY
+            )
 
 
 if __name__ == '__main__':
