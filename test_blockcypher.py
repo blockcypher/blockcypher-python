@@ -1,20 +1,14 @@
+import os
 import unittest
 
-from blockcypher.utils import is_valid_hash, delegate_task
-
-from blockcypher import simple_spend, simple_spend_p2sh
-from blockcypher import get_broadcast_transactions, get_transaction_details
-from blockcypher import get_address_details, get_addresses_details
-from blockcypher import list_wallet_names
 from blockcypher import create_unsigned_tx, create_hd_wallet, derive_hd_address, delete_wallet
 from blockcypher import generate_new_address, generate_multisig_address
-from blockcypher import send_faucet_coins
-
+from blockcypher import get_address_details, get_addresses_details
+from blockcypher import get_broadcast_transactions, get_transaction_details
+from blockcypher import list_wallet_names
+from blockcypher import simple_spend, simple_spend_p2sh
 from blockcypher.utils import is_valid_address, uses_only_hash_chars
-
-import os
-import time
-
+from blockcypher.utils import is_valid_hash
 
 BC_API_KEY = os.getenv('BC_API_KEY')
 assert BC_API_KEY, 'Blockcypher API KEY Required for Unit Tests'
@@ -41,18 +35,18 @@ class GetAddressesDetails(unittest.TestCase):
 
     def test_get_addresses_details(self):
         addresses_details = get_addresses_details(
-                address_list=[
-                    # 2 of the first used BTC addresses
-                    '1HLoD9E4SDFFPDiYfNYnkBLQ85Y51J3Zb1',
-                    '1FvzCLoTPGANNjWoUo6jUGuAG3wg1w4YjR',
-                    ],
-                coin_symbol='btc',
-                txn_limit=None,
-                api_key=BC_API_KEY,
-                # This way the test result never changes:
-                before_bh=4,
-                include_script=True,
-                )
+            address_list=[
+                # 2 of the first used BTC addresses
+                '1HLoD9E4SDFFPDiYfNYnkBLQ85Y51J3Zb1',
+                '1FvzCLoTPGANNjWoUo6jUGuAG3wg1w4YjR',
+            ],
+            coin_symbol='btc',
+            txn_limit=None,
+            api_key=BC_API_KEY,
+            # This way the test result never changes:
+            before_bh=4,
+            include_script=True,
+        )
 
         assert len(addresses_details) == 2
 
@@ -60,14 +54,16 @@ class GetAddressesDetails(unittest.TestCase):
             address = addr_obj.get('address')
             if address == '1HLoD9E4SDFFPDiYfNYnkBLQ85Y51J3Zb1':
                 assert len(addr_obj['txrefs']) == 1
-                assert addr_obj['txrefs'][0]['tx_hash'] == '9b0fc92260312ce44e74ef369f5c66bbb85848f2eddd5a7a1cde251e54ccfdd5'
+                assert addr_obj['txrefs'][0][
+                           'tx_hash'] == '9b0fc92260312ce44e74ef369f5c66bbb85848f2eddd5a7a1cde251e54ccfdd5'
                 assert addr_obj['txrefs'][0]['block_height'] == 2
                 assert addr_obj['txrefs'][0]['confirmed'] is not None
                 assert addr_obj['txrefs'][0]['tx_input_n'] == -1
                 assert addr_obj['txrefs'][0]['tx_output_n'] == 0
             elif address == '1FvzCLoTPGANNjWoUo6jUGuAG3wg1w4YjR':
                 assert len(addresses_details[1]['txrefs']) == 1
-                assert addr_obj['txrefs'][0]['tx_hash'] == '999e1c837c76a1b7fbb7e57baf87b309960f5ffefbf2a9b95dd890602272f644'
+                assert addr_obj['txrefs'][0][
+                           'tx_hash'] == '999e1c837c76a1b7fbb7e57baf87b309960f5ffefbf2a9b95dd890602272f644'
                 assert addr_obj['txrefs'][0]['block_height'] == 3
                 assert addr_obj['txrefs'][0]['confirmed'] is not None
                 assert addr_obj['txrefs'][0]['tx_input_n'] == -1
@@ -78,7 +74,6 @@ class GetAddressesDetails(unittest.TestCase):
                 assert 'script' in txref, txref
 
 
-@unittest.SkipTest
 class CreateUnsignedTX(unittest.TestCase):
 
     def setUp(self):
@@ -87,74 +82,74 @@ class CreateUnsignedTX(unittest.TestCase):
     def test_create_basic_unsigned(self):
         # This address I previously sent funds to but threw out the private key
         result = create_unsigned_tx(
-                inputs=[
-                    {'address': 'BwvSPyMWVL1gkp5FZdrGXLpHj2ZJyJYLVB'},
-                    ],
-                outputs=[
-                    {
-                        'value': -1,
-                        # p2sh address for extra measure
-                        'address': 'Dbc9fnf1Kqct7zvfNTiwr6HjvDfPYaFSNg',
-                        },
-                    ],
-                change_address=None,
-                include_tosigntx=True,
-                # will test signature returned locally:
-                verify_tosigntx=True,
-                coin_symbol='bcy',
-                api_key=BC_API_KEY,
-                )
+            inputs=[
+                {'address': 'BwvSPyMWVL1gkp5FZdrGXLpHj2ZJyJYLVB'},
+            ],
+            outputs=[
+                {
+                    'value': -1,
+                    # p2sh address for extra measure
+                    'address': 'Dbc9fnf1Kqct7zvfNTiwr6HjvDfPYaFSNg',
+                },
+            ],
+            change_address=None,
+            include_tosigntx=True,
+            # will test signature returned locally:
+            verify_tosigntx=True,
+            coin_symbol='bcy',
+            api_key=BC_API_KEY,
+        )
         self.assertNotIn('errors', result)
 
     def test_create_ps2h_unsigned(self):
         # This address I previously sent funds to but threw out the private key
         result = create_unsigned_tx(
-                inputs=[
-                    {
-                        'pubkeys': [
-                            '036f5ca449944655b5c580ff6686bdd19123d1003b41f49f4b603f53e33f70a2d1',
-                            '03e93a754aa03dedbe032e5be051bce031db4337c48fbbcf970d1b27bb25a07964',
-                            '02582061ab1dba9d6b5b4e6e29f9da2bd590862f1b1e8566f405eb1d92898eafee',
-                            ],
-                        'script_type': 'multisig-2-of-3'
-                        },
+            inputs=[
+                {
+                    'pubkeys': [
+                        '036f5ca449944655b5c580ff6686bdd19123d1003b41f49f4b603f53e33f70a2d1',
+                        '03e93a754aa03dedbe032e5be051bce031db4337c48fbbcf970d1b27bb25a07964',
+                        '02582061ab1dba9d6b5b4e6e29f9da2bd590862f1b1e8566f405eb1d92898eafee',
                     ],
-                outputs=[
-                    {
-                        'value': -1,
-                        'address': 'CFr99841LyMkyX5ZTGepY58rjXJhyNGXHf',
-                        },
-                    ],
-                change_address=None,
-                include_tosigntx=True,
-                # will test signature returned locally:
-                verify_tosigntx=True,
-                coin_symbol='bcy',
-                api_key=BC_API_KEY,
-                )
+                    'script_type': 'multisig-2-of-3'
+                },
+            ],
+            outputs=[
+                {
+                    'value': -1,
+                    'address': 'CFr99841LyMkyX5ZTGepY58rjXJhyNGXHf',
+                },
+            ],
+            change_address=None,
+            include_tosigntx=True,
+            # will test signature returned locally:
+            verify_tosigntx=True,
+            coin_symbol='bcy',
+            api_key=BC_API_KEY,
+        )
         self.assertNotIn('errors', result)
 
     def test_create_nulldata_unsigned(self):
         # This address I previously sent funds to but threw out the private key
         result = create_unsigned_tx(
-                inputs=[
-                    {'address': 'BwvSPyMWVL1gkp5FZdrGXLpHj2ZJyJYLVB'},
-                    ],
-                outputs=[
-                    # embed some null-data
-                    {
-                        'value': 0,
-                        'script_type': 'null-data',
-                        'script': '6a06010203040506',
-                        },
-                    ],
-                change_address='CFr99841LyMkyX5ZTGepY58rjXJhyNGXHf',
-                include_tosigntx=True,
-                # will test signature returned locally:
-                verify_tosigntx=True,
-                coin_symbol='bcy',
-                api_key=BC_API_KEY,
-                )
+            inputs=[
+                {'address': 'BwvSPyMWVL1gkp5FZdrGXLpHj2ZJyJYLVB'},
+            ],
+            outputs=[
+                # embed some null-data
+                {
+                    'value': 0,
+                    'script_type': 'null-data',
+                    'script': '6a06010203040506',
+                },
+            ],
+            change_address='CFr99841LyMkyX5ZTGepY58rjXJhyNGXHf',
+            include_tosigntx=True,
+            # will test signature returned locally:
+            verify_tosigntx=True,
+            coin_symbol='bcy',
+            api_key=BC_API_KEY,
+        )
         self.assertNotIn('errors', result)
 
     def test_create_from_inputs(self):
@@ -199,22 +194,22 @@ class CreateUnsignedTX(unittest.TestCase):
 
 class GetAddressDetails(unittest.TestCase):
 
-    @unittest.SkipTest
     def test_fetching_unspents(self):
         # This address I previously sent funds to but threw out the private key
         address_details = get_address_details(
-                address='C3B3dU12vpCVh2jfmGFdqLe5KWxtZfXW8j',
-                coin_symbol='bcy',
-                txn_limit=None,
-                api_key=BC_API_KEY,
-                unspent_only=True,
-                show_confidence=False,  # don't return confidence info
-                # This way the test result never changes:
-                before_bh=592822,
-                include_script=True,
-                )
+            address='C3B3dU12vpCVh2jfmGFdqLe5KWxtZfXW8j',
+            coin_symbol='bcy',
+            txn_limit=None,
+            api_key=BC_API_KEY,
+            unspent_only=True,
+            show_confidence=False,  # don't return confidence info
+            # This way the test result never changes:
+            before_bh=592822,
+            include_script=True,
+        )
         assert len(address_details['txrefs']) == 1
-        assert address_details['txrefs'][0]['tx_hash'] == 'b12c4b0ab466c9bbd05da88b3be1a13229c85a6edd2869e01e6a557c8a5cca2b'
+        assert address_details['txrefs'][0][
+                   'tx_hash'] == 'b12c4b0ab466c9bbd05da88b3be1a13229c85a6edd2869e01e6a557c8a5cca2b'
         assert address_details['txrefs'][0]['block_height'] == 592821
         assert address_details['txrefs'][0]['tx_input_n'] == -1
         assert address_details['txrefs'][0]['tx_output_n'] == 0
@@ -227,18 +222,19 @@ class GetAddressDetails(unittest.TestCase):
 
     def test_get_address_details_before(self):
         address_details = get_address_details(
-                address='1HLoD9E4SDFFPDiYfNYnkBLQ85Y51J3Zb1',
-                coin_symbol='btc',
-                txn_limit=None,
-                api_key=BC_API_KEY,
-                show_confidence=False,  # don't return confidence info
-                # This way the test result never changes:
-                before_bh=4,
-                )
+            address='1HLoD9E4SDFFPDiYfNYnkBLQ85Y51J3Zb1',
+            coin_symbol='btc',
+            txn_limit=None,
+            api_key=BC_API_KEY,
+            show_confidence=False,  # don't return confidence info
+            # This way the test result never changes:
+            before_bh=4,
+        )
 
         # first TX
         assert len(address_details['txrefs']) == 1
-        assert address_details['txrefs'][0]['tx_hash'] == '9b0fc92260312ce44e74ef369f5c66bbb85848f2eddd5a7a1cde251e54ccfdd5'
+        assert address_details['txrefs'][0][
+                   'tx_hash'] == '9b0fc92260312ce44e74ef369f5c66bbb85848f2eddd5a7a1cde251e54ccfdd5'
         assert address_details['txrefs'][0]['block_height'] == 2
         assert address_details['txrefs'][0]['confirmed'] is not None
         assert address_details['txrefs'][0]['tx_input_n'] == -1
@@ -246,17 +242,18 @@ class GetAddressDetails(unittest.TestCase):
 
     def test_get_address_details_after(self):
         address_details = get_address_details(
-                address='1HLoD9E4SDFFPDiYfNYnkBLQ85Y51J3Zb1',
-                coin_symbol='btc',
-                api_key=BC_API_KEY,
-                show_confidence=False,  # don't return confidence info
-                # Exclude first result
-                after_bh=4,
-                txn_limit=1,
-                )
+            address='1HLoD9E4SDFFPDiYfNYnkBLQ85Y51J3Zb1',
+            coin_symbol='btc',
+            api_key=BC_API_KEY,
+            show_confidence=False,  # don't return confidence info
+            # Exclude first result
+            after_bh=4,
+            txn_limit=1,
+        )
 
         assert len(address_details['txrefs']) == 1
-        assert address_details['txrefs'][0]['tx_hash'] != '9b0fc92260312ce44e74ef369f5c66bbb85848f2eddd5a7a1cde251e54ccfdd5'
+        assert address_details['txrefs'][0][
+                   'tx_hash'] != '9b0fc92260312ce44e74ef369f5c66bbb85848f2eddd5a7a1cde251e54ccfdd5'
         assert address_details['txrefs'][0]['block_height'] != 2
 
 
@@ -265,21 +262,21 @@ class GetUnconfirmedTXInfo(unittest.TestCase):
     def test_unconfirmed_tx_confidence(self):
         # fetch a recent tx hash (assume BTC will always have an unconfirmed TX):
         recent_tx_hash = get_broadcast_transactions(
-                coin_symbol='btc',
-                api_key=BC_API_KEY,
-                limit=1,
-                )[0]['hash']
+            coin_symbol='btc',
+            api_key=BC_API_KEY,
+            limit=1,
+        )[0]['hash']
         # get confidence info for it
         tx_details = get_transaction_details(
-                tx_hash=recent_tx_hash,
-                coin_symbol='btc',
-                limit=1,
-                tx_input_offset=None,
-                tx_output_offset=None,
-                include_hex=False,
-                confidence_only=True,
-                api_key=BC_API_KEY,
-                )
+            tx_hash=recent_tx_hash,
+            coin_symbol='btc',
+            limit=1,
+            tx_input_offset=None,
+            tx_output_offset=None,
+            include_hex=False,
+            confidence_only=True,
+            api_key=BC_API_KEY,
+        )
 
         assert 'receive_count' in tx_details, tx_details
         assert 'preference' in tx_details, tx_details
@@ -288,51 +285,37 @@ class GetUnconfirmedTXInfo(unittest.TestCase):
         assert 0 <= tx_details['confidence'] <= 1, tx_details
 
 
-@unittest.SkipTest
 class CompressedTXSign(unittest.TestCase):
 
     def setUp(self):
         self.bcy_faucet_addr = 'CFr99841LyMkyX5ZTGepY58rjXJhyNGXHf'
         self.to_send_satoshis = 1
 
-
-        # generate a new address
-        response_dict = generate_new_address(
-                    coin_symbol='bcy',
-                    api_key=BC_API_KEY,
-                    )
-
         # Note: this is BCY testnet coin, which is completely worthless and available here for free:
         # https://accounts.blockcypher.com/blockcypher-faucet
-        self.bcy_pub_addr = response_dict['address']
-        self.bcy_privkey_hex = response_dict['private']
-        self.bcy_privkey_wif = response_dict['wif']
+        self.bcy_pub_addr = 'CCf3dWFULG2JHyYjmLixBSWGxF9YwTGaae'
+        self.bcy_privkey_hex = '2e376712b1574d4465ce08c0299ebac0f8ee4e1b90c143543c446b13ea31d1d5'
+        self.bcy_privkey_wif = 'BpssP5kLsnygEaHuodnpQBChvi2YszWGAgstUfDmXTX3Y4EG3pv4'
+        self.bcy_pubkey_hex = '2e376712b1574d4465ce08c0299ebac0f8ee4e1b90c143543c446b13ea31d1d5'  # not actually used
 
-
-        # fund it
-        faucet_response_dict = send_faucet_coins(self.bcy_pub_addr,100000000,BC_API_KEY)
-
-        # check that we have a hash
-        assert 'tx_ref' in faucet_response_dict, faucet_response_dict
-
-        # wait a minute for the transaction to be confirmed
-        time.sleep(60)
+        # Generation steps:
+        # $ curl -X POST https://api.blockcypher.com/v1/bcy/test/addrs
 
     def test_simple_spend_hex(self):
         tx_hash = simple_spend(
-                from_privkey=self.bcy_privkey_hex,
-                to_address=self.bcy_faucet_addr,
-                to_satoshis=self.to_send_satoshis,
-                privkey_is_compressed=True,
-                api_key=BC_API_KEY,
-                coin_symbol='bcy',
-                )
+            from_privkey=self.bcy_privkey_hex,
+            to_address=self.bcy_faucet_addr,
+            to_satoshis=self.to_send_satoshis,
+            privkey_is_compressed=True,
+            api_key=BC_API_KEY,
+            coin_symbol='bcy',
+        )
         # confirm details (esp that change sent back to sender address)
         tx_details = get_transaction_details(
-                tx_hash=tx_hash,
-                coin_symbol='bcy',
-                api_key=BC_API_KEY,
-                )
+            tx_hash=tx_hash,
+            coin_symbol='bcy',
+            api_key=BC_API_KEY,
+        )
 
         for input_obj in tx_details['inputs']:
             assert len(input_obj['addresses']) == 1, input_obj['addresses']
@@ -354,19 +337,19 @@ class CompressedTXSign(unittest.TestCase):
 
     def test_simple_spend_wif(self):
         tx_hash = simple_spend(
-                from_privkey=self.bcy_privkey_wif,
-                to_address=self.bcy_faucet_addr,
-                to_satoshis=self.to_send_satoshis,
-                privkey_is_compressed=True,
-                api_key=BC_API_KEY,
-                coin_symbol='bcy',
-                )
+            from_privkey=self.bcy_privkey_wif,
+            to_address=self.bcy_faucet_addr,
+            to_satoshis=self.to_send_satoshis,
+            privkey_is_compressed=True,
+            api_key=BC_API_KEY,
+            coin_symbol='bcy',
+        )
         # confirm details (esp that change sent back to sender address)
         tx_details = get_transaction_details(
-                tx_hash=tx_hash,
-                coin_symbol='bcy',
-                api_key=BC_API_KEY,
-                )
+            tx_hash=tx_hash,
+            coin_symbol='bcy',
+            api_key=BC_API_KEY,
+        )
 
         for input_obj in tx_details['inputs']:
             assert len(input_obj['addresses']) == 1, input_obj['addresses']
@@ -390,33 +373,33 @@ class CompressedTXSign(unittest.TestCase):
         from_addr = 'Dpuo6iMtoZW3oNsNuALHTEyyw55fBMxiqE'
         # keys that went into building from_addr
         all_from_pubkeys = [
-                '022d1d33c917e0c1ca677b8c6d47ee55b59880630afe8290517fc7de640ce257f5',
-                '038a5f1bd7eeb34f53a014f81bfd50869cf6d972ee2bef078f6b67d4c8dd9432b2',
-                '033796355300f6a50602f701fcf06baebf8b160553e100852703a9363522227a53',
-                ]
+            '022d1d33c917e0c1ca677b8c6d47ee55b59880630afe8290517fc7de640ce257f5',
+            '038a5f1bd7eeb34f53a014f81bfd50869cf6d972ee2bef078f6b67d4c8dd9432b2',
+            '033796355300f6a50602f701fcf06baebf8b160553e100852703a9363522227a53',
+        ]
         # 2 of 3 of the corresponding keys above
         from_privkeys_to_use = [
-                '57067d2852b5f92d18d82a09c2b658184eb85a38fe47adb8db85203a42f91e8f',
-                'c4bbc144bc5351288aa46c694a32eceaff739945510cca8bdd924d1c660ff1f4'
-                ]
+            '57067d2852b5f92d18d82a09c2b658184eb85a38fe47adb8db85203a42f91e8f',
+            'c4bbc144bc5351288aa46c694a32eceaff739945510cca8bdd924d1c660ff1f4'
+        ]
 
         tx_hash = simple_spend_p2sh(
-                all_from_pubkeys=all_from_pubkeys,
-                from_privkeys_to_use=from_privkeys_to_use,
-                to_address=self.bcy_faucet_addr,
-                to_satoshis=1,
-                # change addr must be explicit:
-                change_address=from_addr,
-                coin_symbol='bcy',
-                api_key=BC_API_KEY,
-                )
+            all_from_pubkeys=all_from_pubkeys,
+            from_privkeys_to_use=from_privkeys_to_use,
+            to_address=self.bcy_faucet_addr,
+            to_satoshis=1,
+            # change addr must be explicit:
+            change_address=from_addr,
+            coin_symbol='bcy',
+            api_key=BC_API_KEY,
+        )
 
         # confirm details (esp that change sent back to sender address)
         tx_details = get_transaction_details(
-                tx_hash=tx_hash,
-                coin_symbol='bcy',
-                api_key=BC_API_KEY,
-                )
+            tx_hash=tx_hash,
+            coin_symbol='bcy',
+            api_key=BC_API_KEY,
+        )
 
         for input_obj in tx_details['inputs']:
             assert len(input_obj['addresses']) == 1, input_obj['addresses']
@@ -438,52 +421,46 @@ class CompressedTXSign(unittest.TestCase):
                 raise Exception('Invalid Output Address: %s' % output_obj['addresses'][0])
 
 
-@unittest.SkipTest
 class UncompressedTXSign(unittest.TestCase):
 
     def setUp(self):
         self.bcy_faucet_addr = 'CFr99841LyMkyX5ZTGepY58rjXJhyNGXHf'
         self.to_send_satoshis = 1
 
-
-        # generate a new address
-        response_dict = generate_new_address(
-                    coin_symbol='bcy',
-                    api_key=BC_API_KEY,
-                    )
-
         # Note: this is BCY testnet coin, which is completely worthless and available here for free:
         # https://accounts.blockcypher.com/blockcypher-faucet
-        self.bcy_pub_addr = response_dict['address']
-        self.bcy_privkey_hex = response_dict['private']
-        self.bcy_privkey_wif = response_dict['wif']
+        self.bcy_pub_addr = 'BtbkHeUzCs7ByHgZnX9UmSsqpD9uZcADXB'
+        self.bcy_privkey_hex = '669c1078565cc25a358dfc291437e10553dbfefe128a18cb48dfe0bd0774d86e'
+        self.bcy_privkey_wif = '3TgXuPViKviQ1aKd6yVRmyD6oSVougJgagPbAbb7VykAVwYD3PQ'
+        self.bcy_pubkey_hex = '0484a07ce10c2f562ff9af96442dfff41f1f608c215583802562b3b0b4a73892740d729682eefd329dbf3a92580638e98aaa738bc05ee08605f29d99987f0c4d4a'  # not actually used
 
+        # generation steps:
+        '''
+        from bitmerchant.wallet import Wallet
+        from bitmerchant.network import BlockCypherTestNet
 
-        # fund it
-        faucet_response_dict = send_faucet_coins(self.bcy_pub_addr,100000000,BC_API_KEY)
-
-        # check that we have a hash
-        assert 'tx_ref' in faucet_response_dict, faucet_response_dict
-
-        # wait a minute for the transaction to be confirmed
-        time.sleep(60)
-
+        wallet = Wallet.new_random_wallet(network=BlockCypherTestNet)
+        wallet.private_key.get_key()
+        wallet.private_key.export_to_wif(compressed=False)
+        wallet.public_key.get_key(compressed=False)
+        wallet.public_key.to_address(compressed=False)
+        '''
 
     def test_simple_spend_hex(self):
         tx_hash = simple_spend(
-                from_privkey=self.bcy_privkey_hex,
-                to_address=self.bcy_faucet_addr,
-                to_satoshis=self.to_send_satoshis,
-                privkey_is_compressed=False,
-                api_key=BC_API_KEY,
-                coin_symbol='bcy',
-                )
+            from_privkey=self.bcy_privkey_hex,
+            to_address=self.bcy_faucet_addr,
+            to_satoshis=self.to_send_satoshis,
+            privkey_is_compressed=False,
+            api_key=BC_API_KEY,
+            coin_symbol='bcy',
+        )
         # confirm details (esp that change sent back to sender address)
         tx_details = get_transaction_details(
-                tx_hash=tx_hash,
-                coin_symbol='bcy',
-                api_key=BC_API_KEY,
-                )
+            tx_hash=tx_hash,
+            coin_symbol='bcy',
+            api_key=BC_API_KEY,
+        )
 
         for input_obj in tx_details['inputs']:
             assert len(input_obj['addresses']) == 1, input_obj['addresses']
@@ -505,19 +482,19 @@ class UncompressedTXSign(unittest.TestCase):
 
     def test_simple_spend_wif(self):
         tx_hash = simple_spend(
-                from_privkey=self.bcy_privkey_wif,
-                to_address=self.bcy_faucet_addr,
-                to_satoshis=self.to_send_satoshis,
-                privkey_is_compressed=False,
-                api_key=BC_API_KEY,
-                coin_symbol='bcy',
-                )
+            from_privkey=self.bcy_privkey_wif,
+            to_address=self.bcy_faucet_addr,
+            to_satoshis=self.to_send_satoshis,
+            privkey_is_compressed=False,
+            api_key=BC_API_KEY,
+            coin_symbol='bcy',
+        )
         # confirm details (esp that change sent back to sender address)
         tx_details = get_transaction_details(
-                tx_hash=tx_hash,
-                coin_symbol='bcy',
-                api_key=BC_API_KEY,
-                )
+            tx_hash=tx_hash,
+            coin_symbol='bcy',
+            api_key=BC_API_KEY,
+        )
 
         for input_obj in tx_details['inputs']:
             assert len(input_obj['addresses']) == 1, input_obj['addresses']
@@ -543,9 +520,9 @@ class GenerateAddressServerSide(unittest.TestCase):
     def test_generate_single_addr(self):
         for coin_symbol in ('btc', 'btc-testnet', 'doge', 'dash', 'ltc', 'bcy'):
             response_dict = generate_new_address(
-                    coin_symbol=coin_symbol,
-                    api_key=BC_API_KEY,
-                    )
+                coin_symbol=coin_symbol,
+                api_key=BC_API_KEY,
+            )
             assert is_valid_address(response_dict['address']), response_dict
             assert uses_only_hash_chars(response_dict['private']), response_dict
             assert uses_only_hash_chars(response_dict['public']), response_dict
@@ -554,15 +531,15 @@ class GenerateAddressServerSide(unittest.TestCase):
     def test_generate_multisig_addr(self):
         # http://www.soroushjp.com/2014/12/20/bitcoin-multisig-the-hard-way-understanding-raw-multisignature-bitcoin-transactions/
         response_dict = generate_multisig_address(
-                pubkey_list=[
-                    '04a882d414e478039cd5b52a92ffb13dd5e6bd4515497439dffd691a0f12af9575fa349b5694ed3155b136f09e63975a1700c9f4d4df849323dac06cf3bd6458cd',
-                    '046ce31db9bdd543e72fe3039a1f1c047dab87037c36a669ff90e28da1848f640de68c2fe913d363a51154a0c62d7adea1b822d05035077418267b1a1379790187',
-                    '0411ffd36c70776538d079fbae117dc38effafb33304af83ce4894589747aee1ef992f63280567f52f5ba870678b4ab4ff6c8ea600bd217870a8b4f1f09f3a8e83'
-                    ],
-                script_type='multisig-2-of-3',
-                coin_symbol='btc',
-                api_key=BC_API_KEY,
-                )
+            pubkey_list=[
+                '04a882d414e478039cd5b52a92ffb13dd5e6bd4515497439dffd691a0f12af9575fa349b5694ed3155b136f09e63975a1700c9f4d4df849323dac06cf3bd6458cd',
+                '046ce31db9bdd543e72fe3039a1f1c047dab87037c36a669ff90e28da1848f640de68c2fe913d363a51154a0c62d7adea1b822d05035077418267b1a1379790187',
+                '0411ffd36c70776538d079fbae117dc38effafb33304af83ce4894589747aee1ef992f63280567f52f5ba870678b4ab4ff6c8ea600bd217870a8b4f1f09f3a8e83'
+            ],
+            script_type='multisig-2-of-3',
+            coin_symbol='btc',
+            api_key=BC_API_KEY,
+        )
         assert response_dict['address'] == '347N1Thc213QqfYCz3PZkjoJpNv5b14kBd', response_dict
 
 
@@ -593,15 +570,42 @@ class RegisterHDWallet(unittest.TestCase):
             is_hd_wallet=True)
 
 
-class TestDelegateTask(unittest.TestCase):
+class SimpleSpendTX(unittest.TestCase):
 
-    def test_delegate(self):
-        tranx = 'f854aebae95150b379cc1187d848d58225f3c4157fe992bcd166f58bd5063449'
-        result = delegate_task(get_transaction_details, workers=2, use_max=False, args=[tranx])
-        self.assertIsNotNone(result)
-        self.assertNotIn('errors', result)
-        self.assertIn('hash', result)
-        self.assertEquals(result['hash'], tranx)
+    def setUp(self):
+        pass
+
+    def test_simple_spend(self):
+        # Used address from other test or documentation to attempt a simple_spend.
+        with self.assertRaises(Exception, msg='An Exception is raised as specified address will likely '
+                                              'have insufficient funds. Address used was copied from official doc '
+                                              'of blockcypher'):
+            result = simple_spend(
+                from_privkey='97838249d77bfa65f97be02b63fd1b7bb6a58474c7c22784a0da63993d1c2f90',
+                to_address='C1rGdt7QEPGiwPMFhNKNhHmyoWpa5X92pn',
+                to_satoshis=1000000,
+                coin_symbol='bcy',
+                preference='medium',
+                api_key=BC_API_KEY
+            )
+
+            self.assertIsNotNone(result)
+
+    def test_simple_spend_p2sh(self):
+        with self.assertRaises(AssertionError,
+                               msg='Raises an error as the `change_address`, `all_from_pubkeys`, '
+                                   'and `from_privkeys_to_use` are set to empty values.'):
+            result = simple_spend_p2sh(
+                all_from_pubkeys=[],
+                from_privkeys_to_use=[],
+                change_address=None,
+                min_confirmations=0,
+                to_address='C1rGdt7QEPGiwPMFhNKNhHmyoWpa5X92pn',
+                to_satoshis=1000000,
+                coin_symbol='bcy',
+                preference='medium',
+                api_key=BC_API_KEY
+            )
 
 
 if __name__ == '__main__':
