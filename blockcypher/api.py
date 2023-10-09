@@ -54,8 +54,16 @@ logger.addHandler(ch)
 '''
 
 
-class RateLimitError(RuntimeError):
+class BlockcypherAPIError(Exception):
+    pass
+
+
+class RateLimitError(BlockcypherAPIError):
     ''' Raised when the library makes too many API calls '''
+    pass
+
+
+class TransactionNotFoundError(BlockcypherAPIError):
     pass
 
 
@@ -464,6 +472,10 @@ def get_transaction_details(tx_hash, coin_symbol='btc', limit=None, tx_input_off
 
         # format this string as a datetime object
         response_dict['received'] = parser.parse(response_dict['received'])
+
+    if "error" in response_dict:
+        if response_dict["error"].startswith("Transaction") and response_dict["error"].endswith("not found."):
+            raise TransactionNotFoundError(response_dict["error"])
 
     return response_dict
 
