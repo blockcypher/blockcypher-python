@@ -1,0 +1,39 @@
+name: Continuous Integration
+
+# Trigger the workflow on push or pull request on the repo (BC_API_KEY cannot be accessible to forked repo)
+on: [push]
+
+jobs:
+  python2:
+    runs-on: ubuntu-latest
+    name: Python 2.x Tests
+    steps:
+      - uses: actions/checkout@v1
+      - name: Setup python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 2.x
+          architecture: x64
+      - name: Install dependencies
+        run: python setup.py develop
+      - name: Run test
+        run: python test_blockcypher.py
+        env:
+          BC_API_KEY: ${{ secrets.BC_API_KEY }}
+  python3:
+    needs: python2
+    runs-on: ubuntu-latest
+    name: Python 3.x Tests
+    steps:
+      - uses: actions/checkout@v1
+      - name: Setup python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.x
+          architecture: x64
+      - name: Install dependencies
+        run: python setup.py develop
+      - name: Run test
+        run: python test_blockcypher.py
+        env:
+          BC_API_KEY: ${{ secrets.BC_API_KEY }}
